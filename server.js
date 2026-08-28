@@ -17,16 +17,19 @@ const BASE_URL =
   process.env.BASE_URL || 'https://conteo-rt2c.onrender.com';
 
 const REDIRECT_URI =
-  process.env.ML_REDIRECT_URI || `${BASE_URL}/auth/callback`;
+  process.env.ML_REDIRECT_URI ||
+  `${BASE_URL}/auth/callback`;
 
 const CLIENT_ID = process.env.ML_CLIENT_ID;
 const CLIENT_SECRET = process.env.ML_CLIENT_SECRET;
 
 const AUTH_DOMAIN =
-  process.env.ML_AUTH_DOMAIN || 'https://auth.mercadolibre.com.ar';
+  process.env.ML_AUTH_DOMAIN ||
+  'https://auth.mercadolibre.com.ar';
 
 const API_BASE =
-  process.env.ML_API_BASE || 'https://api.mercadolibre.com';
+  process.env.ML_API_BASE ||
+  'https://api.mercadolibre.com';
 
 const SYNC_API_KEY = process.env.SYNC_API_KEY;
 
@@ -35,7 +38,9 @@ const TOKEN_FILE =
   path.join(__dirname, 'data', 'tokens.json');
 
 if (!fs.existsSync(path.dirname(TOKEN_FILE))) {
-  fs.mkdirSync(path.dirname(TOKEN_FILE), { recursive: true });
+  fs.mkdirSync(path.dirname(TOKEN_FILE), {
+    recursive: true
+  });
 }
 
 let oauthState = null;
@@ -44,7 +49,9 @@ let tokenCache = loadTokens();
 
 function loadTokens() {
   try {
-    return JSON.parse(fs.readFileSync(TOKEN_FILE, 'utf8'));
+    return JSON.parse(
+      fs.readFileSync(TOKEN_FILE, 'utf8')
+    );
   } catch {
     return null;
   }
@@ -281,13 +288,10 @@ async function mlFetch(
 }
 
 /*
- * API KEY
- *
- * Se mantiene para accesos externos.
- *
- * El frontend de Conteonix NO necesita enviarla,
- * porque ya está dentro de nuestra propia aplicación.
- */
+  API KEY
+
+  La mantenemos para accesos externos.
+*/
 function apiKey(req, res, next) {
   if (!SYNC_API_KEY) {
     return next();
@@ -308,11 +312,11 @@ function apiKey(req, res, next) {
 }
 
 /*
- * Para el frontend interno.
- *
- * Permite que los botones de Conteonix llamen
- * a las APIs sin tener que exponer la API key.
- */
+  FRONTEND INTERNO
+
+  Los botones de Conteonix pueden usar
+  estas rutas sin exponer la API key.
+*/
 function internalApi(req, res, next) {
   next();
 }
@@ -374,10 +378,10 @@ app.get('/auth/login', (req, res) => {
     res.redirect(url.toString());
 
   } catch (e) {
-    res.status(500).send(
-      `<h1>Error de configuración</h1>
-      <pre>${escapeHtml(e.message)}</pre>`
-    );
+    res.status(500).send(`
+      <h1>Error de configuración</h1>
+      <pre>${escapeHtml(e.message)}</pre>
+    `);
   }
 });
 
@@ -386,30 +390,34 @@ app.get('/auth/callback', async (req, res) => {
     requireConfig();
 
     if (req.query.error) {
-      return res.status(400).send(
-        `<h1>Mercado Libre rechazó la autorización</h1>
-        <pre>${escapeHtml(
-          req.query.error_description ||
-          req.query.error
-        )}</pre>`
-      );
+      return res.status(400).send(`
+        <h1>Mercado Libre rechazó la autorización</h1>
+        <pre>
+          ${escapeHtml(
+            req.query.error_description ||
+            req.query.error
+          )}
+        </pre>
+      `);
     }
 
     if (
       !req.query.state ||
       req.query.state !== oauthState
     ) {
-      return res.status(400).send(
-        '<h1>Error de seguridad</h1>' +
-        '<p>El state no coincide. ' +
-        'Volvé a iniciar la conexión.</p>'
-      );
+      return res.status(400).send(`
+        <h1>Error de seguridad</h1>
+        <p>
+          El state no coincide.
+          Volvé a iniciar la conexión.
+        </p>
+      `);
     }
 
     if (!req.query.code) {
-      return res.status(400).send(
-        '<h1>Falta el code</h1>'
-      );
+      return res.status(400).send(`
+        <h1>Falta el code</h1>
+      `);
     }
 
     await exchangeCode(req.query.code);
@@ -425,14 +433,19 @@ app.get('/auth/callback', async (req, res) => {
       e.details || e
     );
 
-    res.status(
-      e.status || 500
-    ).send(
-      `<h1>No se pudo conectar Mercado Libre</h1>
-      <pre>${escapeHtml(e.message)}</pre>
-      <p>Revisá especialmente ML_CLIENT_ID,
-      ML_CLIENT_SECRET y ML_REDIRECT_URI.</p>`
-    );
+    res.status(e.status || 500).send(`
+      <h1>No se pudo conectar Mercado Libre</h1>
+
+      <pre>
+        ${escapeHtml(e.message)}
+      </pre>
+
+      <p>
+        Revisá ML_CLIENT_ID,
+        ML_CLIENT_SECRET y
+        ML_REDIRECT_URI.
+      </p>
+    `);
   }
 });
 
@@ -469,11 +482,6 @@ app.get('/api/status', async (req, res) => {
   res.json(result);
 });
 
-/*
- * VER VENTAS
- *
- * El frontend de Conteonix entra directamente.
- */
 app.get(
   '/api/orders',
   internalApi,
@@ -531,9 +539,7 @@ app.get(
         e.details || e
       );
 
-      res.status(
-        e.status || 500
-      ).json({
+      res.status(e.status || 500).json({
         ok: false,
         error: e.message,
         details: e.details || null
@@ -542,9 +548,6 @@ app.get(
   }
 );
 
-/*
- * SINCRONIZAR
- */
 app.post(
   '/api/sync',
   internalApi,
@@ -600,9 +603,7 @@ app.post(
         e.details || e
       );
 
-      res.status(
-        e.status || 500
-      ).json({
+      res.status(e.status || 500).json({
         ok: false,
         error: e.message,
         details: e.details || null
@@ -626,9 +627,7 @@ app.post(
     res.json({
       ok: true,
       message:
-        'Credenciales locales eliminadas. ' +
-        'La autorización en Mercado Libre ' +
-        'no se revoca desde este endpoint.'
+        'Credenciales locales eliminadas.'
     });
   }
 );
@@ -646,11 +645,8 @@ function escapeHtml(s) {
   );
 }
 
-app.listen(
-  PORT,
-  () => {
-    console.log(
-      `Conteonix escuchando en puerto ${PORT}`
-    );
-  }
-);
+app.listen(PORT, () => {
+  console.log(
+    `Conteonix escuchando en puerto ${PORT}`
+  );
+});
