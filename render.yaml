@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: conteonix
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: ML_CLIENT_ID
+        value: "686055239506289"
+      - key: ML_CLIENT_SECRET
+        sync: false
+      - key: ML_AUTH_DOMAIN
+        value: "https://auth.mercadolibre.com.ar"
+      - key: ML_API_BASE
+        value: "https://api.mercadolibre.com"
+      - key: ML_REDIRECT_URI
+        value: "https://conteonix.onrender.com/auth/callback"
+      - key: BASE_URL
+        value: "https://conteonix.onrender.com"
+      - key: SYNC_API_KEY
+        sync: false
