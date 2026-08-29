@@ -3,393 +3,324 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conteonix - Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Conteonix - Control de Mercado Libre</title>
   <style>
     :root {
-      --bg: #090a0f;
-      --card-bg: #12131a;
-      --card-border: #1f222e;
-      --pink-glow: rgba(236, 72, 153, 0.4);
-      --pink-accent: #ec4899;
-      --green-badge: #84cc16;
-      --text-main: #ffffff;
-      --text-muted: #8b92a5;
+      --bg: #0d0a12;
+      --card-bg: #15101e;
+      --card-border: rgba(236, 72, 153, 0.25);
+      --pink: #ec4899;
+      --pink-glow: rgba(236, 72, 153, 0.35);
+      --green: #00e676;
+      --green-glow: rgba(0, 230, 118, 0.2);
+      --red: #ff5252;
+      --text: #ffffff;
+      --muted: #8b8599;
     }
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
     body {
       background-color: var(--bg);
-      color: var(--text-main);
+      color: var(--text);
       margin: 0;
       padding: 20px;
       display: flex;
       justify-content: center;
     }
 
-    .dashboard-container {
+    .container {
       width: 100%;
-      max-width: 1280px;
-      background: #0d0e15;
+      max-width: 1200px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card-glow {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 16px;
       padding: 24px;
-      border: 1px solid rgba(236, 72, 153, 0.3);
-      box-shadow: 0 0 35px var(--pink-glow);
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .header-title {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .date-picker {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-muted);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-    }
-
-    .main-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      margin-bottom: 30px;
-    }
-
-    @media (max-width: 900px) {
-      .main-grid { grid-template-columns: 1fr; }
-    }
-
-    .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 12px;
-      color: var(--text-main);
-    }
-
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
-      padding: 14px;
+      box-shadow: 0 0 25px var(--pink-glow);
       position: relative;
     }
 
-    .card-header {
+    /* Header & Period Tabs */
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: var(--text-muted);
-      font-size: 12px;
-      font-weight: 500;
-      margin-bottom: 8px;
+      margin-bottom: 20px;
     }
 
-    .card-info {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 1px solid var(--text-muted);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 9px;
-      cursor: pointer;
-    }
+    .title-group { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: bold; }
+    .badge-live { background: var(--green-glow); color: var(--green); border: 1px solid var(--green); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+    .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
 
-    .card-value {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
+    .period-tabs { display: flex; background: #00000033; padding: 4px; border-radius: 8px; gap: 5px; }
+    .btn-tab { background: transparent; border: none; color: var(--muted); padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+    .btn-tab.active { background: #ffffff1a; color: var(--text); }
 
-    .chart-container {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-    }
+    /* Summary Grid */
+    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px; }
+    .metric-box h4 { margin: 0 0 5px; font-size: 12px; color: var(--muted); text-transform: uppercase; }
+    .metric-box .num { font-size: 28px; font-weight: 800; }
+    .metric-box .num.green { color: var(--green); }
 
-    .chart-tabs {
-      display: flex;
-      justify-content: flex-end;
-      gap: 20px;
-      margin-bottom: 15px;
-    }
+    /* Desglose de barras de comisiones */
+    .sale-breakdown { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
+    .breakdown-row { display: grid; grid-template-columns: 130px 1fr 100px; align-items: center; font-size: 13px; }
+    .bar-bg { background: #221a30; height: 10px; border-radius: 5px; overflow: hidden; width: 100%; }
+    .bar-fill { height: 100%; border-radius: 5px; background: var(--pink); }
+    .bar-fill.green { background: var(--green); }
+    .val-text { text-align: right; font-weight: bold; }
 
-    .tab {
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+    /* Grid Secundaria */
+    .two-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 850px) { .two-cols, .summary-grid { grid-template-columns: 1fr; } }
 
-    .tab.active {
-      color: var(--pink-accent);
-    }
+    /* Tabla interactiva */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th { text-align: left; color: var(--muted); border-bottom: 1px solid #ffffff1a; padding: 10px; }
+    td { padding: 12px 10px; border-bottom: 1px solid #ffffff0d; }
+    tr.selected { background: #ffffff0a; }
+    tr:hover { background: #ffffff08; cursor: pointer; }
 
-    .orders-section {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      font-size: 13px;
-    }
-
-    th {
-      color: var(--text-muted);
-      font-weight: 500;
-      padding: 12px 10px;
-      border-bottom: 1px solid var(--card-border);
-    }
-
-    td {
-      padding: 14px 10px;
-      border-bottom: 1px solid #1a1c27;
-      color: var(--text-main);
-    }
-
-    .badge-paid {
-      background: rgba(132, 204, 22, 0.15);
-      color: var(--green-badge);
-      padding: 4px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .link-path {
-      color: var(--text-main);
-      text-decoration: none;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-    }
+    .cost-input { background: #0a0810; border: 1px solid var(--card-border); color: #fff; padding: 4px 8px; border-radius: 4px; width: 80px; }
+    .btn-save { background: var(--pink); border: none; color: #fff; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
   </style>
 </head>
 <body>
 
-  <div class="dashboard-container">
+  <div class="container">
     
-    <!-- Top Bar -->
-    <div class="header">
-      <div class="header-title">
-        <span style="font-size: 16px;">▤</span> Dashboard
+    <!-- Bloque 1: Ganancia Neta Real Mercado Libre -->
+    <div class="card-glow">
+      <div class="top-bar">
+        <div class="title-group">
+          <span>💲 Tu ganancia de Mercado Libre</span>
+          <div class="badge-live"><div class="dot"></div> En vivo</div>
+        </div>
+        <div class="period-tabs">
+          <button class="btn-tab active" onclick="setPeriod('today')">Hoy</button>
+          <button class="btn-tab" onclick="setPeriod('yesterday')">Ayer</button>
+          <button class="btn-tab" onclick="setPeriod('month')">Este mes</button>
+        </div>
       </div>
-      <div class="date-picker">
-        📅 Jul 29, 2026 - Aug 05, 2026
-      </div>
-    </div>
 
-    <!-- Main Section -->
-    <div class="main-grid">
+      <div class="summary-grid">
+        <div class="metric-box">
+          <h4>Ganancia Neta</h4>
+          <div class="num green" id="netProfit">+$0</div>
+        </div>
+        <div class="metric-box">
+          <h4>Facturación Bruta</h4>
+          <div class="num" id="totalRevenue">$0</div>
+        </div>
+        <div class="metric-box">
+          <h4>Margen Real</h4>
+          <div class="num" id="overallMargin">0.0%</div>
+        </div>
+      </div>
+
+      <!-- Desglose de Comisiones Mercado Libre -->
+      <div style="font-size: 11px; color: var(--muted); letter-spacing: 1px; font-weight: bold; margin-top: 10px;">
+        DESGLOSE DE DEDUCCIONES
+      </div>
       
-      <!-- Metrics Column -->
-      <div>
-        <div class="section-title">Tienda</div>
-        <div class="cards-grid">
-          <div class="card">
-            <div class="card-header">Orders <span class="card-info">i</span></div>
-            <div class="card-value" id="valOrders">120</div>
-          </div>
-          <div class="card">
-            <div class="card-header">Revenue <span class="card-info">i</span></div>
-            <div class="card-value" id="valRevenue">$7.2K</div>
-          </div>
-          <div class="card">
-            <div class="card-header">AOV <span class="card-info">i</span></div>
-            <div class="card-value" id="valAOV">$60.23</div>
-          </div>
-          <div class="card">
-            <div class="card-header">Net Profit <span class="card-info">i</span></div>
-            <div class="card-value" id="valNetProfit">$2.1K</div>
-          </div>
-          <div class="card">
-            <div class="card-header">Profit % <span class="card-info">i</span></div>
-            <div class="card-value" id="valProfitMargin">29.44%</div>
-          </div>
-          <div class="card">
-            <div class="card-header">Net Rev. <span class="card-info">i</span></div>
-            <div class="card-value" id="valNetRev">$3.7K</div>
-          </div>
+      <div class="sale-breakdown">
+        <div class="breakdown-row">
+          <span>Facturación</span>
+          <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: #fff;"></div></div>
+          <div class="val-text" id="bGross">$0</div>
         </div>
-
-        <div class="section-title">Anuncios</div>
-        <div class="cards-grid">
-          <div class="card">
-            <div class="card-header">Ad Spend <span class="card-info">i</span></div>
-            <div class="card-value">$1.6K</div>
-          </div>
-          <div class="card">
-            <div class="card-header">MER <span class="card-info">i</span></div>
-            <div class="card-value">45.00%</div>
-          </div>
-          <div class="card">
-            <div class="card-header">ROAS <span class="card-info">i</span></div>
-            <div class="card-value">2.19</div>
-          </div>
-          <div class="card">
-            <div class="card-header">CPA <span class="card-info">i</span></div>
-            <div class="card-value">$13.92</div>
-          </div>
-          <div class="card">
-            <div class="card-header">Net AOV <span class="card-info">i</span></div>
-            <div class="card-value">$31.22</div>
-          </div>
-          <div class="card">
-            <div class="card-header">True CPA <span class="card-info">i</span></div>
-            <div class="card-value">$14.20</div>
-          </div>
+        <div class="breakdown-row">
+          <span>Costo Producto</span>
+          <div class="bar-bg"><div class="bar-fill" id="barCost" style="width: 0%;"></div></div>
+          <div class="val-text" style="color: var(--pink);" id="bCost">-$0</div>
+        </div>
+        <div class="breakdown-row">
+          <span>Comisión ML</span>
+          <div class="bar-bg"><div class="bar-fill" id="barFee" style="width: 0%;"></div></div>
+          <div class="val-text" style="color: var(--pink);" id="bFee">-$0</div>
+        </div>
+        <div class="breakdown-row">
+          <span>Costo Envío</span>
+          <div class="bar-bg"><div class="bar-fill" id="barShipping" style="width: 0%;"></div></div>
+          <div class="val-text" style="color: var(--pink);" id="bShip">-$0</div>
+        </div>
+        <div class="breakdown-row">
+          <span style="font-weight: bold; color: var(--green);">Ganancia Neta</span>
+          <div class="bar-bg"><div class="bar-fill green" id="barNet" style="width: 0%;"></div></div>
+          <div class="val-text" style="color: var(--green);" id="bNet">+$0</div>
         </div>
       </div>
-
-      <!-- Chart Column -->
-      <div class="chart-container">
-        <div class="chart-tabs">
-          <div class="tab active">📈 Profit</div>
-          <div class="tab">♾️ ROAS</div>
-          <div class="tab">☁️ Orders</div>
-        </div>
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Profit</div>
-        <div style="font-size: 22px; font-weight: bold; margin-bottom: 20px;" id="chartTotalProfit">$2.1K</div>
-        <div style="flex-grow: 1; position: relative; min-height: 250px;">
-          <canvas id="profitChart"></canvas>
-        </div>
-      </div>
-
     </div>
 
-    <!-- Orders Table Section -->
-    <div class="orders-section">
-      <div class="section-title" style="margin-bottom: 15px;">☁️ Ultimas ordenes</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Order Id ⇅</th>
-            <th>Estado Pago</th>
-            <th>Created at ⇅</th>
-            <th>Total Orden</th>
-            <th>Total Neto</th>
-            <th>Camino de Compra</th>
-          </tr>
-        </thead>
-        <tbody id="ordersTableBody">
-          <!-- Datos dinámicos se cargarán aquí -->
-        </tbody>
-      </table>
+    <!-- Bloque 2: Rentabilidad por Producto & Ajuste de Costos -->
+    <div class="two-cols">
+      
+      <!-- Rentabilidad por SKU -->
+      <div class="card-glow">
+        <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">
+          📦 Rentabilidad por Producto (Mercado Libre)
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Margen Real</th>
+              <th>Costo ($)</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="skuTable">
+            <!-- Carga dinámica -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ÚLTIMAS VENTAS EN VIVO -->
+      <div class="card-glow">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <div style="font-weight: bold; font-size: 16px;">⚡ Últimas Órdenes</div>
+          <button class="btn-save" onclick="loadData()">↻ Actualizar</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Publicación</th>
+              <th>Venta</th>
+              <th>Neto</th>
+            </tr>
+          </thead>
+          <tbody id="recentOrdersTable">
+            <!-- Carga dinámica -->
+          </tbody>
+        </table>
+      </div>
+
     </div>
 
   </div>
 
   <script>
-    // Inicializar Gráfico con Chart.js
-    const ctx = document.getElementById('profitChart').getContext('2d');
-    
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(236, 72, 153, 0.35)');
-    gradient.addColorStop(1, 'rgba(236, 72, 153, 0.0)');
+    let rawOrders = [];
 
-    const chart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: ['30 jul', '31 jul', '1 ago', '2 ago', '3 ago', '4 ago', '5 ago'],
-        datasets: [{
-          data: [320, 40, 410, 260, 450, 310, 180],
-          borderColor: '#ec4899',
-          borderWidth: 2,
-          fill: true,
-          backgroundColor: gradient,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: '#ec4899'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { display: false }, ticks: { color: '#8b92a5' } },
-          y: { 
-            grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
-            ticks: { 
-              color: '#8b92a5',
-              callback: value => '$' + value + '.00'
-            } 
-          }
-        }
-      }
-    });
-
-    // Conectar datos dinámicos con tu backend Render
-    async function loadLiveData() {
+    async function loadData() {
       try {
         const res = await fetch('/api/live-metrics');
         const data = await res.json();
         if (!data.ok) return;
 
-        // Actualizar métricas
-        document.getElementById('valOrders').innerText = data.summary.totalOrders;
-        document.getElementById('valRevenue').innerText = '$' + (data.summary.totalRevenue / 1000).toFixed(1) + 'K';
-        document.getElementById('valNetProfit').innerText = '$' + (data.summary.netProfitTotal / 1000).toFixed(1) + 'K';
-        document.getElementById('valProfitMargin').innerText = data.summary.overallMargin + '%';
-        document.getElementById('chartTotalProfit').innerText = '$' + (data.summary.netProfitTotal / 1000).toFixed(1) + 'K';
+        rawOrders = data.orders;
 
-        // Renderizar Tabla
-        const tbody = document.getElementById('ordersTableBody');
-        tbody.innerHTML = '';
-        data.orders.forEach(o => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${o.id}</td>
-            <td><span class="badge-paid">Pagado</span></td>
-            <td>${new Date(o.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
-            <td>$${o.financials.gross.toFixed(2)}</td>
-            <td>$${o.financials.netProfit.toFixed(2)}</td>
-            <td><a class="link-path" href="#">📍 Ver camino</a></td>
-          `;
-          tbody.appendChild(tr);
-        });
+        // Renderizar Métricas Principales
+        const s = data.summary;
+        document.getElementById('netProfit').innerText = '+$' + s.netProfitTotal.toLocaleString();
+        document.getElementById('totalRevenue').innerText = '$' + s.totalRevenue.toLocaleString();
+        document.getElementById('overallMargin').innerText = s.overallMargin + '%';
 
-      } catch (e) { console.error("Cargando datos locales de muestra", e); }
+        // Desglose con barras proporcionales
+        const max = s.totalRevenue || 1;
+        document.getElementById('bGross').innerText = '$' + s.totalRevenue.toLocaleString();
+        
+        document.getElementById('bCost').innerText = '-$' + s.totalProductCost.toLocaleString();
+        document.getElementById('barCost').style.width = Math.min((s.totalProductCost / max) * 100, 100) + '%';
+
+        document.getElementById('bFee').innerText = '-$' + s.totalFees.toLocaleString();
+        document.getElementById('barFee').style.width = Math.min((s.totalFees / max) * 100, 100) + '%';
+
+        document.getElementById('bShip').innerText = '-$' + s.totalShipping.toLocaleString();
+        document.getElementById('barShipping').style.width = Math.min((s.totalShipping / max) * 100, 100) + '%';
+
+        document.getElementById('bNet').innerText = '+$' + s.netProfitTotal.toLocaleString();
+        document.getElementById('barNet').style.width = Math.min((s.netProfitTotal / max) * 100, 100) + '%';
+
+        // Cargar Tabla de Productos y Costos
+        renderSkus(data.orders);
+
+        // Cargar Tabla de Órdenes Recientes
+        renderOrders(data.orders);
+
+      } catch (e) {
+        console.error("Error sincronizando con Render:", e);
+      }
     }
 
-    loadLiveData();
-    setInterval(loadLiveData, 10000);
+    function renderSkus(orders) {
+      const skus = {};
+      orders.forEach(o => {
+        if (!skus[o.sku]) {
+          skus[o.sku] = { title: o.title, cost: o.financials.productCost / o.quantity, gross: 0, net: 0 };
+        }
+        skus[o.sku].gross += o.financials.gross;
+        skus[o.sku].net += o.financials.netProfit;
+      });
+
+      const tbody = document.getElementById('skuTable');
+      tbody.innerHTML = '';
+      Object.keys(skus).forEach(sku => {
+        const item = skus[sku];
+        const margin = item.gross > 0 ? ((item.net / item.gross) * 100).toFixed(1) : 0;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.title.substring(0, 22)}...</td>
+          <td style="color:${margin < 15 ? 'var(--red)' : 'var(--green)'}; font-weight:bold">${margin}%</td>
+          <td><input type="number" id="input-${sku}" value="${item.cost}" class="cost-input"></td>
+          <td><button class="btn-save" onclick="updateCost('${sku}')">Guardar</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderOrders(orders) {
+      const tbody = document.getElementById('recentOrdersTable');
+      tbody.innerHTML = '';
+      orders.slice(0, 7).forEach(o => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => highlightOrder(o);
+        tr.innerHTML = `
+          <td>${new Date(o.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
+          <td>${o.title.substring(0, 20)}...</td>
+          <td>$${o.financials.gross.toLocaleString()}</td>
+          <td style="color:var(--green); font-weight:bold">+$${o.financials.netProfit.toLocaleString()}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateCost(sku) {
+      const val = parseFloat(document.getElementById(`input-${sku}`).value);
+      if (isNaN(val)) return;
+      await fetch('/api/costs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: sku, costPrice: val })
+      });
+      loadData();
+    }
+
+    function setPeriod(period) {
+      document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      loadData();
+    }
+
+    function highlightOrder(o) {
+      document.getElementById('bGross').innerText = '$' + o.financials.gross.toLocaleString();
+      document.getElementById('bCost').innerText = '-$' + o.financials.productCost.toLocaleString();
+      document.getElementById('bFee').innerText = '-$' + o.financials.fee.toLocaleString();
+      document.getElementById('bShip').innerText = '-$' + o.financials.shipping.toLocaleString();
+      document.getElementById('bNet').innerText = '+$' + o.financials.netProfit.toLocaleString();
+    }
+
+    // Polling en vivo cada 10 segundos
+    setInterval(loadData, 10000);
+    loadData();
   </script>
 </body>
 </html>
