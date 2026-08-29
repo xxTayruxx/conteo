@@ -1,9 +1,9 @@
 require('dotenv').config();
 
 const express = require('express');
-const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { Pool } = require('pg');
 
 const app = express();
 
@@ -33,42 +33,58 @@ const API_BASE =
 
 const SYNC_API_KEY = process.env.SYNC_API_KEY;
 
-const TOKEN_FILE =
-  process.env.TOKEN_FILE ||
-  path.join(__dirname, 'data', 'tokens.json');
-
-if (!fs.existsSync(path.dirname(TOKEN_FILE))) {
-  fs.mkdirSync(path.dirname(TOKEN_FILE), {
-    recursive: true
-  });
-}
+// Configuración del cliente PostgreSQL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 let oauthState = null;
 let pkceVerifier = null;
-let tokenCache = loadTokens();
+let tokenCache = null;
 
-function loadTokens() {
+// Inicializa la tabla en la base de datos Postgres si no existe
+async function initDB() {
   try {
-    return JSON.parse(
-      fs.readFileSync(TOKEN_FILE, 'utf8')
-    );
-  } catch {
-    return null;
+    const queryText = `
+      CREATE TABLE IF NOT EXISTS me_tokens (
+        id INT PRIMARY KEY,
+        tokens JSONB NOT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+    await pool.query(queryText);
+    tokenCache = await loadTokens();
+  } catch (err) {
+    console.error('Error inicializando la base de datos Postgres:', err);
   }
 }
 
-function saveTokens(tokens) {
-  const tmp = `${TOKEN_FILE}.tmp`;
+async function loadTokens() {
+  try {
+    const res = await pool.query('SELECT tokens FROM me_tokens WHERE id = 1');
+    if (res.rows.length > 0) {
+      return res.rows[0].tokens;
+    }
+  } catch (err) {
+    console.error('Error cargando tokens desde Postgres:', err);
+  }
+  return null;
+}
 
-  fs.writeFileSync(
-    tmp,
-    JSON.stringify(tokens, null, 2),
-    { mode: 0o600 }
-  );
-
-  fs.renameSync(tmp, TOKEN_FILE);
-
-  tokenCache = tokens;
+async function saveTokens(tokens) {
+  try {
+    tokenCache = tokens;
+    const queryText = `
+      INSERT INTO me_tokens (id, tokens, updated_at)
+      VALUES (1, $1, NOW())
+      ON CONFLICT (id)
+      DO UPDATE SET tokens = EXCLUDED.tokens, updated_at = NOW();
+    `;
+    await pool.query(queryText, [JSON.stringify(tokens)]);
+  } catch (err) {
+    console.error('Error guardando tokens en Postgres:', err);
+  }
 }
 
 function requireConfig() {
@@ -170,7 +186,7 @@ async function exchangeCode(code) {
 
   const data = await tokenRequest(body);
 
-  saveTokens({
+  await saveTokens({
     ...data,
     obtained_at: Date.now(),
     expires_at:
@@ -195,7 +211,7 @@ async function refreshAccessToken() {
     refresh_token: tokenCache.refresh_token
   });
 
-  saveTokens({
+  await saveTokens({
     ...data,
     obtained_at: Date.now(),
     expires_at:
@@ -289,7 +305,6 @@ async function mlFetch(
 
 /*
   API KEY
-
   La mantenemos para accesos externos.
 */
 function apiKey(req, res, next) {
@@ -313,9 +328,7 @@ function apiKey(req, res, next) {
 
 /*
   FRONTEND INTERNO
-
-  Los botones de Conteonix pueden usar
-  estas rutas sin exponer la API key.
+  Los botones de Conteonix pueden usar estas rutas sin exponer la API key.
 */
 function internalApi(req, res, next) {
   next();
@@ -615,19 +628,19 @@ app.post(
 app.post(
   '/api/logout',
   internalApi,
-  (req, res) => {
+  async (req, res) => {
     tokenCache = null;
 
     try {
-      if (fs.existsSync(TOKEN_FILE)) {
-        fs.unlinkSync(TOKEN_FILE);
-      }
-    } catch {}
+      await pool.query('DELETE FROM me_tokens WHERE id = 1');
+    } catch (err) {
+      console.error('Error al limpiar la tabla de tokens en Postgres:', err);
+    }
 
     res.json({
       ok: true,
       message:
-        'Credenciales locales eliminadas.'
+        'Credenciales eliminadas de la base de datos.'
     });
   }
 );
@@ -645,7 +658,8 @@ function escapeHtml(s) {
   );
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  await initDB();
   console.log(
     `Conteonix escuchando en puerto ${PORT}`
   );
