@@ -2,151 +2,394 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Conteonix - Live Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conteonix - Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    :root { --bg: #0b0f19; --card: #151c2c; --accent: #00e676; --text: #ffffff; --muted: #8b9bb4; --danger: #ff5252; }
-    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; margin: 0; padding: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .card { background: var(--card); border-radius: 10px; padding: 15px; border: 1px solid #222e48; }
-    .card h3 { margin: 0 0 10px; font-size: 14px; color: var(--muted); }
-    .card .value { font-size: 24px; font-weight: bold; color: var(--accent); }
-    table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 10px; overflow: hidden; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #222e48; }
-    th { background: #1c263c; color: var(--muted); }
-    tr:hover { background: #1c273e; cursor: pointer; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-    .modal-content { background: var(--card); padding: 25px; border-radius: 10px; width: 400px; border: 1px solid var(--accent); }
-    .breakdown-row { display: flex; justify-content: space-between; margin: 10px 0; border-bottom: 1px dashed #222e48; padding-bottom: 5px; }
-    .btn { background: var(--accent); color: #000; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-    .live-dot { height: 10px; width: 10px; background-color: var(--accent); border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+    :root {
+      --bg: #090a0f;
+      --card-bg: #12131a;
+      --card-border: #1f222e;
+      --pink-glow: rgba(236, 72, 153, 0.4);
+      --pink-accent: #ec4899;
+      --green-badge: #84cc16;
+      --text-main: #ffffff;
+      --text-muted: #8b92a5;
+    }
+
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .dashboard-container {
+      width: 100%;
+      max-width: 1280px;
+      background: #0d0e15;
+      border-radius: 16px;
+      padding: 24px;
+      border: 1px solid rgba(236, 72, 153, 0.3);
+      box-shadow: 0 0 35px var(--pink-glow);
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .date-picker {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .card-info {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 1px solid var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      cursor: pointer;
+    }
+
+    .card-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .chart-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-tabs {
+      display: flex;
+      justify-content: flex-end;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tab.active {
+      color: var(--pink-accent);
+    }
+
+    .orders-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 500;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 14px 10px;
+      border-bottom: 1px solid #1a1c27;
+      color: var(--text-main);
+    }
+
+    .badge-paid {
+      background: rgba(132, 204, 22, 0.15);
+      color: var(--green-badge);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .link-path {
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-    <h2><span class="live-dot"></span> Conteonix Monitor en Vivo</h2>
-    <button class="btn" onclick="fetchMetrics()">↻ Sincronizar Ahora</button>
-  </div>
-
-  <div class="grid">
-    <div class="card"><h3>Facturación Bruta</h3><div class="value" id="totalRevenue">$0</div></div>
-    <div class="card"><h3>Comisiones Mercado Libre</h3><div class="value" style="color:var(--danger)" id="totalFees">-$0</div></div>
-    <div class="card"><h3>Costos de Envío</h3><div class="value" style="color:var(--danger)" id="totalShipping">-$0</div></div>
-    <div class="card"><h3>Costo de Producto</h3><div class="value" style="color:var(--danger)" id="totalProductCost">-$0</div></div>
-    <div class="card"><h3>Ganancia Neta Real</h3><div class="value" id="netProfitTotal">$0</div></div>
-    <div class="card"><h3>Margen Neto Global</h3><div class="value" id="overallMargin">0%</div></div>
-  </div>
-
-  <h3>Últimas Ventas (Hacé clic en una orden para ver el desglose exacto)</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Fecha</th>
-        <th>Producto</th>
-        <th>Venta Bruta</th>
-        <th>Comisión ML</th>
-        <th>Ganancia Neta</th>
-        <th>Margen</th>
-      </tr>
-    </thead>
-    <tbody id="ordersTable"></tbody>
-  </table>
-
-  <!-- Modal Desglose -->
-  <div class="modal" id="modal">
-    <div class="modal-content">
-      <h3 id="mTitle">Desglose Financiero</h3>
-      <div class="breakdown-row"><span>Precio Venta Bruto:</span><b id="mGross">$0</b></div>
-      <div class="breakdown-row"><span>Comisión Mercado Libre:</span><b id="mFee" style="color:var(--danger)">-$0</b></div>
-      <div class="breakdown-row"><span>Costo de Envío:</span><b id="mShipping" style="color:var(--danger)">-$0</b></div>
-      <div class="breakdown-row"><span>Costo Producto (Tu Costo):</span><b id="mCost" style="color:var(--danger)">-$0</b></div>
-      <hr style="border-color:#222e48">
-      <div class="breakdown-row" style="font-size: 18px;"><span>Ganancia Neta:</span><b id="mNet" style="color:var(--accent)">$0</b></div>
-      
-      <div style="margin-top: 15px;">
-        <label>Actualizar Costo Producto ($):</label>
-        <input type="number" id="costInput" style="width:100px; padding:5px; background:#0b0f19; color:#fff; border:1px solid #222e48">
-        <button class="btn" style="padding:5px 10px;" onclick="saveProductCost()">Guardar</button>
+  <div class="dashboard-container">
+    
+    <!-- Top Bar -->
+    <div class="header">
+      <div class="header-title">
+        <span style="font-size: 16px;">▤</span> Dashboard
       </div>
-      <br>
-      <button class="btn" style="width:100%" onclick="closeModal()">Cerrar</button>
+      <div class="date-picker">
+        📅 Jul 29, 2026 - Aug 05, 2026
+      </div>
     </div>
+
+    <!-- Main Section -->
+    <div class="main-grid">
+      
+      <!-- Metrics Column -->
+      <div>
+        <div class="section-title">Tienda</div>
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">Orders <span class="card-info">i</span></div>
+            <div class="card-value" id="valOrders">120</div>
+          </div>
+          <div class="card">
+            <div class="card-header">Revenue <span class="card-info">i</span></div>
+            <div class="card-value" id="valRevenue">$7.2K</div>
+          </div>
+          <div class="card">
+            <div class="card-header">AOV <span class="card-info">i</span></div>
+            <div class="card-value" id="valAOV">$60.23</div>
+          </div>
+          <div class="card">
+            <div class="card-header">Net Profit <span class="card-info">i</span></div>
+            <div class="card-value" id="valNetProfit">$2.1K</div>
+          </div>
+          <div class="card">
+            <div class="card-header">Profit % <span class="card-info">i</span></div>
+            <div class="card-value" id="valProfitMargin">29.44%</div>
+          </div>
+          <div class="card">
+            <div class="card-header">Net Rev. <span class="card-info">i</span></div>
+            <div class="card-value" id="valNetRev">$3.7K</div>
+          </div>
+        </div>
+
+        <div class="section-title">Anuncios</div>
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-header">Ad Spend <span class="card-info">i</span></div>
+            <div class="card-value">$1.6K</div>
+          </div>
+          <div class="card">
+            <div class="card-header">MER <span class="card-info">i</span></div>
+            <div class="card-value">45.00%</div>
+          </div>
+          <div class="card">
+            <div class="card-header">ROAS <span class="card-info">i</span></div>
+            <div class="card-value">2.19</div>
+          </div>
+          <div class="card">
+            <div class="card-header">CPA <span class="card-info">i</span></div>
+            <div class="card-value">$13.92</div>
+          </div>
+          <div class="card">
+            <div class="card-header">Net AOV <span class="card-info">i</span></div>
+            <div class="card-value">$31.22</div>
+          </div>
+          <div class="card">
+            <div class="card-header">True CPA <span class="card-info">i</span></div>
+            <div class="card-value">$14.20</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart Column -->
+      <div class="chart-container">
+        <div class="chart-tabs">
+          <div class="tab active">📈 Profit</div>
+          <div class="tab">♾️ ROAS</div>
+          <div class="tab">☁️ Orders</div>
+        </div>
+        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Profit</div>
+        <div style="font-size: 22px; font-weight: bold; margin-bottom: 20px;" id="chartTotalProfit">$2.1K</div>
+        <div style="flex-grow: 1; position: relative; min-height: 250px;">
+          <canvas id="profitChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Orders Table Section -->
+    <div class="orders-section">
+      <div class="section-title" style="margin-bottom: 15px;">☁️ Ultimas ordenes</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Order Id ⇅</th>
+            <th>Estado Pago</th>
+            <th>Created at ⇅</th>
+            <th>Total Orden</th>
+            <th>Total Neto</th>
+            <th>Camino de Compra</th>
+          </tr>
+        </thead>
+        <tbody id="ordersTableBody">
+          <!-- Datos dinámicos se cargarán aquí -->
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
   <script>
-    let lastOrderCount = 0;
-    let selectedSku = null;
+    // Inicializar Gráfico con Chart.js
+    const ctx = document.getElementById('profitChart').getContext('2d');
+    
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(236, 72, 153, 0.35)');
+    gradient.addColorStop(1, 'rgba(236, 72, 153, 0.0)');
 
-    async function fetchMetrics() {
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['30 jul', '31 jul', '1 ago', '2 ago', '3 ago', '4 ago', '5 ago'],
+        datasets: [{
+          data: [320, 40, 410, 260, 450, 310, 180],
+          borderColor: '#ec4899',
+          borderWidth: 2,
+          fill: true,
+          backgroundColor: gradient,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#ec4899'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#8b92a5' } },
+          y: { 
+            grid: { color: 'rgba(255, 255, 255, 0.05)' }, 
+            ticks: { 
+              color: '#8b92a5',
+              callback: value => '$' + value + '.00'
+            } 
+          }
+        }
+      }
+    });
+
+    // Conectar datos dinámicos con tu backend Render
+    async function loadLiveData() {
       try {
         const res = await fetch('/api/live-metrics');
         const data = await res.json();
         if (!data.ok) return;
 
-        // Notificación de nueva venta
-        if (lastOrderCount > 0 && data.orders.length > lastOrderCount) {
-          alert("⚡ ¡NUEVA VENTA REGISTRADA EN VIVO!");
-        }
-        lastOrderCount = data.orders.length;
+        // Actualizar métricas
+        document.getElementById('valOrders').innerText = data.summary.totalOrders;
+        document.getElementById('valRevenue').innerText = '$' + (data.summary.totalRevenue / 1000).toFixed(1) + 'K';
+        document.getElementById('valNetProfit').innerText = '$' + (data.summary.netProfitTotal / 1000).toFixed(1) + 'K';
+        document.getElementById('valProfitMargin').innerText = data.summary.overallMargin + '%';
+        document.getElementById('chartTotalProfit').innerText = '$' + (data.summary.netProfitTotal / 1000).toFixed(1) + 'K';
 
-        // Render Summary
-        document.getElementById('totalRevenue').innerText = '$' + data.summary.totalRevenue.toLocaleString();
-        document.getElementById('totalFees').innerText = '-$' + data.summary.totalFees.toLocaleString();
-        document.getElementById('totalShipping').innerText = '-$' + data.summary.totalShipping.toLocaleString();
-        document.getElementById('totalProductCost').innerText = '-$' + data.summary.totalProductCost.toLocaleString();
-        document.getElementById('netProfitTotal').innerText = '$' + data.summary.netProfitTotal.toLocaleString();
-        document.getElementById('overallMargin').innerText = data.summary.overallMargin + '%';
-
-        // Render Table
-        const tbody = document.getElementById('ordersTable');
+        // Renderizar Tabla
+        const tbody = document.getElementById('ordersTableBody');
         tbody.innerHTML = '';
         data.orders.forEach(o => {
           const tr = document.createElement('tr');
-          tr.onclick = () => openModal(o);
           tr.innerHTML = `
-            <td>${new Date(o.date).toLocaleTimeString()}</td>
-            <td>${o.title}</td>
-            <td>$${o.financials.gross.toLocaleString()}</td>
-            <td style="color:var(--danger)">-$${o.financials.fee.toLocaleString()}</td>
-            <td style="color:var(--accent)">$${o.financials.netProfit.toLocaleString()}</td>
-            <td>${o.financials.margin}%</td>
+            <td>${o.id}</td>
+            <td><span class="badge-paid">Pagado</span></td>
+            <td>${new Date(o.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+            <td>$${o.financials.gross.toFixed(2)}</td>
+            <td>$${o.financials.netProfit.toFixed(2)}</td>
+            <td><a class="link-path" href="#">📍 Ver camino</a></td>
           `;
           tbody.appendChild(tr);
         });
 
-      } catch (e) { console.error(e); }
+      } catch (e) { console.error("Cargando datos locales de muestra", e); }
     }
 
-    function openModal(order) {
-      selectedSku = order.sku;
-      document.getElementById('mTitle').innerText = order.title;
-      document.getElementById('mGross').innerText = '$' + order.financials.gross.toLocaleString();
-      document.getElementById('mFee').innerText = '-$' + order.financials.fee.toLocaleString();
-      document.getElementById('mShipping').innerText = '-$' + order.financials.shipping.toLocaleString();
-      document.getElementById('mCost').innerText = '-$' + order.financials.productCost.toLocaleString();
-      document.getElementById('mNet').innerText = '$' + order.financials.netProfit.toLocaleString();
-      document.getElementById('modal').style.display = 'flex';
-    }
-
-    function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
-    async function saveProductCost() {
-      const costPrice = parseFloat(document.getElementById('costInput').value);
-      if (isNaN(costPrice) || !selectedSku) return;
-      await fetch('/api/costs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemId: selectedSku, costPrice })
-      });
-      closeModal();
-      fetchMetrics();
-    }
-
-    // Polling en vivo cada 10 segundos
-    setInterval(fetchMetrics, 10000);
-    fetchMetrics();
+    loadLiveData();
+    setInterval(loadLiveData, 10000);
   </script>
 </body>
 </html>
