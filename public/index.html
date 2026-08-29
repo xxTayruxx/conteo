@@ -14,6 +14,7 @@
       --green: #00e676;
       --green-glow: rgba(0, 230, 118, 0.2);
       --red: #ff5252;
+      --yellow: #ffca28;
       --text: #ffffff;
       --muted: #8b8599;
     }
@@ -52,11 +53,14 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .title-group { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: bold; }
     .badge-live { background: var(--green-glow); color: var(--green); border: 1px solid var(--green); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-    .dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+    .badge-live.offline { background: rgba(255,82,82,0.15); color: var(--red); border-color: var(--red); }
+    .dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
 
     .period-tabs { display: flex; background: #00000033; padding: 4px; border-radius: 8px; gap: 5px; }
@@ -73,7 +77,7 @@
     .sale-breakdown { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
     .breakdown-row { display: grid; grid-template-columns: 130px 1fr 100px; align-items: center; font-size: 13px; }
     .bar-bg { background: #221a30; height: 10px; border-radius: 5px; overflow: hidden; width: 100%; }
-    .bar-fill { height: 100%; border-radius: 5px; background: var(--pink); }
+    .bar-fill { height: 100%; border-radius: 5px; background: var(--pink); transition: width 0.4s ease; }
     .bar-fill.green { background: var(--green); }
     .val-text { text-align: right; font-weight: bold; }
 
@@ -90,94 +94,192 @@
 
     .cost-input { background: #0a0810; border: 1px solid var(--card-border); color: #fff; padding: 4px 8px; border-radius: 4px; width: 80px; }
     .btn-save { background: var(--pink); border: none; color: #fff; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
+
+    .empty-msg { color: var(--muted); font-size: 13px; padding: 15px 0; text-align: center; }
+
+    /* Layout con sidebar para el widget de ventas en vivo */
+    .hero-row { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+    @media (max-width: 950px) { .hero-row { grid-template-columns: 1fr; } }
+
+    .live-sales-card {
+      border-radius: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 0 25px var(--pink-glow);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .live-sales-header {
+      font-weight: bold;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .live-sales-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #00000033;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      align-self: flex-start;
+    }
+    .live-sales-badge .dot-red { width: 6px; height: 6px; background: var(--red); border-radius: 50%; animation: pulse 1.5s infinite; }
+    .live-sales-stats { display: flex; flex-direction: column; gap: 14px; }
+    .live-stat { background: #00000026; border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 16px; }
+    .live-stat h4 { margin: 0 0 6px; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .live-value { font-size: 26px; font-weight: 800; color: var(--text); }
+    .live-value.green { color: var(--green); }
+
+    /* Stock alerts */
+    .stock-pill { padding: 2px 8px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+    .stock-pill.crit { background: rgba(255,82,82,0.15); color: var(--red); }
+    .stock-pill.warn { background: rgba(255,202,40,0.15); color: var(--yellow); }
+    .stock-pill.ok { background: var(--green-glow); color: var(--green); }
+
+    /* Toasts de notificaciones en vivo */
+    #toastContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 999;
+    }
+    .toast {
+      background: var(--card-bg);
+      border: 1px solid var(--green);
+      box-shadow: 0 0 20px var(--green-glow);
+      border-radius: 10px;
+      padding: 14px 18px;
+      min-width: 240px;
+      max-width: 320px;
+      animation: slideIn 0.3s ease, fadeOut 0.4s ease 4.6s forwards;
+    }
+    .toast .t-title { font-weight: bold; color: var(--green); font-size: 13px; margin-bottom: 4px; }
+    .toast .t-body { font-size: 13px; color: var(--text); }
+    @keyframes slideIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes fadeOut { to { opacity: 0; transform: translateX(30px); } }
   </style>
 </head>
 <body>
 
+  <div id="toastContainer"></div>
+
   <div class="container">
-    
-    <!-- Bloque 1: Ganancia Neta Real Mercado Libre -->
-    <div class="card-glow">
-      <div class="top-bar">
-        <div class="title-group">
-          <span>💲 Tu ganancia de Mercado Libre</span>
-          <div class="badge-live"><div class="dot"></div> En vivo</div>
+
+    <!-- Bloque 1: Ganancia Neta + Widget de ventas en vivo -->
+    <div class="hero-row">
+
+      <div class="card-glow">
+        <div class="top-bar">
+          <div class="title-group">
+            <span>💲 Tu ganancia de Mercado Libre</span>
+            <div class="badge-live" id="liveBadge"><div class="dot"></div> En vivo</div>
+          </div>
+          <div class="period-tabs">
+            <button class="btn-tab active" data-period="today" onclick="changePeriod('today', event)">Hoy</button>
+            <button class="btn-tab" data-period="yesterday" onclick="changePeriod('yesterday', event)">Ayer</button>
+            <button class="btn-tab" data-period="week" onclick="changePeriod('week', event)">Semana</button>
+            <button class="btn-tab" data-period="month" onclick="changePeriod('month', event)">Mes</button>
+          </div>
         </div>
-        <div class="period-tabs">
-          <button class="btn-tab active" onclick="setPeriod('today')">Hoy</button>
-          <button class="btn-tab" onclick="setPeriod('yesterday')">Ayer</button>
-          <button class="btn-tab" onclick="setPeriod('month')">Este mes</button>
+
+        <div class="summary-grid">
+          <div class="metric-box">
+            <h4>Ganancia Neta</h4>
+            <div class="num green" id="netProfit">+$0</div>
+          </div>
+          <div class="metric-box">
+            <h4>Facturación Bruta</h4>
+            <div class="num" id="totalRevenue">$0</div>
+          </div>
+          <div class="metric-box">
+            <h4>Margen Real</h4>
+            <div class="num" id="overallMargin">0.0%</div>
+          </div>
+        </div>
+
+        <div id="cancelledNotice" style="display:none; font-size: 12px; color: var(--muted); margin-top: -12px; margin-bottom: 12px;"></div>
+
+        <div style="font-size: 11px; color: var(--muted); letter-spacing: 1px; font-weight: bold; margin-top: 10px;">
+          DESGLOSE DE DEDUCCIONES
+        </div>
+
+        <div class="sale-breakdown">
+          <div class="breakdown-row">
+            <span>Facturación</span>
+            <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: #fff;"></div></div>
+            <div class="val-text" id="bGross">$0</div>
+          </div>
+          <div class="breakdown-row">
+            <span>Costo Producto</span>
+            <div class="bar-bg"><div class="bar-fill" id="barCost" style="width: 0%;"></div></div>
+            <div class="val-text" style="color: var(--pink);" id="bCost">-$0</div>
+          </div>
+          <div class="breakdown-row">
+            <span>Comisión ML</span>
+            <div class="bar-bg"><div class="bar-fill" id="barFee" style="width: 0%;"></div></div>
+            <div class="val-text" style="color: var(--pink);" id="bFee">-$0</div>
+          </div>
+          <div class="breakdown-row">
+            <span>Costo Envío</span>
+            <div class="bar-bg"><div class="bar-fill" id="barShipping" style="width: 0%;"></div></div>
+            <div class="val-text" style="color: var(--pink);" id="bShip">-$0</div>
+          </div>
+          <div class="breakdown-row">
+            <span style="font-weight: bold; color: var(--green);">Ganancia Neta</span>
+            <div class="bar-bg"><div class="bar-fill green" id="barNet" style="width: 0%;"></div></div>
+            <div class="val-text" style="color: var(--green);" id="bNet">+$0</div>
+          </div>
         </div>
       </div>
 
-      <div class="summary-grid">
-        <div class="metric-box">
-          <h4>Ganancia Neta</h4>
-          <div class="num green" id="netProfit">+$0</div>
-        </div>
-        <div class="metric-box">
-          <h4>Facturación Bruta</h4>
-          <div class="num" id="totalRevenue">$0</div>
-        </div>
-        <div class="metric-box">
-          <h4>Margen Real</h4>
-          <div class="num" id="overallMargin">0.0%</div>
+      <!-- Widget lateral: Ventas de hoy en vivo -->
+      <div class="live-sales-card">
+        <div class="live-sales-header">⚡ Ventas de hoy en vivo</div>
+        <div class="live-sales-badge"><span class="dot-red"></span><span id="liveClock">--</span></div>
+        <div class="live-sales-stats">
+          <div class="live-stat">
+            <h4>Facturación</h4>
+            <div class="live-value" id="liveSalesAmount">$ 0,00</div>
+          </div>
+          <div class="live-stat">
+            <h4>Ganancia</h4>
+            <div class="live-value green" id="liveProfitAmount">$ 0,00</div>
+          </div>
         </div>
       </div>
 
-      <!-- Desglose de Comisiones Mercado Libre -->
-      <div style="font-size: 11px; color: var(--muted); letter-spacing: 1px; font-weight: bold; margin-top: 10px;">
-        DESGLOSE DE DEDUCCIONES
-      </div>
-      
-      <div class="sale-breakdown">
-        <div class="breakdown-row">
-          <span>Facturación</span>
-          <div class="bar-bg"><div class="bar-fill" style="width: 100%; background: #fff;"></div></div>
-          <div class="val-text" id="bGross">$0</div>
-        </div>
-        <div class="breakdown-row">
-          <span>Costo Producto</span>
-          <div class="bar-bg"><div class="bar-fill" id="barCost" style="width: 0%;"></div></div>
-          <div class="val-text" style="color: var(--pink);" id="bCost">-$0</div>
-        </div>
-        <div class="breakdown-row">
-          <span>Comisión ML</span>
-          <div class="bar-bg"><div class="bar-fill" id="barFee" style="width: 0%;"></div></div>
-          <div class="val-text" style="color: var(--pink);" id="bFee">-$0</div>
-        </div>
-        <div class="breakdown-row">
-          <span>Costo Envío</span>
-          <div class="bar-bg"><div class="bar-fill" id="barShipping" style="width: 0%;"></div></div>
-          <div class="val-text" style="color: var(--pink);" id="bShip">-$0</div>
-        </div>
-        <div class="breakdown-row">
-          <span style="font-weight: bold; color: var(--green);">Ganancia Neta</span>
-          <div class="bar-bg"><div class="bar-fill green" id="barNet" style="width: 0%;"></div></div>
-          <div class="val-text" style="color: var(--green);" id="bNet">+$0</div>
-        </div>
-      </div>
     </div>
 
-    <!-- Bloque 2: Rentabilidad por Producto & Ajuste de Costos -->
+    <!-- Bloque 2: Stock y Órdenes -->
     <div class="two-cols">
-      
-      <!-- Rentabilidad por SKU -->
+
+      <!-- Alertas de Stock -->
       <div class="card-glow">
-        <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">
-          📦 Rentabilidad por Producto (Mercado Libre)
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <div style="font-weight: bold; font-size: 16px;">📉 Días de Stock Restante</div>
+          <button class="btn-save" onclick="loadStockAlerts()">↻</button>
         </div>
         <table>
           <thead>
             <tr>
               <th>Producto</th>
-              <th>Margen Real</th>
-              <th>Costo ($)</th>
-              <th>Acción</th>
+              <th>Stock</th>
+              <th>Venta/día</th>
+              <th>Días rest.</th>
             </tr>
           </thead>
-          <tbody id="skuTable">
-            <!-- Carga dinámica -->
+          <tbody id="stockTable">
+            <tr><td colspan="4" class="empty-msg">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
@@ -198,36 +300,99 @@
             </tr>
           </thead>
           <tbody id="recentOrdersTable">
-            <!-- Carga dinámica -->
+            <tr><td colspan="4" class="empty-msg">Cargando...</td></tr>
           </tbody>
         </table>
       </div>
 
     </div>
 
+    <!-- Bloque 3: Rentabilidad por SKU -->
+    <div class="card-glow">
+      <div style="font-weight: bold; font-size: 16px; margin-bottom: 15px;">
+        📦 Rentabilidad por Producto (Mercado Libre)
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Margen Real</th>
+            <th>Costo ($)</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="skuTable">
+          <tr><td colspan="4" class="empty-msg">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
   <script>
+    let currentPeriod = 'today';
     let rawOrders = [];
+
+    // ---------- Widget lateral "Ventas de hoy en vivo" ----------
+
+    function formatMoneyAR(n) {
+      return '$ ' + (n || 0).toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function tickLiveClock() {
+      const now = new Date();
+      const fecha = now.toLocaleDateString('es-AR', { day: 'numeric', month: 'long' });
+      const hora = now.toLocaleTimeString('es-AR', { hour12: false });
+      document.getElementById('liveClock').innerText = `${fecha}, ${hora}`;
+    }
+
+    async function loadTodaySalesWidget() {
+      try {
+        const res = await fetch('/api/live-metrics?period=today');
+        const data = await res.json();
+        if (!data.ok) return;
+        document.getElementById('liveSalesAmount').innerText = formatMoneyAR(data.summary.totalRevenue);
+        document.getElementById('liveProfitAmount').innerText = formatMoneyAR(data.summary.netProfitTotal);
+      } catch (e) {
+        console.error('Error cargando ventas de hoy:', e);
+      }
+    }
+
+    // ---------- Carga de métricas ----------
 
     async function loadData() {
       try {
-        const res = await fetch('/api/live-metrics');
+        const res = await fetch(`/api/live-metrics?period=${currentPeriod}`);
         const data = await res.json();
-        if (!data.ok) return;
+        if (!data.ok) {
+          setLiveBadge(false);
+          return;
+        }
+        setLiveBadge(true);
 
         rawOrders = data.orders;
-
-        // Renderizar Métricas Principales
         const s = data.summary;
-        document.getElementById('netProfit').innerText = '+$' + s.netProfitTotal.toLocaleString();
+
+        if (currentPeriod === 'today') {
+          document.getElementById('liveSalesAmount').innerText = formatMoneyAR(s.totalRevenue);
+          document.getElementById('liveProfitAmount').innerText = formatMoneyAR(s.netProfitTotal);
+        }
+
+        document.getElementById('netProfit').innerText = (s.netProfitTotal >= 0 ? '+$' : '-$') + Math.abs(s.netProfitTotal).toLocaleString();
         document.getElementById('totalRevenue').innerText = '$' + s.totalRevenue.toLocaleString();
         document.getElementById('overallMargin').innerText = s.overallMargin + '%';
 
-        // Desglose con barras proporcionales
+        const cancelledNotice = document.getElementById('cancelledNotice');
+        if (s.cancelledOrders > 0) {
+          cancelledNotice.style.display = 'block';
+          cancelledNotice.innerText = `ℹ️ ${s.cancelledOrders} pedido${s.cancelledOrders === 1 ? '' : 's'} cancelado${s.cancelledOrders === 1 ? '' : 's'} excluido${s.cancelledOrders === 1 ? '' : 's'} de estos números`;
+        } else {
+          cancelledNotice.style.display = 'none';
+        }
+
         const max = s.totalRevenue || 1;
         document.getElementById('bGross').innerText = '$' + s.totalRevenue.toLocaleString();
-        
+
         document.getElementById('bCost').innerText = '-$' + s.totalProductCost.toLocaleString();
         document.getElementById('barCost').style.width = Math.min((s.totalProductCost / max) * 100, 100) + '%';
 
@@ -237,18 +402,29 @@
         document.getElementById('bShip').innerText = '-$' + s.totalShipping.toLocaleString();
         document.getElementById('barShipping').style.width = Math.min((s.totalShipping / max) * 100, 100) + '%';
 
-        document.getElementById('bNet').innerText = '+$' + s.netProfitTotal.toLocaleString();
+        document.getElementById('bNet').innerText = (s.netProfitTotal >= 0 ? '+$' : '-$') + Math.abs(s.netProfitTotal).toLocaleString();
         document.getElementById('barNet').style.width = Math.min((s.netProfitTotal / max) * 100, 100) + '%';
 
-        // Cargar Tabla de Productos y Costos
         renderSkus(data.orders);
-
-        // Cargar Tabla de Órdenes Recientes
         renderOrders(data.orders);
 
       } catch (e) {
-        console.error("Error sincronizando con Render:", e);
+        console.error('Error sincronizando:', e);
+        setLiveBadge(false);
       }
+    }
+
+    function setLiveBadge(ok) {
+      const badge = document.getElementById('liveBadge');
+      badge.classList.toggle('offline', !ok);
+      badge.innerHTML = ok ? '<div class="dot"></div> En vivo' : '<div class="dot"></div> Sin conexión';
+    }
+
+    function changePeriod(period, evt) {
+      currentPeriod = period;
+      document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+      if (evt && evt.target) evt.target.classList.add('active');
+      loadData();
     }
 
     function renderSkus(orders) {
@@ -262,13 +438,18 @@
       });
 
       const tbody = document.getElementById('skuTable');
+      const keys = Object.keys(skus);
+      if (keys.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No hay ventas en este período</td></tr>';
+        return;
+      }
       tbody.innerHTML = '';
-      Object.keys(skus).forEach(sku => {
+      keys.forEach(sku => {
         const item = skus[sku];
         const margin = item.gross > 0 ? ((item.net / item.gross) * 100).toFixed(1) : 0;
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${item.title.substring(0, 22)}...</td>
+          <td>${item.title.substring(0, 30)}${item.title.length > 30 ? '...' : ''}</td>
           <td style="color:${margin < 15 ? 'var(--red)' : 'var(--green)'}; font-weight:bold">${margin}%</td>
           <td><input type="number" id="input-${sku}" value="${item.cost}" class="cost-input"></td>
           <td><button class="btn-save" onclick="updateCost('${sku}')">Guardar</button></td>
@@ -279,13 +460,17 @@
 
     function renderOrders(orders) {
       const tbody = document.getElementById('recentOrdersTable');
+      if (orders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">No hay ventas en este período</td></tr>';
+        return;
+      }
       tbody.innerHTML = '';
-      orders.slice(0, 7).forEach(o => {
+      orders.slice(0, 10).forEach(o => {
         const tr = document.createElement('tr');
         tr.onclick = () => highlightOrder(o);
         tr.innerHTML = `
           <td>${new Date(o.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-          <td>${o.title.substring(0, 20)}...</td>
+          <td>${o.title.substring(0, 24)}${o.title.length > 24 ? '...' : ''}</td>
           <td>$${o.financials.gross.toLocaleString()}</td>
           <td style="color:var(--green); font-weight:bold">+$${o.financials.netProfit.toLocaleString()}</td>
         `;
@@ -304,12 +489,6 @@
       loadData();
     }
 
-    function setPeriod(period) {
-      document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      loadData();
-    }
-
     function highlightOrder(o) {
       document.getElementById('bGross').innerText = '$' + o.financials.gross.toLocaleString();
       document.getElementById('bCost').innerText = '-$' + o.financials.productCost.toLocaleString();
@@ -318,9 +497,89 @@
       document.getElementById('bNet').innerText = '+$' + o.financials.netProfit.toLocaleString();
     }
 
-    // Polling en vivo cada 10 segundos
-    setInterval(loadData, 10000);
+    // ---------- Alertas de stock ----------
+
+    async function loadStockAlerts() {
+      try {
+        const res = await fetch('/api/stock-alerts');
+        const data = await res.json();
+        const tbody = document.getElementById('stockTable');
+        if (!data.ok || !data.alerts || data.alerts.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="empty-msg">Sin datos de stock aún</td></tr>';
+          return;
+        }
+        tbody.innerHTML = '';
+        data.alerts.forEach(a => {
+          let pillClass = 'ok';
+          let daysLabel = '—';
+          if (a.daysRemaining !== null) {
+            daysLabel = a.daysRemaining + ' días';
+            if (a.daysRemaining <= 3) pillClass = 'crit';
+            else if (a.daysRemaining <= 7) pillClass = 'warn';
+          }
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${a.title.substring(0, 26)}${a.title.length > 26 ? '...' : ''}</td>
+            <td>${a.stock}</td>
+            <td>${a.avgDailySales}</td>
+            <td><span class="stock-pill ${pillClass}">${daysLabel}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error('Error cargando stock:', e);
+      }
+    }
+
+    // ---------- Notificaciones en tiempo real (SSE) ----------
+
+    function showToast(order) {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `
+        <div class="t-title">🎉 ¡Venta nueva!</div>
+        <div class="t-body">${(order.title || 'Producto').substring(0, 40)} — $${(order.amount || 0).toLocaleString()}</div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+
+    function connectRealtime() {
+      const es = new EventSource('/api/events');
+      es.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          if (msg.type === 'new_order') {
+            showToast(msg.data);
+            loadData();
+            loadStockAlerts();
+            loadTodaySalesWidget();
+          }
+        } catch (e) {
+          console.error('Error parseando evento SSE:', e);
+        }
+      };
+      es.onerror = () => {
+        // El navegador reintenta solo la conexión gracias al 'retry' del servidor
+        setLiveBadge(false);
+      };
+    }
+
+    // ---------- Init ----------
+
     loadData();
+    loadStockAlerts();
+    loadTodaySalesWidget();
+    connectRealtime();
+
+    tickLiveClock();
+    setInterval(tickLiveClock, 1000);
+
+    // Fallback por si SSE se corta: refresco periódico
+    setInterval(loadData, 30000);
+    setInterval(loadStockAlerts, 5 * 60000);
+    setInterval(loadTodaySalesWidget, 30000);
   </script>
 </body>
 </html>
