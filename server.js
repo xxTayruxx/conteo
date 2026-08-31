@@ -10,24 +10,42 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+
+// ============================================================
+// ARCHIVOS ESTÁTICOS
+// ============================================================
+
+app.use(
+  express.static(
+    path.join(__dirname, 'public')
+  )
+);
 
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
 
-const PORT = process.env.PORT || 3000;
+const PORT =
+  process.env.PORT || 3000;
 
 const BASE_URL =
   process.env.BASE_URL ||
   'https://conteo-rt2c.onrender.com';
 
+// IMPORTANTE:
+// Se evita usar template literals acá para eliminar
+// cualquier posibilidad de que Render reciba caracteres
+// escapados incorrectamente.
+
 const REDIRECT_URI =
   process.env.ML_REDIRECT_URI ||
-  `${BASE_URL}/auth/callback`;
+  BASE_URL + '/auth/callback';
 
-const CLIENT_ID = process.env.ML_CLIENT_ID;
-const CLIENT_SECRET = process.env.ML_CLIENT_SECRET;
+const CLIENT_ID =
+  process.env.ML_CLIENT_ID;
+
+const CLIENT_SECRET =
+  process.env.ML_CLIENT_SECRET;
 
 const AUTH_DOMAIN =
   process.env.ML_AUTH_DOMAIN ||
@@ -37,17 +55,32 @@ const API_BASE =
   process.env.ML_API_BASE ||
   'https://api.mercadolibre.com';
 
-const SYNC_API_KEY = process.env.SYNC_API_KEY;
+const SYNC_API_KEY =
+  process.env.SYNC_API_KEY;
 
 const TOKEN_FILE =
   process.env.TOKEN_FILE ||
-  path.join(__dirname, 'data', 'tokens.json');
+  path.join(
+    __dirname,
+    'data',
+    'tokens.json'
+  );
 
-// Crear carpeta data si no existe
-if (!fs.existsSync(path.dirname(TOKEN_FILE))) {
-  fs.mkdirSync(path.dirname(TOKEN_FILE), {
-    recursive: true
-  });
+// ============================================================
+// CREAR CARPETA DE DATOS
+// ============================================================
+
+if (
+  !fs.existsSync(
+    path.dirname(TOKEN_FILE)
+  )
+) {
+  fs.mkdirSync(
+    path.dirname(TOKEN_FILE),
+    {
+      recursive: true
+    }
+  );
 }
 
 // ============================================================
@@ -55,9 +88,11 @@ if (!fs.existsSync(path.dirname(TOKEN_FILE))) {
 // ============================================================
 
 let oauthState = null;
+
 let pkceVerifier = null;
 
-let tokenCache = loadTokens();
+let tokenCache =
+  loadTokens();
 
 // ============================================================
 // TOKENS
@@ -66,7 +101,10 @@ let tokenCache = loadTokens();
 function loadTokens() {
   try {
     return JSON.parse(
-      fs.readFileSync(TOKEN_FILE, 'utf8')
+      fs.readFileSync(
+        TOKEN_FILE,
+        'utf8'
+      )
     );
   } catch {
     return null;
@@ -74,43 +112,58 @@ function loadTokens() {
 }
 
 function saveTokens(tokens) {
-  const tmp = `${TOKEN_FILE}.tmp`;
+  const tmp =
+    TOKEN_FILE + '.tmp';
 
   fs.writeFileSync(
     tmp,
-    JSON.stringify(tokens, null, 2),
+    JSON.stringify(
+      tokens,
+      null,
+      2
+    ),
     {
       mode: 0o600
     }
   );
 
-  fs.renameSync(tmp, TOKEN_FILE);
+  fs.renameSync(
+    tmp,
+    TOKEN_FILE
+  );
 
   tokenCache = tokens;
 }
 
 // ============================================================
-// CONFIG
+// CONFIGURACIÓN OBLIGATORIA
 // ============================================================
 
 function requireConfig() {
   const missing = [];
 
   if (!CLIENT_ID) {
-    missing.push('ML_CLIENT_ID');
+    missing.push(
+      'ML_CLIENT_ID'
+    );
   }
 
   if (!CLIENT_SECRET) {
-    missing.push('ML_CLIENT_SECRET');
+    missing.push(
+      'ML_CLIENT_SECRET'
+    );
   }
 
   if (!REDIRECT_URI) {
-    missing.push('ML_REDIRECT_URI');
+    missing.push(
+      'ML_REDIRECT_URI'
+    );
   }
 
   if (missing.length) {
     throw new Error(
-      `Faltan variables de entorno: ${missing.join(', ')}`
+      'Faltan variables de entorno: ' +
+      missing.join(', ')
     );
   }
 }
@@ -128,16 +181,18 @@ function base64url(buffer) {
 }
 
 function createPKCE() {
-  const verifier = base64url(
-    crypto.randomBytes(32)
-  );
+  const verifier =
+    base64url(
+      crypto.randomBytes(32)
+    );
 
-  const challenge = base64url(
-    crypto
-      .createHash('sha256')
-      .update(verifier)
-      .digest()
-  );
+  const challenge =
+    base64url(
+      crypto
+        .createHash('sha256')
+        .update(verifier)
+        .digest()
+    );
 
   return {
     verifier,
@@ -163,46 +218,65 @@ function escapeHtml(value) {
 }
 
 function todayArgentina() {
-  const parts = new Intl.DateTimeFormat(
-    'en-CA',
-    {
-      timeZone: 'America/Argentina/Buenos_Aires',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }
-  ).formatToParts(new Date());
+  const parts =
+    new Intl.DateTimeFormat(
+      'en-CA',
+      {
+        timeZone:
+          'America/Argentina/Buenos_Aires',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    ).formatToParts(
+      new Date()
+    );
 
   const data = {};
 
   for (const part of parts) {
-    data[part.type] = part.value;
+    data[part.type] =
+      part.value;
   }
 
-  return `${data.year}-${data.month}-${data.day}`;
+  return (
+    data.year +
+    '-' +
+    data.month +
+    '-' +
+    data.day
+  );
 }
 
 // ============================================================
-// MERCADO LIBRE - TOKEN
+// MERCADO LIBRE - TOKEN REQUEST
 // ============================================================
 
 async function tokenRequest(body) {
-  const response = await fetch(
-    `${API_BASE}/oauth/token`,
-    {
-      method: 'POST',
+  const response =
+    await fetch(
+      API_BASE +
+      '/oauth/token',
+      {
+        method: 'POST',
 
-      headers: {
-        accept: 'application/json',
-        'content-type':
-          'application/x-www-form-urlencoded'
-      },
+        headers: {
+          accept:
+            'application/json',
 
-      body: new URLSearchParams(body)
-    }
-  );
+          'content-type':
+            'application/x-www-form-urlencoded'
+        },
 
-  const text = await response.text();
+        body:
+          new URLSearchParams(
+            body
+          )
+      }
+    );
+
+  const text =
+    await response.text();
 
   let data;
 
@@ -215,13 +289,17 @@ async function tokenRequest(body) {
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data.error_description ||
-      data.error ||
-      `HTTP ${response.status}`
-    );
+    const error =
+      new Error(
+        data.error_description ||
+        data.error ||
+        'HTTP ' +
+          response.status
+      );
 
-    error.status = response.status;
+    error.status =
+      response.status;
+
     error.details = data;
 
     throw error;
@@ -231,32 +309,48 @@ async function tokenRequest(body) {
 }
 
 // ============================================================
-// OAUTH - INTERCAMBIO DE CODE
+// INTERCAMBIO DEL CODE OAuth
 // ============================================================
 
 async function exchangeCode(code) {
   const body = {
-    grant_type: 'authorization_code',
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    code,
-    redirect_uri: REDIRECT_URI
+    grant_type:
+      'authorization_code',
+
+    client_id:
+      CLIENT_ID,
+
+    client_secret:
+      CLIENT_SECRET,
+
+    code:
+      code,
+
+    redirect_uri:
+      REDIRECT_URI
   };
 
   if (pkceVerifier) {
-    body.code_verifier = pkceVerifier;
+    body.code_verifier =
+      pkceVerifier;
   }
 
-  const data = await tokenRequest(body);
+  const data =
+    await tokenRequest(body);
 
   saveTokens({
     ...data,
 
-    obtained_at: Date.now(),
+    obtained_at:
+      Date.now(),
 
     expires_at:
       Date.now() +
-      ((data.expires_in || 21600) * 1000)
+      (
+        (data.expires_in ||
+          21600) *
+        1000
+      )
   });
 
   return data;
@@ -267,49 +361,68 @@ async function exchangeCode(code) {
 // ============================================================
 
 async function refreshAccessToken() {
-  if (!tokenCache?.refresh_token) {
+  if (
+    !tokenCache?.refresh_token
+  ) {
     throw new Error(
       'No hay refresh_token. Hay que conectar Mercado Libre nuevamente.'
     );
   }
 
-  const data = await tokenRequest({
-    grant_type: 'refresh_token',
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    refresh_token: tokenCache.refresh_token
-  });
+  const data =
+    await tokenRequest({
+      grant_type:
+        'refresh_token',
+
+      client_id:
+        CLIENT_ID,
+
+      client_secret:
+        CLIENT_SECRET,
+
+      refresh_token:
+        tokenCache.refresh_token
+    });
 
   saveTokens({
     ...data,
 
-    obtained_at: Date.now(),
+    obtained_at:
+      Date.now(),
 
     expires_at:
       Date.now() +
-      ((data.expires_in || 21600) * 1000)
+      (
+        (data.expires_in ||
+          21600) *
+        1000
+      )
   });
 
   return data.access_token;
 }
 
 // ============================================================
-// OBTENER ACCESS TOKEN
+// ACCESS TOKEN
 // ============================================================
 
 async function getAccessToken() {
-  if (!tokenCache?.access_token) {
+  if (
+    !tokenCache?.access_token
+  ) {
     throw new Error(
       'Mercado Libre no está conectado.'
     );
   }
 
-  const safetyWindow = 60 * 1000;
+  const safetyWindow =
+    60 * 1000;
 
   if (
     tokenCache.expires_at &&
     Date.now() <
-      tokenCache.expires_at - safetyWindow
+      tokenCache.expires_at -
+      safetyWindow
   ) {
     return tokenCache.access_token;
   }
@@ -318,7 +431,7 @@ async function getAccessToken() {
 }
 
 // ============================================================
-// REQUEST A MERCADO LIBRE
+// REQUEST GENERAL A MERCADO LIBRE
 // ============================================================
 
 async function mlFetch(
@@ -333,21 +446,22 @@ async function mlFetch(
     ...(options.headers || {}),
 
     Authorization:
-      `Bearer ${accessToken}`,
+      'Bearer ' +
+      accessToken,
 
     Accept:
       'application/json'
   };
 
-  const response = await fetch(
-    `${API_BASE}${endpoint}`,
-    {
-      ...options,
-      headers
-    }
-  );
+  const response =
+    await fetch(
+      API_BASE + endpoint,
+      {
+        ...options,
+        headers
+      }
+    );
 
-  // Token vencido
   if (
     response.status === 401 &&
     retry &&
@@ -376,11 +490,13 @@ async function mlFetch(
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data.message ||
-      data.error ||
-      `Mercado Libre HTTP ${response.status}`
-    );
+    const error =
+      new Error(
+        data.message ||
+        data.error ||
+        'Mercado Libre HTTP ' +
+          response.status
+      );
 
     error.status =
       response.status;
@@ -395,15 +511,13 @@ async function mlFetch(
 
 // ============================================================
 // REQUEST PRODUCT ADS
-//
-// Los endpoints actuales de Product Ads requieren
-// Api-Version: 2
 // ============================================================
 
 async function mlAdsFetch(
   endpoint,
   options = {},
-  retry = true
+  retry = true,
+  apiVersion = '2'
 ) {
   const accessToken =
     await getAccessToken();
@@ -412,22 +526,24 @@ async function mlAdsFetch(
     ...(options.headers || {}),
 
     Authorization:
-      `Bearer ${accessToken}`,
+      'Bearer ' +
+      accessToken,
 
     Accept:
       'application/json',
 
     'api-version':
-      '2'
+      apiVersion
   };
 
-  const response = await fetch(
-    `${API_BASE}${endpoint}`,
-    {
-      ...options,
-      headers
-    }
-  );
+  const response =
+    await fetch(
+      API_BASE + endpoint,
+      {
+        ...options,
+        headers
+      }
+    );
 
   if (
     response.status === 401 &&
@@ -439,7 +555,8 @@ async function mlAdsFetch(
     return mlAdsFetch(
       endpoint,
       options,
-      false
+      false,
+      apiVersion
     );
   }
 
@@ -457,11 +574,13 @@ async function mlAdsFetch(
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data.message ||
-      data.error ||
-      `Mercado Libre HTTP ${response.status}`
-    );
+    const error =
+      new Error(
+        data.message ||
+        data.error ||
+        'Mercado Libre HTTP ' +
+          response.status
+      );
 
     error.status =
       response.status;
@@ -514,7 +633,8 @@ app.get(
 
       const url =
         new URL(
-          `${AUTH_DOMAIN}/authorization`
+          AUTH_DOMAIN +
+          '/authorization'
         );
 
       url.searchParams.set(
@@ -550,21 +670,22 @@ app.get(
       res.redirect(
         url.toString()
       );
-
     } catch (error) {
       res
         .status(500)
         .send(
-          `<pre>${escapeHtml(
-            error.message
-          )}</pre>`
+          '<pre>' +
+            escapeHtml(
+              error.message
+            ) +
+            '</pre>'
         );
     }
   }
 );
 
 // ============================================================
-// CALLBACK OAUTH
+// CALLBACK OAuth
 // ============================================================
 
 app.get(
@@ -577,10 +698,12 @@ app.get(
         return res
           .status(400)
           .send(
-            `<pre>${escapeHtml(
-              req.query.error_description ||
-              req.query.error
-            )}</pre>`
+            '<pre>' +
+              escapeHtml(
+                req.query.error_description ||
+                req.query.error
+              ) +
+              '</pre>'
           );
       }
 
@@ -613,7 +736,6 @@ app.get(
       res.redirect(
         '/?connected=1'
       );
-
     } catch (error) {
       console.error(
         'Error OAuth:',
@@ -625,10 +747,12 @@ app.get(
           error.status || 500
         )
         .send(
-          `<h1>No se pudo conectar Mercado Libre</h1>
-           <pre>${escapeHtml(
-             error.message
-           )}</pre>`
+          '<h1>No se pudo conectar Mercado Libre</h1>' +
+          '<pre>' +
+          escapeHtml(
+            error.message
+          ) +
+          '</pre>'
         );
     }
   }
@@ -665,13 +789,15 @@ app.get(
           );
 
         result.user = {
-          id: me.id,
+          id:
+            me.id,
+
           nickname:
             me.nickname,
+
           country_id:
             me.country_id
         };
-
       } catch (error) {
         result.api_error =
           error.message;
@@ -743,14 +869,14 @@ app.get(
 
       const data =
         await mlFetch(
-          `/orders/search?${params.toString()}`
+          '/orders/search?' +
+          params.toString()
         );
 
       res.json({
         ok: true,
         ...data
       });
-
     } catch (error) {
       console.error(
         'Error /api/orders:',
@@ -763,8 +889,10 @@ app.get(
         )
         .json({
           ok: false,
+
           error:
             error.message,
+
           details:
             error.details ||
             null
@@ -820,7 +948,8 @@ app.post(
 
       const data =
         await mlFetch(
-          `/orders/search?${params.toString()}`
+          '/orders/search?' +
+          params.toString()
         );
 
       res.json({
@@ -837,7 +966,6 @@ app.post(
         orders:
           data.results || []
       });
-
     } catch (error) {
       console.error(
         'Error /api/sync:',
@@ -850,8 +978,10 @@ app.post(
         )
         .json({
           ok: false,
+
           error:
             error.message,
+
           details:
             error.details ||
             null
@@ -891,13 +1021,22 @@ app.post(
 );
 
 // ============================================================
-// OBTENER ADVERTISER DE PRODUCT ADS
+// OBTENER ADVERTISER PRODUCT ADS
+//
+// ESTE ENDPOINT USA API-VERSION 1.
+// Mercado Libre documenta actualmente:
+//
+// GET /advertising/advertisers?product_id=PADS
+//
 // ============================================================
 
 async function getAdvertiser() {
   const data =
     await mlAdsFetch(
-      '/advertising/advertisers?product_id=PADS'
+      '/advertising/advertisers?product_id=PADS',
+      {},
+      true,
+      '1'
     );
 
   const advertisers =
@@ -913,50 +1052,54 @@ async function getAdvertiser() {
     );
   }
 
-  return (
+  const advertiser =
     advertisers.find(
-      advertiser =>
-        advertiser.site_id ===
+      item =>
+        item.site_id ===
         'MLA'
     ) ||
-    advertisers[0]
-  );
+    advertisers[0];
+
+  return advertiser;
 }
 
 // ============================================================
 // MÉTRICAS PRODUCT ADS
 // ============================================================
 
-const AD_METRICS =
-  [
-    'clicks',
-    'prints',
-    'ctr',
-    'cost',
-    'cpc',
-    'acos',
-    'organic_units_quantity',
-    'organic_units_amount',
-    'organic_items_quantity',
-    'direct_items_quantity',
-    'indirect_items_quantity',
-    'advertising_items_quantity',
-    'cvr',
-    'roas',
-    'sov',
-    'direct_units_quantity',
-    'indirect_units_quantity',
-    'units_quantity',
-    'direct_amount',
-    'indirect_amount',
-    'total_amount'
-  ].join(',');
+const AD_METRICS = [
+  'clicks',
+  'prints',
+  'ctr',
+  'cost',
+  'cpc',
+  'acos',
+  'organic_units_quantity',
+  'organic_units_amount',
+  'organic_items_quantity',
+  'direct_items_quantity',
+  'indirect_items_quantity',
+  'advertising_items_quantity',
+  'cvr',
+  'roas',
+  'sov',
+  'direct_units_quantity',
+  'indirect_units_quantity',
+  'units_quantity',
+  'direct_amount',
+  'indirect_amount',
+  'total_amount'
+].join(',');
 
 // ============================================================
 // API ADS
 //
-// IMPORTANTE:
-// usamos el endpoint actual y Api-Version: 2
+// Endpoint vigente de campañas:
+//
+// /advertising/{SITE}/advertisers/{ADVERTISER_ID}
+// /product_ads/campaigns/search
+//
+// api-version: 2
 // ============================================================
 
 app.get(
@@ -984,30 +1127,52 @@ app.get(
         todayArgentina();
 
       const params =
-        new URLSearchParams({
-          limit: '50',
+        new URLSearchParams();
 
-          offset: '0',
+      params.set(
+        'limit',
+        '50'
+      );
 
-          date_from:
-            date,
+      params.set(
+        'offset',
+        '0'
+      );
 
-          date_to:
-            date,
+      params.set(
+        'date_from',
+        date
+      );
 
-          metrics:
-            AD_METRICS,
+      params.set(
+        'date_to',
+        date
+      );
 
-          aggregation_type:
-            'DAILY'
-        });
+      params.set(
+        'metrics',
+        AD_METRICS
+      );
+
+      params.set(
+        'aggregation_type',
+        'DAILY'
+      );
 
       const endpoint =
-        `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
+        '/advertising/' +
+        site +
+        '/advertisers/' +
+        advertiserId +
+        '/product_ads/campaigns/search?' +
+        params.toString();
 
       const data =
         await mlAdsFetch(
-          endpoint
+          endpoint,
+          {},
+          true,
+          '2'
         );
 
       const campaigns =
@@ -1118,7 +1283,6 @@ app.get(
 
         items: []
       });
-
     } catch (error) {
       console.error(
         'Error /api/ads:',
@@ -1181,9 +1345,13 @@ app.get(
   (req, res) => {
     res.json({
       ok: true,
-      service: 'conteonix',
+
+      service:
+        'conteonix',
+
       time:
         new Date().toISOString(),
+
       connected:
         !!tokenCache?.access_token
     });
@@ -1198,15 +1366,18 @@ app.listen(
   PORT,
   () => {
     console.log(
-      `Conteonix escuchando en puerto ${PORT}`
+      'Conteonix escuchando en puerto ' +
+      PORT
     );
 
     console.log(
-      `BASE_URL: ${BASE_URL}`
+      'BASE_URL: ' +
+      BASE_URL
     );
 
     console.log(
-      `REDIRECT_URI: ${REDIRECT_URI}`
+      'REDIRECT_URI: ' +
+      REDIRECT_URI
     );
   }
 );
