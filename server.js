@@ -12,7 +12,7 @@ function nowAR() {
   return new Date(utc - (3 * 60 * 60 * 1000));
 }
 
-// Función auxiliar para llamadas a la API de Mercado Libre / Mercado Ads (Corregida)
+// Función auxiliar para llamadas a la API de Mercado Libre / Mercado Ads
 async function mlFetch(endpoint, customHeaders = {}) {
   const accessToken = process.env.MELI_ACCESS_TOKEN;
   if (!accessToken) {
@@ -37,7 +37,6 @@ async function mlFetch(endpoint, customHeaders = {}) {
     throw new Error(`ML API Error (${response.status}): ${responseText}`);
   }
 
-  // Manejo seguro por si la respuesta viene vacía
   if (!responseText) {
     return {};
   }
@@ -63,17 +62,29 @@ const ADS_METRICS = [
 let advertiserCache = null;
 
 async function getAdvertiser() {
-  if (advertiserCache?.advertiser_id) return advertiserCache;
+  if (advertiserCache) return advertiserCache;
   
-  // Se especifica Api-Version: 1 para obtener el advertiser correcto
   const data = await mlFetch('/advertising/advertisers?product_id=PADS', { 'Api-Version': '1' });
   const list = data.advertisers || data.results || (Array.isArray(data) ? data : []);
   
   if (!list.length) {
-    throw new Error('No se encontró ningún advertiser de Product Ads activo.');
+    throw new Error('No se encontró ningún advertiser de Product Ads activo para esta cuenta.');
   }
   
-  advertiserCache = list.find(a => a.site_id === 'MLA') || list[0];
+  const selected = list.find(a => a.site_id === 'MLA') || list[0];
+  
+  // Extrae el ID identificando las variaciones que suele devolver la API
+  const advertiserId = selected.advertiser_id || selected.id || selected.user_id;
+
+  if (!advertiserId) {
+    throw new Error(`No se pudo obtener la propiedad ID del advertiser. Estructura recibida: ${JSON.stringify(selected)}`);
+  }
+
+  advertiserCache = {
+    ...selected,
+    advertiser_id: advertiserId
+  };
+
   return advertiserCache;
 }
 
@@ -108,36 +119,31 @@ function emptyAdsMetrics() {
   };
 }
 
-// Llama a las campañas probando v2 y reintentando con v1 si devuelve 404
+// Llama a las campañas probando v2 y reintentando con v1
 async function fetchCampaignsWithMetrics(advertiserId, date_from, date_to) {
   const url = `/advertising/advertisers/${advertiserId}/product_ads/campaigns` +
     `?date_from=${date_from}&date_to=${date_to}&metrics=${ADS_METRICS}&limit=50&offset=0`;
   try {
     const data = await mlFetch(url, { 'Api-Version': '2' });
-    return data.results || [];
+    return data.results || data.campaigns || [];
   } catch (err) {
-    if (err.message && err.message.includes('404')) {
-      const dataV1 = await mlFetch(url, { 'Api-Version': '1' });
-      return dataV1.results || dataV1.campaigns || [];
-    }
-    throw err;
+    // Si la versión 2 falla por error de endpoint o cliente, intentamos versión 1
+    const dataV1 = await mlFetch(url, { 'Api-Version': '1' });
+    return dataV1.results || dataV1.campaigns || [];
   }
 }
 
-// Llama a los anuncios/items probando v2 y reintentando con v1 si devuelve 404
+// Llama a los anuncios/items probando v2 y reintentando con v1
 async function fetchItemsWithMetrics(advertiserId, date_from, date_to) {
   const url = `/advertising/advertisers/${advertiserId}/product_ads/items` +
     `?date_from=${date_from}&date_to=${date_to}&metrics=${ADS_METRICS}` +
     `&metrics_summary=true&sort_by=cost&sort=desc&limit=50&offset=0`;
   try {
     const data = await mlFetch(url, { 'Api-Version': '2' });
-    return data.results || [];
+    return data.results || data.items || [];
   } catch (err) {
-    if (err.message && err.message.includes('404')) {
-      const dataV1 = await mlFetch(url, { 'Api-Version': '1' });
-      return dataV1.results || dataV1.items || [];
-    }
-    throw err;
+    const dataV1 = await mlFetch(url, { 'Api-Version': '1' });
+    return dataV1.results || dataV1.items || [];
   }
 }
 
@@ -154,7 +160,7 @@ async function getProductAdsReport(period) {
       summary: emptyAdsMetrics(),
       campaigns: [],
       items: [],
-      warning: err.message || 'No se encontraron campañas de Product Ads configuradas o activas.'
+      warning: err.message
     };
   }
 
@@ -162,6 +168,7 @@ async function getProductAdsReport(period) {
 
   let campaigns = [];
   let items = [];
+  let fetchError = null;
 
   try {
     [campaigns, items] = await Promise.all([
@@ -170,6 +177,7 @@ async function getProductAdsReport(period) {
     ]);
   } catch (err) {
     console.error('Error al consultar métricas de publicidad:', err.message);
+    fetchError = err.message;
   }
 
   const totals = campaigns.reduce((acc, c) => {
@@ -245,7 +253,8 @@ async function getProductAdsReport(period) {
     },
     summary,
     campaigns: campaignsOut,
-    items: itemsOut
+    items: itemsOut,
+    ...(fetchError && { fetch_error: fetchError })
   };
 }
 
@@ -263,7 +272,7 @@ app.get('/api/ads/report', async (req, res) => {
     res.json(report);
   } catch (error) {
     console.error('Error procesando reporte de Ads:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message, stack: error.stack });
   }
 });
 
