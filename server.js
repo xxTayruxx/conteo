@@ -1,4 +1,4 @@
-```javascript
+javascript
 require('dotenv').config();
 
 const express = require('express');
