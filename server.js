@@ -1,3 +1,45 @@
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// ---------- Utilitarios y Helpers ----------
+
+// Retorna la fecha/hora actual ajustada a zona horaria de Argentina (UTC-3)
+function nowAR() {
+  const d = new Date();
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  return new Date(utc - (3 * 60 * 60 * 1000));
+}
+
+// Función auxiliar para llamadas a la API de Mercado Libre / Mercado Ads
+async function mlFetch(endpoint, customHeaders = {}) {
+  const accessToken = process.env.MELI_ACCESS_TOKEN;
+  if (!accessToken) {
+    throw new Error('MELI_ACCESS_TOKEN no está configurado en las variables de entorno.');
+  }
+
+  const url = endpoint.startsWith('http') 
+    ? endpoint 
+    : `https://api.mercadolibre.com${endpoint}`;
+
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      ...customHeaders
+    }
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`ML API Error (${response.status}): ${errorBody}`);
+  }
+
+  return await response.json();
+}
+
+
 // ---------- Product Ads (Mercado Ads) ----------
 
 const ADS_METRICS = [
@@ -196,3 +238,29 @@ async function getProductAdsReport(period) {
     items: itemsOut
   };
 }
+
+
+// ---------- Rutas / Endpoints API ----------
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', timestamp: new Date() });
+});
+
+app.get('/api/ads/report', async (req, res) => {
+  try {
+    const period = req.query.period || 'today';
+    const report = await getProductAdsReport(period);
+    res.json(report);
+  } catch (error) {
+    console.error('Error procesando reporte de Ads:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+// ---------- Inicio del Servidor ----------
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Servidor iniciado correctamente y escuchando en el puerto ${PORT}`);
+});
