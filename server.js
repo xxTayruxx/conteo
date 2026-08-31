@@ -179,7 +179,7 @@ async function getProductAdsReport(period) {
         indirectAmount: m.indirect_amount || 0
       }
     };
-  }));
+  });
 
   return {
     period,
