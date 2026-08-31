@@ -4,6 +4,7 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const { Pool } = require('pg');
+const webpush = require('web-push');
 
 const app = express();
 
@@ -31,8 +32,20 @@ let oauthState = null;
 let pkceVerifier = null;
 let tokenCache = null;
 
-// Clientes conectados por Server-Sent Events (notificaciones en tiempo real)
+// Clientes conectados por Server-Sent Events (notificaciones en tiempo real, con la web abierta)
 const sseClients = new Set();
+
+// Notificaciones push (llegan aunque la web esté cerrada, requiere instalar el sitio como app)
+const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:soporte@conteonix.app';
+const pushEnabled = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+
+if (pushEnabled) {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+} else {
+  console.warn('VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY no configuradas: las notificaciones push están desactivadas.');
+}
 
 async function initDB() {
   try {
@@ -52,6 +65,11 @@ async function initDB() {
         order_id VARCHAR(50),
         title TEXT,
         amount NUMERIC(12,2),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        endpoint TEXT PRIMARY KEY,
+        subscription JSONB NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
@@ -126,15 +144,15 @@ async function getAccessToken() {
   return refreshAccessToken();
 }
 
-async function mlFetch(endpoint) {
+async function mlFetch(endpoint, extraHeaders = {}) {
   const accessToken = await getAccessToken();
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
   const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' }
+    headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json', ...extraHeaders }
   });
   if (res.status === 401) {
     await refreshAccessToken();
-    return mlFetch(endpoint);
+    return mlFetch(endpoint, extraHeaders);
   }
   const data = await res.json();
   if (!res.ok) {
@@ -267,6 +285,165 @@ function computeMetrics(orders, costsMap) {
   };
 }
 
+// ---------- Product Ads (Mercado Ads) ----------
+
+// Métricas disponibles en la API de Product Ads que queremos traer siempre
+const ADS_METRICS = [
+  'clicks', 'prints', 'ctr', 'cost', 'cpc', 'acos', 'cvr', 'roas', 'sov',
+  'organic_units_quantity', 'organic_units_amount',
+  'direct_items_quantity', 'indirect_items_quantity', 'advertising_items_quantity',
+  'direct_units_quantity', 'indirect_units_quantity', 'units_quantity',
+  'direct_amount', 'indirect_amount', 'total_amount'
+].join(',');
+
+let advertiserCache = null; // { advertiser_id, site_id, advertiser_name, account_name }
+
+async function getAdvertiser() {
+  if (advertiserCache?.advertiser_id) return advertiserCache;
+  const data = await mlFetch('/advertising/advertisers?product_id=PADS', { 'Api-Version': '1' });
+  const list = data.advertisers || data.results || [];
+  if (!list.length) throw new Error('No se encontró ningún advertiser de Product Ads para esta cuenta.');
+  // Si hay varias cuentas/sitios, preferimos Argentina (MLA)
+  advertiserCache = list.find(a => a.site_id === 'MLA') || list[0];
+  return advertiserCache;
+}
+
+// Fechas en formato YYYY-MM-DD (hora Argentina), que es lo que pide la API de Ads
+function ymdAR(dayShift = 0) {
+  const d = nowAR();
+  d.setUTCDate(d.getUTCDate() + dayShift);
+  return d.toISOString().slice(0, 10);
+}
+
+function getAdsDateRange(period) {
+  switch (period) {
+    case 'yesterday':
+      return { date_from: ymdAR(-1), date_to: ymdAR(-1) };
+    case 'week':
+      return { date_from: ymdAR(-6), date_to: ymdAR(0) };
+    case 'month': {
+      const d = nowAR();
+      d.setUTCDate(1);
+      return { date_from: d.toISOString().slice(0, 10), date_to: ymdAR(0) };
+    }
+    case 'today':
+    default:
+      return { date_from: ymdAR(0), date_to: ymdAR(0) };
+  }
+}
+
+function emptyAdsMetrics() {
+  return {
+    clicks: 0, prints: 0, cost: 0, total_amount: 0,
+    direct_amount: 0, indirect_amount: 0,
+    units_quantity: 0, direct_units_quantity: 0, indirect_units_quantity: 0
+  };
+}
+
+// Trae campañas + sus métricas del período
+async function fetchCampaignsWithMetrics(advertiserId, date_from, date_to) {
+  const url = `/advertising/advertisers/${advertiserId}/product_ads/campaigns` +
+    `?date_from=${date_from}&date_to=${date_to}&metrics=${ADS_METRICS}&limit=50&offset=0`;
+  const data = await mlFetch(url, { 'Api-Version': '2' });
+  return data.results || [];
+}
+
+// Trae anuncios (variantes/publicaciones) con el total de métricas del período, ordenados por inversión
+async function fetchItemsWithMetrics(advertiserId, date_from, date_to) {
+  const url = `/advertising/advertisers/${advertiserId}/product_ads/items` +
+    `?date_from=${date_from}&date_to=${date_to}&metrics=${ADS_METRICS}` +
+    `&metrics_summary=true&sort_by=cost&sort=desc&limit=50&offset=0`;
+  const data = await mlFetch(url, { 'Api-Version': '2' });
+  return data.results || [];
+}
+
+async function getProductAdsReport(period) {
+  const advertiser = await getAdvertiser();
+  const { date_from, date_to } = getAdsDateRange(period);
+
+  const [campaigns, items] = await Promise.all([
+    fetchCampaignsWithMetrics(advertiser.advertiser_id, date_from, date_to),
+    fetchItemsWithMetrics(advertiser.advertiser_id, date_from, date_to)
+  ]);
+
+  // Sumamos las métricas de todas las campañas para tener un total de la cuenta
+  const totals = campaigns.reduce((acc, c) => {
+    const m = c.metrics || {};
+    acc.clicks += m.clicks || 0;
+    acc.prints += m.prints || 0;
+    acc.cost += m.cost || 0;
+    acc.total_amount += m.total_amount || 0;
+    acc.direct_amount += m.direct_amount || 0;
+    acc.indirect_amount += m.indirect_amount || 0;
+    acc.units_quantity += m.units_quantity || 0;
+    acc.direct_units_quantity += m.direct_units_quantity || 0;
+    acc.indirect_units_quantity += m.indirect_units_quantity || 0;
+    return acc;
+  }, emptyAdsMetrics());
+
+  const summary = {
+    ...totals,
+    ctr: totals.prints > 0 ? parseFloat(((totals.clicks / totals.prints) * 100).toFixed(2)) : 0,
+    cpc: totals.clicks > 0 ? parseFloat((totals.cost / totals.clicks).toFixed(2)) : 0,
+    roas: totals.cost > 0 ? parseFloat((totals.total_amount / totals.cost).toFixed(2)) : 0,
+    acos: totals.total_amount > 0 ? parseFloat(((totals.cost / totals.total_amount) * 100).toFixed(2)) : 0
+  };
+
+  const campaignsOut = campaigns.map(c => ({
+    id: c.id,
+    name: c.name,
+    status: c.status,
+    budget: c.budget,
+    currency: c.currency_id,
+    strategy: c.strategy,
+    acosTarget: c.acos_target,
+    metrics: c.metrics || {}
+  }));
+
+  const itemsOut = items.map(it => {
+    const m = it.metrics_summary || it.metrics || {};
+    return {
+      itemId: it.item_id,
+      title: it.title,
+      price: it.price,
+      status: it.status,
+      campaignId: it.campaign_id,
+      buyBoxWinner: it.buy_box_winner,
+      metrics: {
+        clicks: m.clicks || 0,
+        prints: m.prints || 0,
+        ctr: m.ctr ?? (m.prints > 0 ? parseFloat(((m.clicks / m.prints) * 100).toFixed(2)) : 0),
+        cost: m.cost || 0,
+        cpc: m.cpc || 0,
+        acos: m.acos || 0,
+        cvr: m.cvr || 0,
+        roas: m.roas ?? (m.cost > 0 ? parseFloat(((m.total_amount || 0) / m.cost).toFixed(2)) : 0),
+        unitsQuantity: m.units_quantity || 0,
+        directUnitsQuantity: m.direct_units_quantity || 0,
+        indirectUnitsQuantity: m.indirect_units_quantity || 0,
+        totalAmount: m.total_amount || 0,
+        directAmount: m.direct_amount || 0,
+        indirectAmount: m.indirect_amount || 0
+      }
+    };
+  });
+
+  return {
+    period,
+    date_from,
+    date_to,
+    advertiser: {
+      id: advertiser.advertiser_id,
+      siteId: advertiser.site_id,
+      name: advertiser.advertiser_name,
+      account: advertiser.account_name
+    },
+    summary,
+    campaigns: campaignsOut,
+    items: itemsOut
+  };
+}
+
 // ---------- Stock / alertas de quiebre ----------
 
 async function getStockAlerts() {
@@ -333,6 +510,32 @@ function broadcast(type, data) {
   for (const res of sseClients) {
     res.write(payload);
   }
+}
+
+// Envía una notificación push real (llega con el celular bloqueado / la web cerrada)
+async function pushNotifyAll({ title, body, url = '/', tag }) {
+  if (!pushEnabled) return;
+  let rows;
+  try {
+    rows = (await pool.query('SELECT endpoint, subscription FROM push_subscriptions')).rows;
+  } catch (err) {
+    console.error('Error leyendo suscripciones push:', err.message);
+    return;
+  }
+  const payload = JSON.stringify({ title, body, url, tag });
+
+  await Promise.all(rows.map(async (row) => {
+    try {
+      await webpush.sendNotification(row.subscription, payload);
+    } catch (err) {
+      // 404/410 = el navegador invalidó esa suscripción (desinstaló la app, etc.)
+      if (err.statusCode === 404 || err.statusCode === 410) {
+        await pool.query('DELETE FROM push_subscriptions WHERE endpoint = $1', [row.endpoint]);
+      } else {
+        console.error('Error enviando push:', err.message);
+      }
+    }
+  }));
 }
 
 app.get('/api/events', (req, res) => {
@@ -422,11 +625,60 @@ app.get('/api/live-metrics', async (req, res) => {
   }
 });
 
+// Reporte de Product Ads: cuánto se gastó, cuánto generó cada peso invertido y ventas por anuncio
+app.get('/api/product-ads', async (req, res) => {
+  try {
+    if (!tokenCache?.user_id) throw new Error('Mercado Libre no conectado');
+
+    const period = ['today', 'yesterday', 'week', 'month'].includes(req.query.period)
+      ? req.query.period
+      : 'today';
+
+    const report = await getProductAdsReport(period);
+    res.json({ ok: true, ...report });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // Alertas de stock: días restantes según velocidad de venta real
 app.get('/api/stock-alerts', async (req, res) => {
   try {
     const alerts = await getStockAlerts();
     res.json({ ok: true, alerts });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Clave pública VAPID: el frontend la necesita para suscribirse a push
+app.get('/api/push/public-key', (req, res) => {
+  if (!pushEnabled) return res.status(503).json({ ok: false, error: 'Push no configurado en el servidor.' });
+  res.json({ ok: true, publicKey: VAPID_PUBLIC_KEY });
+});
+
+// Guarda la suscripción push del dispositivo (se llama una vez, al instalar/activar notificaciones)
+app.post('/api/push/subscribe', async (req, res) => {
+  try {
+    const subscription = req.body;
+    if (!subscription?.endpoint) throw new Error('Suscripción inválida');
+    await pool.query(`
+      INSERT INTO push_subscriptions (endpoint, subscription)
+      VALUES ($1, $2)
+      ON CONFLICT (endpoint) DO UPDATE SET subscription = EXCLUDED.subscription;
+    `, [subscription.endpoint, JSON.stringify(subscription)]);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Elimina la suscripción (ej: el usuario desactiva las notificaciones)
+app.post('/api/push/unsubscribe', async (req, res) => {
+  try {
+    const { endpoint } = req.body;
+    if (endpoint) await pool.query('DELETE FROM push_subscriptions WHERE endpoint = $1', [endpoint]);
+    res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }
@@ -479,6 +731,12 @@ app.post('/api/webhooks/meli', async (req, res) => {
         title,
         amount,
         date: orderData.date_created
+      });
+
+      pushNotifyAll({
+        title: `¡Vendiste! ${title}`,
+        body: new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(amount),
+        tag: `order-${orderData.id}`
       });
 
       console.log('Nueva orden recibida vía Webhook:', orderData.id);
