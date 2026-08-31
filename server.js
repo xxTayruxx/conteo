@@ -12,7 +12,7 @@ function nowAR() {
   return new Date(utc - (3 * 60 * 60 * 1000));
 }
 
-// Función auxiliar para llamadas a la API de Mercado Libre / Mercado Ads
+// Función auxiliar para llamadas a la API de Mercado Libre / Mercado Ads (Corregida)
 async function mlFetch(endpoint, customHeaders = {}) {
   const accessToken = process.env.MELI_ACCESS_TOKEN;
   if (!accessToken) {
@@ -31,12 +31,22 @@ async function mlFetch(endpoint, customHeaders = {}) {
     }
   });
 
+  const responseText = await response.text();
+
   if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`ML API Error (${response.status}): ${errorBody}`);
+    throw new Error(`ML API Error (${response.status}): ${responseText}`);
   }
 
-  return await response.json();
+  // Manejo seguro por si la respuesta viene vacía
+  if (!responseText) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(responseText);
+  } catch (err) {
+    throw new Error(`Error al parsear JSON de ML API: ${err.message}. Respuesta original: ${responseText}`);
+  }
 }
 
 
