@@ -115,8 +115,16 @@ async function tokenRequest(body) {
     headers: { 'accept': 'application/json', 'content-type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(body)
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error_description || data.error);
+
+  const text = await response.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (e) {
+    data = { error: text };
+  }
+
+  if (!response.ok) throw new Error(data.error_description || data.error || `Error ${response.status}`);
   return data;
 }
 
@@ -144,22 +152,51 @@ async function getAccessToken() {
   return refreshAccessToken();
 }
 
-async function mlFetch(endpoint, extraHeaders = {}) {
+async function mlFetch(endpoint, extraHeaders = {}, isRetry = false) {
   const accessToken = await getAccessToken();
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
+
   const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json', ...extraHeaders }
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/json',
+      ...extraHeaders
+    }
   });
-  if (res.status === 401) {
+
+  // Reintento en caso de token expirado (401)
+  if (res.status === 401 && !isRetry) {
     await refreshAccessToken();
-    return mlFetch(endpoint, extraHeaders);
+    return mlFetch(endpoint, extraHeaders, true);
   }
-  const data = await res.json();
+
+  const text = await res.text();
+
   if (!res.ok) {
-    const msg = data?.message || data?.error || `Error ${res.status} en ${endpoint}`;
-    throw new Error(msg);
+    let errorMsg = `Error ${res.status} en ${endpoint}`;
+    try {
+      const errJson = JSON.parse(text);
+      errorMsg = errJson.message || errJson.error || errorMsg;
+    } catch {
+      if (text) errorMsg += `: ${text}`;
+    }
+    if (res.status === 403 || res.status === 401) {
+      throw new Error(`Permiso denegado por Mercado Libre (${res.status}). Verifica tus permisos de cuenta o de Product Ads.`);
+    }
+    throw new Error(errorMsg);
   }
-  return data;
+
+  // Si la respuesta está vacía (evita "Unexpected end of JSON input")
+  if (!text || text.trim() === '') {
+    return {};
+  }
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.error(`Error de parseo JSON desde ML [${url}]:`, text);
+    throw new Error("Respuesta de formato inválido recibida de Mercado Libre.");
+  }
 }
 
 // ---------- Utilidades de fechas (hora Argentina) ----------
