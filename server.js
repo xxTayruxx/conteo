@@ -10,8 +10,6 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Servir frontend
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ============================================================
@@ -39,6 +37,8 @@ const API_BASE =
   process.env.ML_API_BASE ||
   'https://api.mercadolibre.com';
 
+const SYNC_API_KEY = process.env.SYNC_API_KEY;
+
 const TOKEN_FILE =
   process.env.TOKEN_FILE ||
   path.join(__dirname, 'data', 'tokens.json');
@@ -51,11 +51,12 @@ if (!fs.existsSync(path.dirname(TOKEN_FILE))) {
 }
 
 // ============================================================
-// VARIABLES OAUTH
+// ESTADO OAUTH
 // ============================================================
 
 let oauthState = null;
 let pkceVerifier = null;
+
 let tokenCache = loadTokens();
 
 // ============================================================
@@ -73,23 +74,23 @@ function loadTokens() {
 }
 
 function saveTokens(tokens) {
-  const tmpFile = `${TOKEN_FILE}.tmp`;
+  const tmp = `${TOKEN_FILE}.tmp`;
 
   fs.writeFileSync(
-    tmpFile,
+    tmp,
     JSON.stringify(tokens, null, 2),
     {
       mode: 0o600
     }
   );
 
-  fs.renameSync(tmpFile, TOKEN_FILE);
+  fs.renameSync(tmp, TOKEN_FILE);
 
   tokenCache = tokens;
 }
 
 // ============================================================
-// CONFIGURACIÓN OBLIGATORIA
+// CONFIG
 // ============================================================
 
 function requireConfig() {
@@ -109,13 +110,13 @@ function requireConfig() {
 
   if (missing.length) {
     throw new Error(
-      `Faltan variables: ${missing.join(', ')}`
+      `Faltan variables de entorno: ${missing.join(', ')}`
     );
   }
 }
 
 // ============================================================
-// PKCE
+// UTILIDADES
 // ============================================================
 
 function base64url(buffer) {
@@ -126,7 +127,7 @@ function base64url(buffer) {
     .replace(/\//g, '_');
 }
 
-function makePkce() {
+function createPKCE() {
   const verifier = base64url(
     crypto.randomBytes(32)
   );
@@ -144,8 +145,45 @@ function makePkce() {
   };
 }
 
+function escapeHtml(value) {
+  return String(value).replace(
+    /[&<>'"]/g,
+    function (char) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      };
+
+      return map[char];
+    }
+  );
+}
+
+function todayArgentina() {
+  const parts = new Intl.DateTimeFormat(
+    'en-CA',
+    {
+      timeZone: 'America/Argentina/Buenos_Aires',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }
+  ).formatToParts(new Date());
+
+  const data = {};
+
+  for (const part of parts) {
+    data[part.type] = part.value;
+  }
+
+  return `${data.year}-${data.month}-${data.day}`;
+}
+
 // ============================================================
-// OAUTH TOKEN REQUEST
+// MERCADO LIBRE - TOKEN
 // ============================================================
 
 async function tokenRequest(body) {
@@ -193,7 +231,7 @@ async function tokenRequest(body) {
 }
 
 // ============================================================
-// INTERCAMBIAR CODE POR TOKEN
+// OAUTH - INTERCAMBIO DE CODE
 // ============================================================
 
 async function exchangeCode(code) {
@@ -309,7 +347,7 @@ async function mlFetch(
     }
   );
 
-  // Si expiró el token, renovar y repetir
+  // Token vencido
   if (
     response.status === 401 &&
     retry &&
@@ -356,13 +394,13 @@ async function mlFetch(
 }
 
 // ============================================================
-// REQUEST ESPECIAL PARA ADVERTISING
+// REQUEST PRODUCT ADS
 //
-// Mercado Libre Product Ads actualmente requiere
-// api-version: 2 para las consultas de campañas/métricas.
+// Los endpoints actuales de Product Ads requieren
+// Api-Version: 2
 // ============================================================
 
-async function mlAdvertising(
+async function mlAdsFetch(
   endpoint,
   options = {},
   retry = true
@@ -379,9 +417,6 @@ async function mlAdvertising(
     Accept:
       'application/json',
 
-    'Content-Type':
-      'application/json',
-
     'api-version':
       '2'
   };
@@ -394,7 +429,6 @@ async function mlAdvertising(
     }
   );
 
-  // Renovar token si expiró
   if (
     response.status === 401 &&
     retry &&
@@ -402,7 +436,7 @@ async function mlAdvertising(
   ) {
     await refreshAccessToken();
 
-    return mlAdvertising(
+    return mlAdsFetch(
       endpoint,
       options,
       false
@@ -441,55 +475,7 @@ async function mlAdvertising(
 }
 
 // ============================================================
-// ESCAPE HTML
-// ============================================================
-
-function esc(value) {
-  return String(value).replace(
-    /[&<>'"]/g,
-    character => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      "'": '&#39;',
-      '"': '&quot;'
-    })[character]
-  );
-}
-
-// ============================================================
-// FECHA ARGENTINA
-// ============================================================
-
-function todayArgentina() {
-  const parts =
-    new Intl.DateTimeFormat(
-      'en-CA',
-      {
-        timeZone:
-          'America/Argentina/Buenos_Aires',
-
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }
-    ).formatToParts(
-      new Date()
-    );
-
-  const result =
-    Object.fromEntries(
-      parts.map(part => [
-        part.type,
-        part.value
-      ])
-    );
-
-  return `${result.year}-${result.month}-${result.day}`;
-}
-
-// ============================================================
-// INICIO
+// PÁGINA PRINCIPAL
 // ============================================================
 
 app.get(
@@ -520,11 +506,11 @@ app.get(
           .randomBytes(24)
           .toString('hex');
 
-      const pkceData =
-        makePkce();
+      const pkce =
+        createPKCE();
 
       pkceVerifier =
-        pkceData.verifier;
+        pkce.verifier;
 
       const url =
         new URL(
@@ -553,7 +539,7 @@ app.get(
 
       url.searchParams.set(
         'code_challenge',
-        pkceData.challenge
+        pkce.challenge
       );
 
       url.searchParams.set(
@@ -569,7 +555,9 @@ app.get(
       res
         .status(500)
         .send(
-          `<pre>${esc(error.message)}</pre>`
+          `<pre>${escapeHtml(
+            error.message
+          )}</pre>`
         );
     }
   }
@@ -589,7 +577,7 @@ app.get(
         return res
           .status(400)
           .send(
-            `<pre>${esc(
+            `<pre>${escapeHtml(
               req.query.error_description ||
               req.query.error
             )}</pre>`
@@ -603,7 +591,7 @@ app.get(
         return res
           .status(400)
           .send(
-            'State inválido'
+            'State OAuth inválido.'
           );
       }
 
@@ -611,7 +599,7 @@ app.get(
         return res
           .status(400)
           .send(
-            'Falta code'
+            'Falta el código de autorización.'
           );
       }
 
@@ -627,20 +615,27 @@ app.get(
       );
 
     } catch (error) {
+      console.error(
+        'Error OAuth:',
+        error.details || error
+      );
+
       res
         .status(
           error.status || 500
         )
         .send(
           `<h1>No se pudo conectar Mercado Libre</h1>
-           <pre>${esc(error.message)}</pre>`
+           <pre>${escapeHtml(
+             error.message
+           )}</pre>`
         );
     }
   }
 );
 
 // ============================================================
-// STATUS
+// ESTADO DE CONEXIÓN
 // ============================================================
 
 app.get(
@@ -671,7 +666,8 @@ app.get(
 
         result.user = {
           id: me.id,
-          nickname: me.nickname,
+          nickname:
+            me.nickname,
           country_id:
             me.country_id
         };
@@ -687,7 +683,7 @@ app.get(
 );
 
 // ============================================================
-// VENTAS / ÓRDENES
+// OBTENER VENTAS
 // ============================================================
 
 app.get(
@@ -738,9 +734,7 @@ app.get(
             'date_desc'
         });
 
-      if (
-        req.query.status
-      ) {
+      if (req.query.status) {
         params.set(
           'order.status',
           req.query.status
@@ -780,7 +774,7 @@ app.get(
 );
 
 // ============================================================
-// SINCRONIZAR
+// SINCRONIZAR VENTAS
 // ============================================================
 
 app.post(
@@ -897,18 +891,13 @@ app.post(
 );
 
 // ============================================================
-// ADVERTISER DE PRODUCT ADS
+// OBTENER ADVERTISER DE PRODUCT ADS
 // ============================================================
 
 async function getAdvertiser() {
   const data =
-    await mlAdvertising(
-      '/advertising/advertisers?product_id=PADS',
-      {
-        headers: {
-          'api-version': '1'
-        }
-      }
+    await mlAdsFetch(
+      '/advertising/advertisers?product_id=PADS'
     );
 
   const advertisers =
@@ -935,43 +924,39 @@ async function getAdvertiser() {
 }
 
 // ============================================================
-// MÉTRICAS DE PRODUCT ADS
+// MÉTRICAS PRODUCT ADS
 // ============================================================
 
-const AD_METRICS = [
-  'clicks',
-  'prints',
-  'ctr',
-  'cost',
-  'cpc',
-  'acos',
-  'organic_units_quantity',
-  'organic_units_amount',
-  'organic_items_quantity',
-  'direct_items_quantity',
-  'indirect_items_quantity',
-  'advertising_items_quantity',
-  'cvr',
-  'roas',
-  'sov',
-  'direct_units_quantity',
-  'indirect_units_quantity',
-  'units_quantity',
-  'direct_amount',
-  'indirect_amount',
-  'total_amount'
-].join(',');
+const AD_METRICS =
+  [
+    'clicks',
+    'prints',
+    'ctr',
+    'cost',
+    'cpc',
+    'acos',
+    'organic_units_quantity',
+    'organic_units_amount',
+    'organic_items_quantity',
+    'direct_items_quantity',
+    'indirect_items_quantity',
+    'advertising_items_quantity',
+    'cvr',
+    'roas',
+    'sov',
+    'direct_units_quantity',
+    'indirect_units_quantity',
+    'units_quantity',
+    'direct_amount',
+    'indirect_amount',
+    'total_amount'
+  ].join(',');
 
 // ============================================================
 // API ADS
 //
-// Soporta:
-//
-// /api/ads
-// /api/ads?period=today
-// /api/ads?period=month
-// /api/ads?date=2026-08-31
-// /api/ads?date_from=2026-08-01&date_to=2026-08-31
+// IMPORTANTE:
+// usamos el endpoint actual y Api-Version: 2
 // ============================================================
 
 app.get(
@@ -994,131 +979,43 @@ app.get(
         );
       }
 
-      // ------------------------------------------------------
-      // FECHAS
-      // ------------------------------------------------------
-
-      const today =
+      const date =
+        req.query.date ||
         todayArgentina();
 
-      let dateFrom =
-        req.query.date_from;
-
-      let dateTo =
-        req.query.date_to;
-
-      const period =
-        req.query.period ||
-        'today';
-
-      if (
-        req.query.date
-      ) {
-        dateFrom =
-          req.query.date;
-
-        dateTo =
-          req.query.date;
-      }
-
-      if (
-        period === 'month' &&
-        !req.query.date &&
-        !req.query.date_from
-      ) {
-        const date =
-          new Date(
-            `${today}T12:00:00-03:00`
-          );
-
-        date.setDate(1);
-
-        dateFrom =
-          date
-            .toISOString()
-            .slice(0, 10);
-
-        dateTo =
-          today;
-      }
-
-      if (!dateFrom) {
-        dateFrom =
-          today;
-      }
-
-      if (!dateTo) {
-        dateTo =
-          dateFrom;
-      }
-
-      // ------------------------------------------------------
-      // PARÁMETROS
-      // ------------------------------------------------------
-
       const params =
-        new URLSearchParams();
+        new URLSearchParams({
+          limit: '50',
 
-      params.set(
-        'limit',
-        '50'
-      );
+          offset: '0',
 
-      params.set(
-        'offset',
-        '0'
-      );
+          date_from:
+            date,
 
-      params.set(
-        'date_from',
-        dateFrom
-      );
+          date_to:
+            date,
 
-      params.set(
-        'date_to',
-        dateTo
-      );
+          metrics:
+            AD_METRICS,
 
-      params.set(
-        'metrics',
-        AD_METRICS
-      );
-
-      // Si es un único día podemos pedir DAILY.
-      if (
-        dateFrom === dateTo
-      ) {
-        params.set(
-          'aggregation_type',
-          'DAILY'
-        );
-      }
-
-      // ------------------------------------------------------
-      // ENDPOINT ACTUAL DE MERCADO LIBRE
-      // api-version: 2 se manda dentro de mlAdvertising()
-      // ------------------------------------------------------
+          aggregation_type:
+            'DAILY'
+        });
 
       const endpoint =
-        `/advertising/${site}` +
-        `/advertisers/${advertiserId}` +
-        `/product_ads/campaigns/search?` +
-        params.toString();
+        `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
 
       const data =
-        await mlAdvertising(
+        await mlAdsFetch(
           endpoint
         );
 
       const campaigns =
-        data.results ||
-        [];
+        data.results || [];
 
-      // ------------------------------------------------------
-      // SUMAR MÉTRICAS
-      // ------------------------------------------------------
+      const metrics = {};
 
-      const metricNames = [
+      const numericFields = [
         'clicks',
         'prints',
         'cost',
@@ -1136,85 +1033,65 @@ app.get(
         'organic_items_quantity'
       ];
 
-      const summary = {};
-
-      for (
-        const metric
-        of metricNames
-      ) {
-        summary[metric] = 0;
-      }
-
       for (
         const campaign
         of campaigns
       ) {
-        const metrics =
+        const values =
           campaign.metrics ||
           campaign;
 
         for (
-          const metric
-          of metricNames
+          const field
+          of numericFields
         ) {
-          summary[metric] +=
-            Number(
-              metrics[metric] ||
+          metrics[field] =
+            (
+              metrics[field] ||
               0
+            ) +
+            Number(
+              values[field] || 0
             );
         }
       }
 
-      // ------------------------------------------------------
-      // MÉTRICAS CALCULADAS
-      // ------------------------------------------------------
-
-      summary.ctr =
-        summary.prints
+      metrics.ctr =
+        metrics.prints
           ? (
-              summary.clicks /
-              summary.prints
+              metrics.clicks /
+              metrics.prints
             ) * 100
           : 0;
 
-      summary.cpc =
-        summary.clicks
+      metrics.cpc =
+        metrics.clicks
           ? (
-              summary.cost /
-              summary.clicks
+              metrics.cost /
+              metrics.clicks
             )
           : 0;
 
-      summary.acos =
-        summary.total_amount
+      metrics.acos =
+        metrics.total_amount
           ? (
-              summary.cost /
-              summary.total_amount
+              metrics.cost /
+              metrics.total_amount
             ) * 100
           : 0;
 
-      summary.roas =
-        summary.cost
+      metrics.roas =
+        metrics.cost
           ? (
-              summary.total_amount /
-              summary.cost
+              metrics.total_amount /
+              metrics.cost
             )
           : 0;
-
-      // ------------------------------------------------------
-      // RESPUESTA
-      // ------------------------------------------------------
 
       res.json({
         ok: true,
 
-        period,
-
-        date_from:
-          dateFrom,
-
-        date_to:
-          dateTo,
+        date,
 
         advertiser: {
           id:
@@ -1234,14 +1111,12 @@ app.get(
             null
         },
 
-        summary,
+        summary:
+          metrics,
 
         campaigns,
 
-        items: [],
-
-        fetch_error:
-          null
+        items: []
       });
 
     } catch (error) {
@@ -1250,7 +1125,7 @@ app.get(
         error.details || error
       );
 
-      res.json({
+      res.status(200).json({
         ok: true,
 
         period:
@@ -1267,7 +1142,8 @@ app.get(
           req.query.date ||
           todayArgentina(),
 
-        advertiser: null,
+        advertiser:
+          null,
 
         summary: {
           clicks: 0,
@@ -1290,28 +1166,26 @@ app.get(
         items: [],
 
         fetch_error:
-          error.message,
-
-        details:
-          error.details ||
-          null
+          error.message
       });
     }
   }
 );
 
 // ============================================================
-// HEALTH CHECK
+// SALUD DEL SERVIDOR
 // ============================================================
 
 app.get(
-  '/health',
+  '/api/health',
   (req, res) => {
     res.json({
       ok: true,
       service: 'conteonix',
       time:
-        new Date().toISOString()
+        new Date().toISOString(),
+      connected:
+        !!tokenCache?.access_token
     });
   }
 );
