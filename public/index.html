@@ -1,664 +1,2652 @@
 <!doctype html>
 <html lang="es">
+
 <head>
+
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<meta
+  name="viewport"
+  content="width=device-width,initial-scale=1,viewport-fit=cover"
+>
+
 <title>Conteonix</title>
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#070706">
-<link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<link
+  rel="manifest"
+  href="/manifest.json"
+>
+
+<meta
+  name="theme-color"
+  content="#070706"
+>
+
+<link
+  rel="apple-touch-icon"
+  href="/icons/icon-192.png"
+>
+
+<meta
+  name="apple-mobile-web-app-capable"
+  content="yes"
+>
+
+<meta
+  name="apple-mobile-web-app-status-bar-style"
+  content="black-translucent"
+>
+
+<link
+  rel="preconnect"
+  href="https://fonts.googleapis.com"
+>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+>
+
 <style>
-  :root{
-    --bg:#070706;
-    --surface:#141311;
-    --surface-2:#1c1a17;
-    --ink:#f6f3ec;
-    --ink-soft:#a39c8c;
-    --border:#2b2924;
-    --gold:#c9a24b;
-    --gold-soft:rgba(201,162,75,.14);
-    --sales:#33c17a;
-    --sales-bg:rgba(51,193,122,.12);
-    --alert:#e5555a;
-    --alert-bg:rgba(229,85,90,.14);
-    --safe-b:env(safe-area-inset-bottom,0px);
-  }
-  *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    margin:0;
-    background:
-      radial-gradient(1200px 600px at 15% -10%, rgba(201,162,75,.06), transparent 60%),
-      var(--bg);
-    color:var(--ink);
-    font-family:'Inter',Arial,sans-serif;
-    font-size:15px;
-    line-height:1.5;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:960px;margin:0 auto;padding:28px 20px calc(60px + var(--safe-b))}
 
-  header.top{
-    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
-    margin-bottom:30px;padding-bottom:18px;
+:root {
+  --bg:#070706;
+  --surface:#141311;
+  --surface-2:#1c1a17;
+  --ink:#f6f3ec;
+  --ink-soft:#a39c8c;
+  --border:#2b2924;
+  --gold:#c9a24b;
+  --gold-soft:rgba(201,162,75,.14);
+  --sales:#33c17a;
+  --sales-bg:rgba(51,193,122,.12);
+  --alert:#e5555a;
+  --alert-bg:rgba(229,85,90,.14);
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+
+* {
+  box-sizing:border-box;
+}
+
+html {
+  -webkit-text-size-adjust:100%;
+}
+
+body {
+  margin:0;
+  background:
+    radial-gradient(
+      1200px 600px at 15% -10%,
+      rgba(201,162,75,.06),
+      transparent 60%
+    ),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter',Arial,sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap {
+  max-width:960px;
+  margin:0 auto;
+  padding:28px 20px calc(60px + var(--safe-b));
+}
+
+header.top {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  flex-wrap:wrap;
+  margin-bottom:30px;
+  padding-bottom:18px;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+
+header.top::after {
+  content:'';
+  position:absolute;
+  left:0;
+  bottom:-1px;
+  width:64px;
+  height:1px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--gold),
+      transparent
+    );
+}
+
+.brand {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+h1 {
+  font-family:'Fraunces',serif;
+  font-weight:500;
+  font-size:30px;
+  margin:0;
+  letter-spacing:.2px;
+}
+
+.sub {
+  color:var(--ink-soft);
+  font-size:13.5px;
+}
+
+.status-pill {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12.5px;
+  padding:7px 13px;
+  border:1px solid var(--border);
+  border-radius:100px;
+  background:var(--surface);
+  color:var(--ink);
+  white-space:nowrap;
+}
+
+.dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  flex:none;
+}
+
+.dot.on {
+  background:var(--sales);
+  box-shadow:0 0 6px var(--sales);
+}
+
+.dot.off {
+  background:var(--alert);
+  box-shadow:0 0 6px var(--alert);
+}
+
+.link-btn {
+  color:var(--gold);
+  text-decoration:underline;
+  text-underline-offset:2px;
+}
+
+section {
+  margin-top:36px;
+}
+
+.section-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+
+h2 {
+  font-family:'Fraunces',serif;
+  font-weight:500;
+  font-size:19px;
+  margin:0;
+  color:var(--ink);
+}
+
+h2.ads {
+  color:var(--gold);
+}
+
+h3.sub-title {
+  font-family:'Fraunces',serif;
+  font-size:15px;
+  margin:0;
+  color:var(--gold);
+  font-weight:500;
+}
+
+.period-tabs {
+  display:flex;
+  gap:4px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:3px;
+  overflow-x:auto;
+  max-width:100%;
+  -webkit-overflow-scrolling:touch;
+}
+
+.period-tabs button {
+  border:0;
+  background:transparent;
+  padding:8px 13px;
+  border-radius:6px;
+  font-size:13px;
+  font-family:inherit;
+  color:var(--ink-soft);
+  cursor:pointer;
+  white-space:nowrap;
+  flex:none;
+}
+
+.period-tabs button.active {
+  background:var(--gold);
+  color:#0a0a0a;
+  font-weight:600;
+}
+
+.kpi-row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.kpi {
+  flex:1 1 150px;
+  background:var(--surface);
+  padding:15px 16px;
+}
+
+.kpi .label {
+  font-size:12px;
+  color:var(--ink-soft);
+}
+
+.kpi .value {
+  font-family:'Fraunces',serif;
+  font-size:23px;
+  margin-top:5px;
+  color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+
+.kpi.accent-sales {
+  box-shadow:inset 2px 0 0 var(--sales);
+}
+
+.kpi.accent-ads {
+  box-shadow:inset 2px 0 0 var(--gold);
+}
+
+.kpi .value.neg {
+  color:var(--alert);
+}
+
+.kpi .value.pos {
+  color:var(--sales);
+}
+
+.table-wrap {
+  overflow-x:auto;
+  border:1px solid var(--border);
+  border-radius:10px;
+}
+
+table {
+  width:100%;
+  border-collapse:collapse;
+  background:var(--surface);
+  font-size:13.5px;
+  color:var(--ink);
+}
+
+th,
+td {
+  padding:11px 14px;
+  border-bottom:1px solid var(--border);
+  text-align:left;
+}
+
+tbody tr:last-child td {
+  border-bottom:0;
+}
+
+th {
+  font-weight:600;
+  color:var(--ink-soft);
+  font-size:12px;
+}
+
+td.num {
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
+
+tr.warn td {
+  background:var(--alert-bg);
+  color:var(--alert);
+}
+
+tr.gain td {
+  color:var(--sales);
+}
+
+tbody tr:hover td {
+  background:var(--surface-2);
+}
+
+.empty,
+.loading {
+  color:var(--ink-soft);
+  font-size:13.5px;
+  padding:14px 2px;
+}
+
+.note {
+  font-size:12px;
+  color:var(--ink-soft);
+  margin-top:10px;
+}
+
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:18px;
+}
+
+.cost-form {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+input[type=text],
+input[type=number] {
+  padding:10px 12px;
+  border:1px solid var(--border);
+  border-radius:7px;
+  font-family:inherit;
+  font-size:14px;
+  background:var(--surface-2);
+  color:var(--ink);
+}
+
+input[type=text] {
+  flex:1 1 220px;
+  min-width:0;
+}
+
+input[type=number] {
+  width:140px;
+}
+
+input::placeholder {
+  color:var(--ink-soft);
+}
+
+button.primary {
+  padding:10px 20px;
+  border-radius:7px;
+  border:0;
+  background:var(--gold);
+  color:#0a0a0a;
+  font-family:inherit;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button.primary:active {
+  opacity:.85;
+}
+
+button.primary:disabled {
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.msg {
+  font-size:13px;
+  margin-top:9px;
+}
+
+.notif-list {
+  display:flex;
+  flex-direction:column;
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.notif {
+  background:var(--surface);
+  padding:12px 14px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:13.5px;
+  color:var(--ink);
+}
+
+.notif .amount {
+  font-family:'Fraunces',serif;
+  color:var(--sales);
+}
+
+.notif.fresh {
+  background:var(--gold-soft);
+}
+
+footer {
+  margin-top:56px;
+  color:var(--ink-soft);
+  font-size:12px;
+  border-top:1px solid var(--border);
+  padding-top:16px;
+}
+
+@media (max-width:680px) {
+
+  .wrap {
+    padding:20px 14px calc(60px + var(--safe-b));
+  }
+
+  h1 {
+    font-size:26px;
+  }
+
+  header.top {
+    margin-bottom:22px;
+  }
+
+  section {
+    margin-top:28px;
+  }
+
+  .kpi {
+    flex:1 1 44%;
+  }
+
+  .kpi .value {
+    font-size:20px;
+  }
+
+  .table-wrap {
+    border:none;
+    overflow:visible;
+    border-radius:0;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  tr,
+  td {
+    display:block;
+  }
+
+  table {
+    background:transparent;
+  }
+
+  thead {
+    display:none;
+  }
+
+  tbody tr {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+
+  tbody tr:last-child {
+    margin-bottom:0;
+  }
+
+  tbody tr:hover td {
+    background:transparent;
+  }
+
+  td {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
     border-bottom:1px solid var(--border);
-    position:relative;
+    padding:10px 14px;
+    text-align:right;
   }
-  header.top::after{
-    content:'';position:absolute;left:0;bottom:-1px;width:64px;height:1px;
-    background:linear-gradient(90deg,var(--gold),transparent);
+
+  tr td:last-child {
+    border-bottom:0;
   }
-  .brand{display:flex;flex-direction:column;gap:4px}
-  h1{font-family:'Fraunces',serif;font-weight:500;font-size:30px;margin:0;letter-spacing:.2px}
-  .sub{color:var(--ink-soft);font-size:13.5px}
-  .status-pill{display:flex;align-items:center;gap:8px;font-size:12.5px;padding:7px 13px;border:1px solid var(--border);border-radius:100px;background:var(--surface);color:var(--ink);white-space:nowrap}
-  .dot{width:7px;height:7px;border-radius:50%;flex:none}
-  .dot.on{background:var(--sales);box-shadow:0 0 6px var(--sales)}
-  .dot.off{background:var(--alert);box-shadow:0 0 6px var(--alert)}
-  .link-btn{color:var(--gold);text-decoration:underline;text-underline-offset:2px}
 
-  section{margin-top:36px}
-  .section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
-  h2{font-family:'Fraunces',serif;font-weight:500;font-size:19px;margin:0;color:var(--ink)}
-  h2.ads{color:var(--gold)}
-  h3.sub-title{font-family:'Fraunces',serif;font-size:15px;margin:0;color:var(--gold);font-weight:500}
-
-  .period-tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:3px;overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
-  .period-tabs button{border:0;background:transparent;padding:8px 13px;border-radius:6px;font-size:13px;font-family:inherit;color:var(--ink-soft);cursor:pointer;white-space:nowrap;flex:none}
-  .period-tabs button.active{background:var(--gold);color:#0a0a0a;font-weight:600}
-
-  .kpi-row{display:flex;flex-wrap:wrap;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  .kpi{flex:1 1 150px;background:var(--surface);padding:15px 16px}
-  .kpi .label{font-size:12px;color:var(--ink-soft)}
-  .kpi .value{font-family:'Fraunces',serif;font-size:23px;margin-top:5px;color:var(--ink);font-variant-numeric:tabular-nums}
-  .kpi.accent-sales{box-shadow:inset 2px 0 0 var(--sales)}
-  .kpi.accent-ads{box-shadow:inset 2px 0 0 var(--gold)}
-  .kpi .value.neg{color:var(--alert)}
-  .kpi .value.pos{color:var(--sales)}
-
-  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
-  table{width:100%;border-collapse:collapse;background:var(--surface);font-size:13.5px;color:var(--ink)}
-  th,td{padding:11px 14px;border-bottom:1px solid var(--border);text-align:left}
-  tbody tr:last-child td{border-bottom:0}
-  th{font-weight:600;color:var(--ink-soft);font-size:12px}
-  td.num{text-align:right;font-variant-numeric:tabular-nums}
-  tr.warn td{background:var(--alert-bg);color:var(--alert)}
-  tr.gain td{color:var(--sales)}
-  tbody tr:hover td{background:var(--surface-2)}
-
-  .empty,.loading{color:var(--ink-soft);font-size:13.5px;padding:14px 2px}
-  .note{font-size:12px;color:var(--ink-soft);margin-top:10px}
-
-  .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
-  .cost-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  input[type=text],input[type=number]{padding:10px 12px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:14px;background:var(--surface-2);color:var(--ink)}
-  input[type=text]{flex:1 1 220px;min-width:0}
-  input[type=number]{width:140px}
-  input::placeholder{color:var(--ink-soft)}
-  button.primary{padding:10px 20px;border-radius:7px;border:0;background:var(--gold);color:#0a0a0a;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
-  button.primary:active{opacity:.85}
-  .msg{font-size:13px;margin-top:9px}
-
-  .notif-list{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden}
-  .notif{background:var(--surface);padding:12px 14px;display:flex;justify-content:space-between;gap:12px;font-size:13.5px;color:var(--ink)}
-  .notif .amount{font-family:'Fraunces',serif;color:var(--sales)}
-  .notif.fresh{background:var(--gold-soft)}
-
-  footer{margin-top:56px;color:var(--ink-soft);font-size:12px;border-top:1px solid var(--border);padding-top:16px}
-
-  /* ---------- Mobile: tablas como tarjetas apiladas ---------- */
-  @media (max-width: 680px){
-    .wrap{padding:20px 14px calc(60px + var(--safe-b))}
-    h1{font-size:26px}
-    header.top{margin-bottom:22px}
-    section{margin-top:28px}
-    .kpi{flex:1 1 44%}
-    .kpi .value{font-size:20px}
-
-    .table-wrap{border:none;overflow:visible;border-radius:0}
-    table, thead, tbody, th, tr, td{display:block}
-    table{background:transparent}
-    thead{display:none}
-    tbody tr{
-      background:var(--surface);border:1px solid var(--border);border-radius:10px;
-      margin-bottom:10px;overflow:hidden;
-    }
-    tbody tr:last-child{margin-bottom:0}
-    tbody tr:hover td{background:transparent}
-    td{
-      display:flex;justify-content:space-between;align-items:center;gap:12px;
-      border-bottom:1px solid var(--border);padding:10px 14px;text-align:right;
-    }
-    tr td:last-child{border-bottom:0}
-    td::before{
-      content:attr(data-label);color:var(--ink-soft);font-size:12px;text-align:left;flex:none;
-    }
-    td.num{text-align:right}
-    td:not([data-label]){display:none} /* oculta celdas de "empty/cargando" sin colapsar layout */
-    tr.warn, tr.gain{border-width:1px}
+  td::before {
+    content:attr(data-label);
+    color:var(--ink-soft);
+    font-size:12px;
+    text-align:left;
+    flex:none;
   }
+
+  td.num {
+    text-align:right;
+  }
+
+  td:not([data-label]) {
+    display:none;
+  }
+
+  tr.warn,
+  tr.gain {
+    border-width:1px;
+  }
+}
+
 </style>
+
 </head>
+
 <body>
+
 <div class="wrap">
 
-  <header class="top">
-    <div class="brand">
-      <h1>Conteonix</h1>
-      <div class="sub">Panel de ventas y publicidad — Mercado Libre</div>
-    </div>
-    <div id="statusPill" class="status-pill">Consultando estado…</div>
-  </header>
+<header class="top">
 
-  <section id="pushSection">
-    <div class="card" id="pushCard">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
-        <div>
-          <h3 class="sub-title" style="margin-bottom:4px">Notificaciones en tu celular</h3>
-          <div class="note" id="pushNote" style="margin-top:0">Activalas para enterarte de una venta nueva sin tener que abrir el panel.</div>
+  <div class="brand">
+
+    <h1>Conteonix</h1>
+
+    <div class="sub">
+      Panel de ventas y publicidad — Mercado Libre
+    </div>
+
+  </div>
+
+  <div
+    id="statusPill"
+    class="status-pill"
+  >
+    Consultando estado…
+  </div>
+
+</header>
+
+
+<section id="pushSection">
+
+  <div
+    class="card"
+    id="pushCard"
+  >
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:14px;
+        flex-wrap:wrap
+      "
+    >
+
+      <div>
+
+        <h3
+          class="sub-title"
+          style="margin-bottom:4px"
+        >
+          Notificaciones en tu celular
+        </h3>
+
+        <div
+          class="note"
+          id="pushNote"
+          style="margin-top:0"
+        >
+          Activalas para enterarte de una venta nueva sin tener que abrir el panel.
         </div>
-        <button class="primary" id="pushBtn" onclick="togglePush()">Activar notificaciones</button>
+
       </div>
-    </div>
-  </section>
 
-  <section id="periodSection">
-    <div class="section-head">
-      <h2>Período</h2>
-      <div class="period-tabs" id="periodTabs">
-        <button data-period="today" class="active">Hoy</button>
-        <button data-period="yesterday">Ayer</button>
-        <button data-period="week">7 días</button>
-        <button data-period="month">Mes</button>
-      </div>
-    </div>
-    <div class="note">Este período aplica tanto a Ventas como a Publicidad.</div>
-  </section>
+      <button
+        class="primary"
+        id="pushBtn"
+        onclick="togglePush()"
+      >
+        Activar notificaciones
+      </button>
 
-  <section>
-    <div class="section-head">
-      <h2>Ventas</h2>
     </div>
-    <div id="salesKpis" class="loading">Cargando ventas…</div>
-    <div class="table-wrap" style="margin-top:14px">
-      <table>
-        <thead>
-          <tr><th>Fecha</th><th>Publicación</th><th class="num">Cant.</th><th class="num">Ingreso</th><th class="num">Ganancia neta</th><th class="num">Margen</th></tr>
-        </thead>
-        <tbody id="ordersBody"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
-      </table>
-    </div>
-  </section>
 
-  <section>
-    <div class="section-head">
-      <h2 class="ads">Publicidad (Product Ads)</h2>
-    </div>
-    <div id="adsKpis" class="loading">Cargando publicidad…</div>
+  </div>
 
-    <div class="section-head" style="margin-top:22px">
-      <h3 class="sub-title">Gasto por anuncio</h3>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Publicación</th><th class="num">Inversión</th><th class="num">Ingresos</th>
-            <th class="num">Retorno x$1</th><th class="num">CPC</th><th class="num">Clics</th>
-            <th class="num">Impresiones</th><th class="num">Ventas</th>
-          </tr>
-        </thead>
-        <tbody id="adsItemsBody"><tr><td colspan="8" class="empty">Cargando…</td></tr></tbody>
-      </table>
-    </div>
-    <div class="note">"Retorno x$1" indica cuánto generaste en ingresos por cada peso invertido en ese anuncio. Verde: el anuncio dio ganancia. Rojo: la inversión superó lo generado.</div>
+</section>
 
-    <div class="section-head" style="margin-top:22px">
-      <h3 class="sub-title">Campañas</h3>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Campaña</th><th>Estado</th><th class="num">Presupuesto/día</th><th>Estrategia</th><th class="num">ACOS objetivo</th><th class="num">ROAS del período</th></tr>
-        </thead>
-        <tbody id="campaignsBody"><tr><td colspan="6" class="empty">Cargando…</td></tr></tbody>
-      </table>
-    </div>
-  </section>
 
-  <section>
-    <div class="section-head">
-      <h2>Stock</h2>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Publicación</th><th class="num">Stock</th><th class="num">Ventas/día (30d)</th><th class="num">Días restantes</th></tr>
-        </thead>
-        <tbody id="stockBody"><tr><td colspan="4" class="empty">Cargando…</td></tr></tbody>
-      </table>
-    </div>
-  </section>
+<section id="periodSection">
 
-  <section>
-    <div class="section-head">
-      <h2>Costo de producto</h2>
-    </div>
-    <div class="card">
-      <div class="cost-form">
-        <input type="text" id="costItemId" placeholder="ID de publicación (ej: MLA2027163683)">
-        <input type="number" id="costValue" placeholder="Costo unitario ($)" step="0.01">
-        <button class="primary" onclick="saveCost()">Guardar</button>
-      </div>
-      <div class="msg" id="costMsg"></div>
-    </div>
-  </section>
+  <div class="section-head">
 
-  <section>
-    <div class="section-head">
-      <h2>Notificaciones</h2>
-    </div>
-    <div class="notif-list" id="notifList">
-      <div class="notif"><span class="empty">Cargando…</span></div>
-    </div>
-  </section>
+    <h2>Período</h2>
 
-  <footer>Conteonix — datos provistos por la API de Mercado Libre.</footer>
+    <div
+      class="period-tabs"
+      id="periodTabs"
+    >
+
+      <button
+        data-period="today"
+        class="active"
+      >
+        Hoy
+      </button>
+
+      <button
+        data-period="yesterday"
+      >
+        Ayer
+      </button>
+
+      <button
+        data-period="week"
+      >
+        7 días
+      </button>
+
+      <button
+        data-period="month"
+      >
+        Mes
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="note">
+    Este período aplica tanto a Ventas como a Publicidad.
+  </div>
+
+</section>
+
+
+<section>
+
+  <div class="section-head">
+    <h2>Ventas</h2>
+  </div>
+
+  <div
+    id="salesKpis"
+    class="loading"
+  >
+    Cargando ventas…
+  </div>
+
+  <div
+    class="table-wrap"
+    style="margin-top:14px"
+  >
+
+    <table>
+
+      <thead>
+
+        <tr>
+          <th>Fecha</th>
+          <th>Publicación</th>
+          <th class="num">Cant.</th>
+          <th class="num">Ingreso</th>
+          <th class="num">Ganancia neta</th>
+          <th class="num">Margen</th>
+        </tr>
+
+      </thead>
+
+      <tbody id="ordersBody">
+
+        <tr>
+          <td
+            colspan="6"
+            class="empty"
+          >
+            Cargando…
+          </td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<section>
+
+  <div class="section-head">
+    <h2 class="ads">
+      Publicidad (Product Ads)
+    </h2>
+  </div>
+
+  <div
+    id="adsKpis"
+    class="loading"
+  >
+    Cargando publicidad…
+  </div>
+
+
+  <div
+    class="section-head"
+    style="margin-top:22px"
+  >
+
+    <h3 class="sub-title">
+      Gasto por anuncio
+    </h3>
+
+  </div>
+
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>Publicación</th>
+
+          <th class="num">
+            Inversión
+          </th>
+
+          <th class="num">
+            Ingresos
+          </th>
+
+          <th class="num">
+            Retorno x$1
+          </th>
+
+          <th class="num">
+            CPC
+          </th>
+
+          <th class="num">
+            Clics
+          </th>
+
+          <th class="num">
+            Impresiones
+          </th>
+
+          <th class="num">
+            Ventas
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="adsItemsBody">
+
+        <tr>
+
+          <td
+            colspan="8"
+            class="empty"
+          >
+            Cargando…
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <div class="note">
+
+    "Retorno x$1" indica cuánto generaste en ingresos por cada peso invertido en ese anuncio.
+    Verde: el anuncio dio ganancia.
+    Rojo: la inversión superó lo generado.
+
+  </div>
+
+
+  <div
+    class="section-head"
+    style="margin-top:22px"
+  >
+
+    <h3 class="sub-title">
+      Campañas
+    </h3>
+
+  </div>
+
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>Campaña</th>
+
+          <th>Estado</th>
+
+          <th class="num">
+            Presupuesto/día
+          </th>
+
+          <th>Estrategia</th>
+
+          <th class="num">
+            ACOS objetivo
+          </th>
+
+          <th class="num">
+            ROAS del período
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="campaignsBody">
+
+        <tr>
+
+          <td
+            colspan="6"
+            class="empty"
+          >
+            Cargando…
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<section>
+
+  <div class="section-head">
+    <h2>Stock</h2>
+  </div>
+
+  <div class="table-wrap">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>Publicación</th>
+
+          <th class="num">
+            Stock
+          </th>
+
+          <th class="num">
+            Ventas/día (30d)
+          </th>
+
+          <th class="num">
+            Días restantes
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="stockBody">
+
+        <tr>
+
+          <td
+            colspan="4"
+            class="empty"
+          >
+            Cargando…
+
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</section>
+
+
+<section>
+
+  <div class="section-head">
+    <h2>Costo de producto</h2>
+  </div>
+
+  <div class="card">
+
+    <div class="cost-form">
+
+      <input
+        type="text"
+        id="costItemId"
+        placeholder="ID de publicación (ej: MLA2027163683)"
+      >
+
+      <input
+        type="number"
+        id="costValue"
+        placeholder="Costo unitario ($)"
+        step="0.01"
+        min="0"
+      >
+
+      <button
+        class="primary"
+        onclick="saveCost()"
+      >
+        Guardar
+      </button>
+
+    </div>
+
+    <div
+      class="msg"
+      id="costMsg"
+    ></div>
+
+  </div>
+
+</section>
+
+
+<section>
+
+  <div class="section-head">
+    <h2>Notificaciones</h2>
+  </div>
+
+  <div
+    class="notif-list"
+    id="notifList"
+  >
+
+    <div class="notif">
+
+      <span class="empty">
+        Cargando…
+      </span>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<footer>
+  Conteonix — datos provistos por la API de Mercado Libre.
+</footer>
+
 </div>
 
+
 <script>
+
 let currentPeriod = 'today';
 
-const fmtMoney = n => (Number(n)||0).toLocaleString('es-AR', { style:'currency', currency:'ARS', maximumFractionDigits:0 });
-const fmtNum = n => (Number(n)||0).toLocaleString('es-AR');
-const fmtPct = n => `${(Number(n)||0).toFixed(1)}%`;
 
-async function loadStatus(){
-  try{
-    const r = await fetch('/api/status');
-    const d = await r.json();
-    const el = document.getElementById('statusPill');
-    if(d.connected){
-      el.innerHTML = `<span class="dot on"></span> Conectado`;
-    } else {
-      el.innerHTML = `<span class="dot off"></span> No conectado — <a class="link-btn" href="/auth/login">conectar</a>`;
-    }
-  }catch(e){
-    document.getElementById('statusPill').innerHTML = `<span class="dot off"></span> Error de conexión`;
+const fmtMoney = n =>
+  (Number(n) || 0)
+    .toLocaleString(
+      'es-AR',
+      {
+        style:'currency',
+        currency:'ARS',
+        maximumFractionDigits:0
+      }
+    );
+
+
+const fmtNum = n =>
+  (Number(n) || 0)
+    .toLocaleString('es-AR');
+
+
+const fmtPct = n =>
+  `${(Number(n) || 0).toFixed(1)}%`;
+
+
+async function fetchJson(
+  url,
+  options = {}
+) {
+
+  const response =
+    await fetch(
+      url,
+      options
+    );
+
+  let data;
+
+  try {
+    data =
+      await response.json();
+  } catch {
+    throw new Error(
+      `El servidor respondió ${response.status} sin JSON válido.`
+    );
   }
-}
 
-function kpiHtml(items, accentClass){
-  return `<div class="kpi-row">` + items.map(k =>
-    `<div class="kpi ${accentClass}"><div class="label">${k.label}</div><div class="value ${k.cls||''}">${k.value}</div></div>`
-  ).join('') + `</div>`;
-}
+  if (!response.ok) {
 
-async function loadSales(){
-  const box = document.getElementById('salesKpis');
-  const body = document.getElementById('ordersBody');
-  box.innerHTML = 'Cargando ventas…';
-  body.innerHTML = `<tr><td colspan="6" class="empty">Cargando…</td></tr>`;
-  try{
-    const r = await fetch(`/api/live-metrics?period=${currentPeriod}`);
-    const d = await r.json();
-    if(!d.ok) throw new Error(d.error);
-    const s = d.summary;
-    box.innerHTML = kpiHtml([
-      { label:'Ingresos', value: fmtMoney(s.totalRevenue) },
-      { label:'Ganancia neta', value: fmtMoney(s.netProfitTotal), cls: s.netProfitTotal >= 0 ? 'pos' : 'neg' },
-      { label:'Margen', value: fmtPct(s.overallMargin) },
-      { label:'Ventas', value: fmtNum(s.totalOrders) },
-      { label:'Canceladas', value: fmtNum(s.cancelledOrders) },
-      { label:'Envíos + comisiones', value: fmtMoney(s.totalFees + s.totalShipping) }
-    ], 'accent-sales');
+    throw new Error(
+      data.error ||
+      `Error HTTP ${response.status}`
+    );
 
-    if(!d.orders.length){
-      body.innerHTML = `<tr><td class="empty">No hay ventas en este período.</td></tr>`;
-    } else {
-      body.innerHTML = d.orders.map(o => `
-        <tr>
-          <td data-label="Fecha">${new Date(o.date).toLocaleString('es-AR')}</td>
-          <td data-label="Publicación">${o.title}</td>
-          <td class="num" data-label="Cant.">${o.quantity}</td>
-          <td class="num" data-label="Ingreso">${fmtMoney(o.financials.gross)}</td>
-          <td class="num" data-label="Ganancia neta">${fmtMoney(o.financials.netProfit)}</td>
-          <td class="num" data-label="Margen">${o.financials.margin}%</td>
-        </tr>`).join('');
-    }
-  }catch(e){
-    box.innerHTML = `<div class="empty">No se pudo cargar: ${e.message}</div>`;
-    body.innerHTML = `<tr><td class="empty">—</td></tr>`;
   }
+
+  return data;
+
 }
 
-async function loadAds(){
-  const box = document.getElementById('adsKpis');
-  const itemsBody = document.getElementById('adsItemsBody');
-  const campBody = document.getElementById('campaignsBody');
-  box.innerHTML = 'Cargando publicidad…';
-  itemsBody.innerHTML = `<tr><td colspan="8" class="empty">Cargando…</td></tr>`;
-  campBody.innerHTML = `<tr><td colspan="6" class="empty">Cargando…</td></tr>`;
-  try{
-    const r = await fetch(`/api/product-ads?period=${currentPeriod}`);
-    const d = await r.json();
-    if(!d.ok) throw new Error(d.error);
-    const s = d.summary;
 
-    box.innerHTML = kpiHtml([
-      { label:'Inversión', value: fmtMoney(s.cost) },
-      { label:'Ingresos generados', value: fmtMoney(s.total_amount) },
-      { label:'Retorno por cada $1', value: `$${s.roas}` },
-      { label:'ACOS', value: fmtPct(s.acos) },
-      { label:'Clics', value: fmtNum(s.clicks) },
-      { label:'Impresiones', value: fmtNum(s.prints) },
-      { label:'CTR', value: fmtPct(s.ctr) },
-      { label:'Ventas atribuidas', value: fmtNum(s.units_quantity) }
-    ], 'accent-ads');
+// ---------- Estado ----------
 
-    if(!d.items.length){
-      itemsBody.innerHTML = `<tr><td class="empty">No hay anuncios con datos en este período.</td></tr>`;
+async function loadStatus() {
+
+  try {
+
+    const d =
+      await fetchJson(
+        '/api/status'
+      );
+
+    const el =
+      document.getElementById(
+        'statusPill'
+      );
+
+    if (d.connected) {
+
+      const nickname =
+        d.user?.nickname
+          ? ` — ${d.user.nickname}`
+          : '';
+
+      el.innerHTML =
+        `<span class="dot on"></span>
+         Conectado${nickname}`;
+
     } else {
-      itemsBody.innerHTML = d.items.map(it => {
-        const m = it.metrics;
-        const losing = m.cost > 0 && m.totalAmount < m.cost;
-        const winning = m.cost > 0 && m.totalAmount > m.cost;
-        return `
-        <tr class="${losing ? 'warn' : winning ? 'gain' : ''}">
-          <td data-label="Publicación">${it.title || it.itemId}</td>
-          <td class="num" data-label="Inversión">${fmtMoney(m.cost)}</td>
-          <td class="num" data-label="Ingresos">${fmtMoney(m.totalAmount)}</td>
-          <td class="num" data-label="Retorno x$1">$${m.roas || 0}</td>
-          <td class="num" data-label="CPC">${fmtMoney(m.cpc)}</td>
-          <td class="num" data-label="Clics">${fmtNum(m.clicks)}</td>
-          <td class="num" data-label="Impresiones">${fmtNum(m.prints)}</td>
-          <td class="num" data-label="Ventas">${fmtNum(m.unitsQuantity)}</td>
-        </tr>`;
-      }).join('');
+
+      el.innerHTML =
+        `<span class="dot off"></span>
+         No conectado —
+         <a
+           class="link-btn"
+           href="/auth/login"
+         >
+           conectar
+         </a>`;
+
     }
 
-    if(!d.campaigns.length){
-      campBody.innerHTML = `<tr><td class="empty">No hay campañas activas.</td></tr>`;
-    } else {
-      campBody.innerHTML = d.campaigns.map(c => {
-        const m = c.metrics || {};
-        return `
-        <tr>
-          <td data-label="Campaña">${c.name}</td>
-          <td data-label="Estado">${c.status}</td>
-          <td class="num" data-label="Presupuesto/día">${fmtMoney(c.budget)}</td>
-          <td data-label="Estrategia">${c.strategy || '—'}</td>
-          <td class="num" data-label="ACOS objetivo">${c.acosTarget != null ? fmtPct(c.acosTarget) : '—'}</td>
-          <td class="num" data-label="ROAS del período">$${m.roas ?? 0}</td>
-        </tr>`;
-      }).join('');
-    }
-  }catch(e){
-    box.innerHTML = `<div class="empty">No se pudo cargar: ${e.message}</div>`;
-    itemsBody.innerHTML = `<tr><td class="empty">—</td></tr>`;
-    campBody.innerHTML = `<tr><td class="empty">—</td></tr>`;
+  } catch (error) {
+
+    document.getElementById(
+      'statusPill'
+    ).innerHTML =
+      `<span class="dot off"></span>
+       Error de conexión`;
+
+    console.error(
+      'loadStatus:',
+      error
+    );
+
   }
+
 }
 
-async function loadStock(){
-  const body = document.getElementById('stockBody');
-  try{
-    const r = await fetch('/api/stock-alerts');
-    const d = await r.json();
-    if(!d.ok) throw new Error(d.error);
-    if(!d.alerts.length){
-      body.innerHTML = `<tr><td class="empty">Sin datos de stock.</td></tr>`;
+
+// ---------- KPI ----------
+
+function kpiHtml(
+  items,
+  accentClass
+) {
+
+  return `
+    <div class="kpi-row">
+
+      ${items.map(
+        k => `
+          <div
+            class="kpi ${accentClass}"
+          >
+
+            <div class="label">
+              ${k.label}
+            </div>
+
+            <div
+              class="value ${k.cls || ''}"
+            >
+              ${k.value}
+            </div>
+
+          </div>
+        `
+      ).join('')}
+
+    </div>
+  `;
+
+}
+
+
+// ---------- Ventas ----------
+
+async function loadSales() {
+
+  const box =
+    document.getElementById(
+      'salesKpis'
+    );
+
+  const body =
+    document.getElementById(
+      'ordersBody'
+    );
+
+  box.innerHTML =
+    'Cargando ventas…';
+
+  body.innerHTML =
+    `<tr>
+       <td
+         colspan="6"
+         class="empty"
+       >
+         Cargando…
+       </td>
+     </tr>`;
+
+  try {
+
+    const d =
+      await fetchJson(
+        `/api/live-metrics?period=${encodeURIComponent(
+          currentPeriod
+        )}`
+      );
+
+    const s =
+      d.summary || {};
+
+    box.innerHTML =
+      kpiHtml(
+        [
+          {
+            label:'Ingresos',
+            value:
+              fmtMoney(
+                s.totalRevenue
+              )
+          },
+
+          {
+            label:'Ganancia neta',
+            value:
+              fmtMoney(
+                s.netProfitTotal
+              ),
+            cls:
+              s.netProfitTotal >= 0
+                ? 'pos'
+                : 'neg'
+          },
+
+          {
+            label:'Margen',
+            value:
+              fmtPct(
+                s.overallMargin
+              )
+          },
+
+          {
+            label:'Ventas',
+            value:
+              fmtNum(
+                s.totalOrders
+              )
+          },
+
+          {
+            label:'Canceladas',
+            value:
+              fmtNum(
+                s.cancelledOrders
+              )
+          },
+
+          {
+            label:'Envíos + comisiones',
+            value:
+              fmtMoney(
+                Number(
+                  s.totalFees || 0
+                ) +
+                Number(
+                  s.totalShipping || 0
+                )
+              )
+          }
+
+        ],
+        'accent-sales'
+      );
+
+
+    if (
+      !d.orders ||
+      !d.orders.length
+    ) {
+
+      body.innerHTML =
+        `<tr>
+           <td class="empty">
+             No hay ventas en este período.
+           </td>
+         </tr>`;
+
+      return;
+
+    }
+
+
+    body.innerHTML =
+      d.orders.map(
+        order => `
+          <tr>
+
+            <td data-label="Fecha">
+              ${new Date(
+                order.date
+              ).toLocaleString(
+                'es-AR'
+              )}
+            </td>
+
+            <td data-label="Publicación">
+              ${order.title}
+            </td>
+
+            <td
+              class="num"
+              data-label="Cant."
+            >
+              ${fmtNum(
+                order.quantity
+              )}
+            </td>
+
+            <td
+              class="num"
+              data-label="Ingreso"
+            >
+              ${fmtMoney(
+                order.financials?.gross
+              )}
+            </td>
+
+            <td
+              class="num"
+              data-label="Ganancia neta"
+            >
+              ${fmtMoney(
+                order.financials?.netProfit
+              )}
+            </td>
+
+            <td
+              class="num"
+              data-label="Margen"
+            >
+              ${order.financials?.margin ?? 0}%
+            </td>
+
+          </tr>
+        `
+      ).join('');
+
+  } catch (error) {
+
+    box.innerHTML =
+      `<div class="empty">
+        No se pudo cargar:
+        ${error.message}
+      </div>`;
+
+    body.innerHTML =
+      `<tr>
+         <td class="empty">
+           No se pudo cargar:
+           ${error.message}
+         </td>
+       </tr>`;
+
+    console.error(
+      'loadSales:',
+      error
+    );
+
+  }
+
+}
+
+
+// ---------- Product Ads ----------
+
+async function loadAds() {
+
+  const box =
+    document.getElementById(
+      'adsKpis'
+    );
+
+  const itemsBody =
+    document.getElementById(
+      'adsItemsBody'
+    );
+
+  const campBody =
+    document.getElementById(
+      'campaignsBody'
+    );
+
+  box.innerHTML =
+    'Cargando publicidad…';
+
+  itemsBody.innerHTML =
+    `<tr>
+       <td
+         colspan="8"
+         class="empty"
+       >
+         Cargando…
+       </td>
+     </tr>`;
+
+  campBody.innerHTML =
+    `<tr>
+       <td
+         colspan="6"
+         class="empty"
+       >
+         Cargando…
+       </td>
+     </tr>`;
+
+
+  try {
+
+    const d =
+      await fetchJson(
+        `/api/product-ads?period=${encodeURIComponent(
+          currentPeriod
+        )}`
+      );
+
+    const s =
+      d.summary || {};
+
+
+    if (d.warning) {
+
+      box.innerHTML =
+        `<div class="empty">
+          Product Ads:
+          ${d.warning}
+        </div>`;
+
+    } else {
+
+      box.innerHTML =
+        kpiHtml(
+          [
+            {
+              label:'Inversión',
+              value:
+                fmtMoney(
+                  s.cost
+                )
+            },
+
+            {
+              label:'Ingresos generados',
+              value:
+                fmtMoney(
+                  s.total_amount
+                )
+            },
+
+            {
+              label:'Retorno por cada $1',
+              value:
+                `$${Number(
+                  s.roas || 0
+                ).toFixed(2)}`
+            },
+
+            {
+              label:'ACOS',
+              value:
+                fmtPct(
+                  s.acos
+                )
+            },
+
+            {
+              label:'Clics',
+              value:
+                fmtNum(
+                  s.clicks
+                )
+            },
+
+            {
+              label:'Impresiones',
+              value:
+                fmtNum(
+                  s.prints
+                )
+            },
+
+            {
+              label:'CTR',
+              value:
+                fmtPct(
+                  s.ctr
+                )
+            },
+
+            {
+              label:'Ventas atribuidas',
+              value:
+                fmtNum(
+                  s.units_quantity
+                )
+            }
+
+          ],
+          'accent-ads'
+        );
+
+    }
+
+
+    const items =
+      d.items || [];
+
+
+    if (!items.length) {
+
+      itemsBody.innerHTML =
+        `<tr>
+           <td class="empty">
+             No hay anuncios con datos en este período.
+           </td>
+         </tr>`;
+
+    } else {
+
+      itemsBody.innerHTML =
+        items.map(
+          item => {
+
+            const m =
+              item.metrics || {};
+
+            const losing =
+              Number(
+                m.cost || 0
+              ) > 0 &&
+              Number(
+                m.totalAmount || 0
+              ) <
+              Number(
+                m.cost || 0
+              );
+
+            const winning =
+              Number(
+                m.cost || 0
+              ) > 0 &&
+              Number(
+                m.totalAmount || 0
+              ) >
+              Number(
+                m.cost || 0
+              );
+
+            return `
+              <tr
+                class="${
+                  losing
+                    ? 'warn'
+                    : winning
+                      ? 'gain'
+                      : ''
+                }"
+              >
+
+                <td
+                  data-label="Publicación"
+                >
+                  ${item.title || item.itemId}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Inversión"
+                >
+                  ${fmtMoney(
+                    m.cost
+                  )}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Ingresos"
+                >
+                  ${fmtMoney(
+                    m.totalAmount
+                  )}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Retorno x$1"
+                >
+                  $${Number(
+                    m.roas || 0
+                  ).toFixed(2)}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="CPC"
+                >
+                  ${fmtMoney(
+                    m.cpc
+                  )}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Clics"
+                >
+                  ${fmtNum(
+                    m.clicks
+                  )}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Impresiones"
+                >
+                  ${fmtNum(
+                    m.prints
+                  )}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Ventas"
+                >
+                  ${fmtNum(
+                    m.unitsQuantity
+                  )}
+                </td>
+
+              </tr>
+            `;
+          }
+        ).join('');
+
+    }
+
+
+    const campaigns =
+      d.campaigns || [];
+
+
+    if (!campaigns.length) {
+
+      campBody.innerHTML =
+        `<tr>
+           <td class="empty">
+             No hay campañas activas.
+           </td>
+         </tr>`;
+
+    } else {
+
+      campBody.innerHTML =
+        campaigns.map(
+          campaign => {
+
+            const m =
+              campaign.metrics ||
+              {};
+
+            return `
+              <tr>
+
+                <td data-label="Campaña">
+                  ${campaign.name}
+                </td>
+
+                <td data-label="Estado">
+                  ${campaign.status}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="Presupuesto/día"
+                >
+                  ${fmtMoney(
+                    campaign.budget
+                  )}
+                </td>
+
+                <td data-label="Estrategia">
+                  ${campaign.strategy || '—'}
+                </td>
+
+                <td
+                  class="num"
+                  data-label="ACOS objetivo"
+                >
+                  ${
+                    campaign.acosTarget != null
+                      ? fmtPct(
+                          campaign.acosTarget
+                        )
+                      : '—'
+                  }
+                </td>
+
+                <td
+                  class="num"
+                  data-label="ROAS del período"
+                >
+                  $${Number(
+                    m.roas || 0
+                  ).toFixed(2)}
+                </td>
+
+              </tr>
+            `;
+          }
+        ).join('');
+
+    }
+
+  } catch (error) {
+
+    box.innerHTML =
+      `<div class="empty">
+        No se pudo cargar:
+        ${error.message}
+      </div>`;
+
+    itemsBody.innerHTML =
+      `<tr>
+         <td class="empty">
+           No se pudo cargar.
+         </td>
+       </tr>`;
+
+    campBody.innerHTML =
+      `<tr>
+         <td class="empty">
+           No se pudo cargar.
+         </td>
+       </tr>`;
+
+    console.error(
+      'loadAds:',
+      error
+    );
+
+  }
+
+}
+
+
+// ---------- Stock ----------
+
+async function loadStock() {
+
+  const body =
+    document.getElementById(
+      'stockBody'
+    );
+
+  try {
+
+    const d =
+      await fetchJson(
+        '/api/stock-alerts'
+      );
+
+    if (
+      !d.alerts ||
+      !d.alerts.length
+    ) {
+
+      body.innerHTML =
+        `<tr>
+           <td class="empty">
+             Sin datos de stock.
+           </td>
+         </tr>`;
+
       return;
     }
-    body.innerHTML = d.alerts.map(a => `
-      <tr class="${a.daysRemaining !== null && a.daysRemaining < 7 ? 'warn' : ''}">
-        <td data-label="Publicación">${a.title}</td>
-        <td class="num" data-label="Stock">${fmtNum(a.stock)}</td>
-        <td class="num" data-label="Ventas/día">${a.avgDailySales}</td>
-        <td class="num" data-label="Días restantes">${a.daysRemaining ?? '—'}</td>
-      </tr>`).join('');
-  }catch(e){
-    body.innerHTML = `<tr><td class="empty">No se pudo cargar: ${e.message}</td></tr>`;
+
+
+    body.innerHTML =
+      d.alerts.map(
+        alert => `
+          <tr
+            class="${
+              alert.daysRemaining !== null &&
+              alert.daysRemaining < 7
+                ? 'warn'
+                : ''
+            }"
+          >
+
+            <td data-label="Publicación">
+              ${alert.title}
+            </td>
+
+            <td
+              class="num"
+              data-label="Stock"
+            >
+              ${fmtNum(
+                alert.stock
+              )}
+            </td>
+
+            <td
+              class="num"
+              data-label="Ventas/día"
+            >
+              ${alert.avgDailySales}
+            </td>
+
+            <td
+              class="num"
+              data-label="Días restantes"
+            >
+              ${
+                alert.daysRemaining ??
+                '—'
+              }
+            </td>
+
+          </tr>
+        `
+      ).join('');
+
+  } catch (error) {
+
+    body.innerHTML =
+      `<tr>
+         <td class="empty">
+           No se pudo cargar:
+           ${error.message}
+         </td>
+       </tr>`;
+
   }
+
 }
 
-async function loadNotifications(){
-  const list = document.getElementById('notifList');
-  try{
-    const r = await fetch('/api/notifications');
-    const d = await r.json();
-    if(!d.ok) throw new Error(d.error);
-    if(!d.notifications.length){
-      list.innerHTML = `<div class="notif"><span class="empty">Sin notificaciones todavía.</span></div>`;
+
+// ---------- Notificaciones ----------
+
+async function loadNotifications() {
+
+  const list =
+    document.getElementById(
+      'notifList'
+    );
+
+  try {
+
+    const d =
+      await fetchJson(
+        '/api/notifications'
+      );
+
+    if (
+      !d.notifications ||
+      !d.notifications.length
+    ) {
+
+      list.innerHTML =
+        `<div class="notif">
+           <span class="empty">
+             Sin notificaciones todavía.
+           </span>
+         </div>`;
+
       return;
     }
-    list.innerHTML = d.notifications.map(n => `
-      <div class="notif">
-        <span>¡Vendiste! ${n.title}</span>
-        <span class="amount">${fmtMoney(n.amount)}</span>
-      </div>`).join('');
-  }catch(e){
-    list.innerHTML = `<div class="notif"><span class="empty">No se pudo cargar.</span></div>`;
+
+
+    list.innerHTML =
+      d.notifications.map(
+        notification => `
+          <div class="notif">
+
+            <span>
+              ¡Vendiste!
+              ${notification.title}
+            </span>
+
+            <span class="amount">
+              ${fmtMoney(
+                notification.amount
+              )}
+            </span>
+
+          </div>
+        `
+      ).join('');
+
+  } catch (error) {
+
+    list.innerHTML =
+      `<div class="notif">
+         <span class="empty">
+           No se pudo cargar:
+           ${error.message}
+         </span>
+       </div>`;
+
   }
+
 }
 
-function prependNotification(n){
-  const list = document.getElementById('notifList');
-  if(list.querySelector('.empty')) list.innerHTML = '';
-  const row = document.createElement('div');
-  row.className = 'notif fresh';
-  row.innerHTML = `<span>¡Vendiste! ${n.title}</span><span class="amount">${fmtMoney(n.amount)}</span>`;
+
+function prependNotification(
+  notification
+) {
+
+  const list =
+    document.getElementById(
+      'notifList'
+    );
+
+  if (
+    list.querySelector(
+      '.empty'
+    )
+  ) {
+    list.innerHTML = '';
+  }
+
+  const row =
+    document.createElement(
+      'div'
+    );
+
+  row.className =
+    'notif fresh';
+
+  row.innerHTML =
+    `<span>
+       ¡Vendiste!
+       ${notification.title}
+     </span>
+
+     <span class="amount">
+       ${fmtMoney(
+         notification.amount
+       )}
+     </span>`;
+
   list.prepend(row);
+
 }
 
-async function saveCost(){
-  const itemId = document.getElementById('costItemId').value.trim();
-  const costPrice = parseFloat(document.getElementById('costValue').value);
-  const msg = document.getElementById('costMsg');
-  if(!itemId || isNaN(costPrice)){
-    msg.textContent = 'Completá el ID de publicación y un costo válido.';
-    msg.style.color = 'var(--alert)';
+
+// ---------- Costos ----------
+
+async function saveCost() {
+
+  const itemId =
+    document
+      .getElementById(
+        'costItemId'
+      )
+      .value
+      .trim();
+
+  const costPrice =
+    parseFloat(
+      document
+        .getElementById(
+          'costValue'
+        )
+        .value
+    );
+
+  const msg =
+    document.getElementById(
+      'costMsg'
+    );
+
+
+  if (
+    !itemId ||
+    !Number.isFinite(
+      costPrice
+    ) ||
+    costPrice < 0
+  ) {
+
+    msg.textContent =
+      'Completá el ID de publicación y un costo válido.';
+
+    msg.style.color =
+      'var(--alert)';
+
     return;
   }
-  try{
-    const r = await fetch('/api/costs', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ itemId, costPrice })
-    });
-    const d = await r.json();
-    if(!d.ok) throw new Error(d.error);
-    msg.textContent = `Costo guardado para ${itemId}.`;
-    msg.style.color = 'var(--sales)';
-    loadSales();
-  }catch(e){
-    msg.textContent = `Error: ${e.message}`;
-    msg.style.color = 'var(--alert)';
+
+
+  try {
+
+    const d =
+      await fetchJson(
+        '/api/costs',
+        {
+          method:'POST',
+          headers:{
+            'Content-Type':
+              'application/json'
+          },
+          body:
+            JSON.stringify({
+              itemId,
+              costPrice
+            })
+        }
+      );
+
+    if (!d.ok) {
+      throw new Error(
+        d.error ||
+        'No se pudo guardar.'
+      );
+    }
+
+    msg.textContent =
+      `Costo guardado para ${itemId}.`;
+
+    msg.style.color =
+      'var(--sales)';
+
+    await loadSales();
+
+  } catch (error) {
+
+    msg.textContent =
+      `Error: ${error.message}`;
+
+    msg.style.color =
+      'var(--alert)';
+
   }
+
 }
 
-// ---------- Notificaciones push (funcionan con la app cerrada, instalada como PWA) ----------
 
-function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = atob(base64);
-  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+// ---------- Push ----------
+
+function urlBase64ToUint8Array(
+  base64String
+) {
+
+  const padding =
+    '='.repeat(
+      (
+        4 -
+        (
+          base64String.length %
+          4
+        )
+      ) % 4
+    );
+
+  const base64 =
+    (
+      base64String +
+      padding
+    )
+      .replace(
+        /-/g,
+        '+'
+      )
+      .replace(
+        /_/g,
+        '/'
+      );
+
+  const rawData =
+    atob(base64);
+
+  return Uint8Array.from(
+    [...rawData].map(
+      character =>
+        character.charCodeAt(0)
+    )
+  );
 }
 
-async function registerServiceWorker(){
-  if(!('serviceWorker' in navigator)) return null;
-  try{
-    return await navigator.serviceWorker.register('/sw.js');
-  }catch(e){
-    console.error('No se pudo registrar el service worker', e);
+
+async function registerServiceWorker() {
+
+  if (
+    !('serviceWorker' in navigator)
+  ) {
     return null;
   }
+
+  try {
+
+    return await
+      navigator.serviceWorker.register(
+        '/sw.js'
+      );
+
+  } catch (error) {
+
+    console.error(
+      'No se pudo registrar el Service Worker:',
+      error
+    );
+
+    return null;
+  }
+
 }
 
-function pushSupported(){
-  return 'serviceWorker' in navigator && 'PushManager' in window;
+
+function pushSupported() {
+
+  return (
+    'serviceWorker' in
+      navigator &&
+    'PushManager' in
+      window
+  );
+
 }
 
-// En iPhone, esto solo funciona si el sitio fue "agregado a inicio" desde Safari (iOS 16.4+)
-function isIOS(){
-  return /iphone|ipad|ipod/i.test(navigator.userAgent);
-}
-function isStandalone(){
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+function isIOS() {
+
+  return /iphone|ipad|ipod/i.test(
+    navigator.userAgent
+  );
+
 }
 
-async function refreshPushButton(){
-  const btn = document.getElementById('pushBtn');
-  const note = document.getElementById('pushNote');
 
-  if(!pushSupported()){
+function isStandalone() {
+
+  return (
+    window.matchMedia(
+      '(display-mode: standalone)'
+    ).matches ||
+    window.navigator.standalone ===
+      true
+  );
+
+}
+
+
+async function refreshPushButton() {
+
+  const btn =
+    document.getElementById(
+      'pushBtn'
+    );
+
+  const note =
+    document.getElementById(
+      'pushNote'
+    );
+
+
+  if (!pushSupported()) {
+
     btn.disabled = true;
-    btn.textContent = 'No disponible';
-    note.textContent = 'Este navegador no admite notificaciones push.';
+
+    btn.textContent =
+      'No disponible';
+
+    note.textContent =
+      'Este navegador no admite notificaciones push.';
+
     return;
+
   }
-  if(isIOS() && !isStandalone()){
+
+
+  if (
+    isIOS() &&
+    !isStandalone()
+  ) {
+
     btn.disabled = true;
-    btn.textContent = 'Instalá la app primero';
-    note.textContent = 'En iPhone: tocá Compartir → "Agregar a pantalla de inicio", abrí Conteonix desde ahí y volvé a esta pantalla.';
+
+    btn.textContent =
+      'Instalá la app primero';
+
+    note.textContent =
+      'En iPhone: Compartir → Agregar a pantalla de inicio → abrir Conteonix desde el icono.';
+
     return;
+
   }
 
-  const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.getSubscription();
-  if(sub){
-    btn.textContent = 'Desactivar notificaciones';
-    note.textContent = 'Notificaciones activas en este dispositivo.';
-  } else {
-    btn.textContent = 'Activar notificaciones';
-    note.textContent = 'Activalas para enterarte de una venta nueva sin tener que abrir el panel.';
-  }
-}
 
-async function togglePush(){
-  const btn = document.getElementById('pushBtn');
-  const note = document.getElementById('pushNote');
-  btn.disabled = true;
-  try{
-    const reg = await navigator.serviceWorker.ready;
-    const existing = await reg.pushManager.getSubscription();
+  try {
 
-    if(existing){
-      await fetch('/api/push/unsubscribe', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ endpoint: existing.endpoint })
-      });
-      await existing.unsubscribe();
-      note.textContent = 'Notificaciones desactivadas.';
+    const reg =
+      await navigator
+        .serviceWorker
+        .ready;
+
+    const sub =
+      await reg.pushManager
+        .getSubscription();
+
+
+    if (sub) {
+
+      btn.textContent =
+        'Desactivar notificaciones';
+
+      note.textContent =
+        'Notificaciones activas en este dispositivo.';
+
     } else {
-      const permission = await Notification.requestPermission();
-      if(permission !== 'granted'){
-        note.textContent = 'No diste permiso de notificaciones en el navegador.';
-        btn.disabled = false;
+
+      btn.textContent =
+        'Activar notificaciones';
+
+      note.textContent =
+        'Activalas para enterarte de una venta nueva sin tener que abrir el panel.';
+
+    }
+
+  } catch (error) {
+
+    btn.textContent =
+      'Activar notificaciones';
+
+  }
+
+}
+
+
+async function togglePush() {
+
+  const btn =
+    document.getElementById(
+      'pushBtn'
+    );
+
+  const note =
+    document.getElementById(
+      'pushNote'
+    );
+
+  btn.disabled = true;
+
+
+  try {
+
+    const reg =
+      await navigator
+        .serviceWorker
+        .ready;
+
+    const existing =
+      await reg.pushManager
+        .getSubscription();
+
+
+    if (existing) {
+
+      await fetchJson(
+        '/api/push/unsubscribe',
+        {
+          method:'POST',
+          headers:{
+            'Content-Type':
+              'application/json'
+          },
+          body:
+            JSON.stringify({
+              endpoint:
+                existing.endpoint
+            })
+        }
+      );
+
+      await existing.unsubscribe();
+
+      note.textContent =
+        'Notificaciones desactivadas.';
+
+    } else {
+
+      const permission =
+        await Notification
+          .requestPermission();
+
+
+      if (
+        permission !==
+        'granted'
+      ) {
+
+        note.textContent =
+          'No diste permiso de notificaciones en el navegador.';
+
         return;
       }
-      const keyRes = await fetch('/api/push/public-key');
-      const keyData = await keyRes.json();
-      if(!keyData.ok) throw new Error(keyData.error || 'El servidor no tiene push configurado.');
 
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(keyData.publicKey)
-      });
-      await fetch('/api/push/subscribe', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(sub)
-      });
-      note.textContent = 'Notificaciones activas en este dispositivo.';
+
+      const keyData =
+        await fetchJson(
+          '/api/push/public-key'
+        );
+
+
+      const subscription =
+        await reg.pushManager
+          .subscribe({
+            userVisibleOnly:true,
+            applicationServerKey:
+              urlBase64ToUint8Array(
+                keyData.publicKey
+              )
+          });
+
+
+      await fetchJson(
+        '/api/push/subscribe',
+        {
+          method:'POST',
+          headers:{
+            'Content-Type':
+              'application/json'
+          },
+          body:
+            JSON.stringify(
+              subscription
+            )
+        }
+      );
+
+
+      note.textContent =
+        'Notificaciones activas en este dispositivo.';
+
     }
-  }catch(e){
-    note.textContent = `No se pudo activar: ${e.message}`;
-  }finally{
+
+  } catch (error) {
+
+    note.textContent =
+      `No se pudo activar: ${error.message}`;
+
+  } finally {
+
     btn.disabled = false;
-    refreshPushButton();
+
+    await refreshPushButton();
+
   }
+
 }
 
-async function initPush(){
+
+async function initPush() {
+
   await registerServiceWorker();
-  if(pushSupported()) refreshPushButton();
-  else {
-    const btn = document.getElementById('pushBtn');
+
+  if (
+    pushSupported()
+  ) {
+
+    await refreshPushButton();
+
+  } else {
+
+    const btn =
+      document.getElementById(
+        'pushBtn'
+      );
+
     btn.disabled = true;
-    btn.textContent = 'No disponible';
+
+    btn.textContent =
+      'No disponible';
+
   }
+
 }
 
-// ---------- Sonido de caja registradora ----------
 
-const cashSound = new Audio('/sounds/cha-ching.wav');
-cashSound.preload = 'auto';
-let audioUnlocked = false;
+// ---------- Sonido ----------
 
-// Los navegadores bloquean el audio si nunca hubo un click del usuario en la página.
-// Con el primer click en cualquier lado "destrabamos" el audio para el resto de la sesión.
-function unlockAudioOnce(){
-  if(audioUnlocked) return;
-  audioUnlocked = true;
-  cashSound.volume = 0;
-  cashSound.play().then(() => {
-    cashSound.pause();
-    cashSound.currentTime = 0;
-    cashSound.volume = 1;
-  }).catch(() => { audioUnlocked = false; });
-}
-document.addEventListener('click', unlockAudioOnce, { once: true });
+const cashSound =
+  new Audio(
+    '/sounds/cha-ching.wav'
+  );
 
-const recentlyPlayed = new Set();
-function playCashRegister(dedupeKey){
-  if(dedupeKey){
-    if(recentlyPlayed.has(dedupeKey)) return;
-    recentlyPlayed.add(dedupeKey);
-    setTimeout(() => recentlyPlayed.delete(dedupeKey), 8000);
+cashSound.preload =
+  'auto';
+
+let audioUnlocked =
+  false;
+
+
+function unlockAudioOnce() {
+
+  if (
+    audioUnlocked
+  ) {
+    return;
   }
-  const sound = cashSound.cloneNode();
-  sound.play().catch(() => { /* el navegador todavía no permite audio; se destraba con el próximo click */ });
+
+  audioUnlocked =
+    true;
+
+  cashSound.volume =
+    0;
+
+  cashSound
+    .play()
+    .then(() => {
+
+      cashSound.pause();
+
+      cashSound.currentTime =
+        0;
+
+      cashSound.volume =
+        1;
+
+    })
+    .catch(() => {
+
+      audioUnlocked =
+        false;
+
+    });
+
 }
 
-// Si el push llega con la app abierta (en foreground o en otra pestaña), el Service Worker
-// nos avisa acá para poder reproducir el sonido (los push en background usan el sonido del sistema).
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    if(event.data?.type === 'PLAY_SOUND'){
-      playCashRegister(event.data.tag);
+
+document.addEventListener(
+  'click',
+  unlockAudioOnce,
+  {
+    once:true
+  }
+);
+
+
+const recentlyPlayed =
+  new Set();
+
+
+function playCashRegister(
+  dedupeKey
+) {
+
+  if (dedupeKey) {
+
+    if (
+      recentlyPlayed.has(
+        dedupeKey
+      )
+    ) {
+      return;
     }
-  });
+
+    recentlyPlayed.add(
+      dedupeKey
+    );
+
+    setTimeout(
+      () =>
+        recentlyPlayed.delete(
+          dedupeKey
+        ),
+      8000
+    );
+
+  }
+
+
+  const sound =
+    cashSound.cloneNode();
+
+  sound
+    .play()
+    .catch(() => {});
+
 }
 
-function connectSSE(){
-  const es = new EventSource('/api/events');
-  es.onmessage = (ev) => {
-    try{
-      const { type, data } = JSON.parse(ev.data);
-      if(type === 'new_order'){
-        prependNotification(data);
-        playCashRegister(`order-${data.orderId}`);
-        loadSales();
+
+// ---------- Mensajes Service Worker ----------
+
+if (
+  'serviceWorker' in
+  navigator
+) {
+
+  navigator.serviceWorker.addEventListener(
+    'message',
+    event => {
+
+      if (
+        event.data?.type ===
+        'PLAY_SOUND'
+      ) {
+
+        playCashRegister(
+          event.data.tag
+        );
+
       }
-    }catch(_){}
-  };
-  es.onerror = () => { /* el navegador reintenta solo */ };
+
+    }
+  );
+
 }
 
-document.getElementById('periodTabs').addEventListener('click', (e) => {
-  const btn = e.target.closest('button[data-period]');
-  if(!btn) return;
-  document.querySelectorAll('#periodTabs button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  currentPeriod = btn.dataset.period;
-  loadSales();
-  loadAds();
-});
+
+// ---------- SSE ----------
+
+function connectSSE() {
+
+  try {
+
+    const eventSource =
+      new EventSource(
+        '/api/events'
+      );
+
+
+    eventSource.onmessage =
+      event => {
+
+        try {
+
+          const {
+            type,
+            data
+          } =
+            JSON.parse(
+              event.data
+            );
+
+
+          if (
+            type ===
+            'new_order'
+          ) {
+
+            prependNotification(
+              data
+            );
+
+            playCashRegister(
+              `order-${data.orderId}`
+            );
+
+            loadSales();
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            'Error SSE:',
+            error
+          );
+
+        }
+
+      };
+
+
+    eventSource.onerror =
+      () => {
+        // EventSource reconecta automáticamente.
+      };
+
+  } catch (error) {
+
+    console.error(
+      'No se pudo conectar SSE:',
+      error
+    );
+
+  }
+
+}
+
+
+// ---------- Períodos ----------
+
+document
+  .getElementById(
+    'periodTabs'
+  )
+  .addEventListener(
+    'click',
+    event => {
+
+      const btn =
+        event.target.closest(
+          'button[data-period]'
+        );
+
+      if (!btn) {
+        return;
+      }
+
+      document
+        .querySelectorAll(
+          '#periodTabs button'
+        )
+        .forEach(
+          button =>
+            button.classList.remove(
+              'active'
+            )
+        );
+
+      btn.classList.add(
+        'active'
+      );
+
+      currentPeriod =
+        btn.dataset.period;
+
+      loadSales();
+      loadAds();
+
+    }
+  );
+
+
+// ---------- Inicialización ----------
 
 loadStatus();
 loadSales();
@@ -667,6 +2655,9 @@ loadStock();
 loadNotifications();
 connectSSE();
 initPush();
+
 </script>
+
 </body>
+
 </html>
