@@ -1,3 +1,4 @@
+```javascript
 require('dotenv').config();
 
 const express = require('express');
@@ -32,12 +33,17 @@ const API_BASE =
   process.env.ML_API_BASE ||
   'https://api.mercadolibre.com';
 
+const DATA_DIR =
+  process.env.DATA_DIR ||
+  path.join(__dirname, 'data');
+
 const TOKEN_FILE =
   process.env.TOKEN_FILE ||
-  path.join(__dirname, 'data', 'tokens.json');
+  path.join(DATA_DIR, 'tokens.json');
 
 const PRODUCTS_FILE =
-  path.join(__dirname, 'data', 'products.json');
+  process.env.PRODUCTS_FILE ||
+  path.join(DATA_DIR, 'products.json');
 
 // ============================================================
 // EXPRESS
@@ -46,85 +52,67 @@ const PRODUCTS_FILE =
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const PUBLIC_DIR = path.join(__dirname, 'public');
+const PUBLIC_DIR =
+  path.join(__dirname, 'public');
 
 app.use(express.static(PUBLIC_DIR));
 
 // ============================================================
-// ARCHIVOS / DATOS
+// DIRECTORIO DE DATOS
 // ============================================================
 
-const dataDirectory = path.dirname(TOKEN_FILE);
-
-if (!fs.existsSync(dataDirectory)) {
-  fs.mkdirSync(dataDirectory, {
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, {
     recursive: true
   });
-}
-
-function readJsonFile(file, fallback) {
-  try {
-    if (!fs.existsSync(file)) {
-      return fallback;
-    }
-
-    const content = fs.readFileSync(
-      file,
-      'utf8'
-    );
-
-    if (!content.trim()) {
-      return fallback;
-    }
-
-    return JSON.parse(content);
-
-  } catch (error) {
-    console.error(
-      `Error leyendo ${file}:`,
-      error.message
-    );
-
-    return fallback;
-  }
-}
-
-function writeJsonFile(file, data) {
-  const temp =
-    `${file}.tmp`;
-
-  fs.writeFileSync(
-    temp,
-    JSON.stringify(
-      data,
-      null,
-      2
-    ),
-    {
-      mode: 0o600
-    }
-  );
-
-  fs.renameSync(
-    temp,
-    file
-  );
 }
 
 // ============================================================
 // TOKENS
 // ============================================================
 
-let tokenCache =
-  readJsonFile(
-    TOKEN_FILE,
-    null
-  );
+let tokenCache = loadTokens();
+
+function loadTokens() {
+  try {
+    if (!fs.existsSync(TOKEN_FILE)) {
+      return null;
+    }
+
+    const content =
+      fs.readFileSync(TOKEN_FILE, 'utf8');
+
+    if (!content.trim()) {
+      return null;
+    }
+
+    return JSON.parse(content);
+
+  } catch (error) {
+    console.error(
+      'Error cargando tokens:',
+      error.message
+    );
+
+    return null;
+  }
+}
 
 function saveTokens(tokens) {
-  writeJsonFile(
-    TOKEN_FILE,
-    tokens
+  const tmp =
+    `${TOKEN_FILE}.tmp`;
+
+  fs.writeFileSync(
+    tmp,
+    JSON.stringify(tokens, null, 2),
+    {
+      mode: 0o600
+    }
+  );
+
+  fs.renameSync(
+    tmp,
+    TOKEN_FILE
   );
 
   tokenCache = tokens;
@@ -134,70 +122,70 @@ function saveTokens(tokens) {
 // PRODUCTOS / COSTOS / STOCK
 // ============================================================
 
-let products =
-  readJsonFile(
-    PRODUCTS_FILE,
-    []
-  );
+let productConfig = loadProductConfig();
 
-if (!Array.isArray(products)) {
-  products = [];
+function loadProductConfig() {
+  try {
+    if (!fs.existsSync(PRODUCTS_FILE)) {
+      return {};
+    }
+
+    const content =
+      fs.readFileSync(
+        PRODUCTS_FILE,
+        'utf8'
+      );
+
+    if (!content.trim()) {
+      return {};
+    }
+
+    return JSON.parse(content);
+
+  } catch (error) {
+    console.error(
+      'Error cargando productos:',
+      error.message
+    );
+
+    return {};
+  }
 }
 
-function saveProducts() {
-  writeJsonFile(
-    PRODUCTS_FILE,
-    products
+function saveProductConfig() {
+  const tmp =
+    `${PRODUCTS_FILE}.tmp`;
+
+  fs.writeFileSync(
+    tmp,
+    JSON.stringify(
+      productConfig,
+      null,
+      2
+    )
+  );
+
+  fs.renameSync(
+    tmp,
+    PRODUCTS_FILE
   );
 }
 
-function findProductByItemId(itemId) {
+function getProductConfig(itemId) {
   if (!itemId) {
-    return null;
+    return {
+      cost: 0,
+      minStock: 5,
+      targetDays: 15
+    };
   }
 
-  return products.find(
-    product =>
-      String(product.item_id) ===
-      String(itemId)
-  ) || null;
-}
-
-function getProductCost(item) {
-  const itemId =
-    item?.item?.id ||
-    item?.item_id ||
-    item?.listing_id ||
-    null;
-
-  const product =
-    findProductByItemId(itemId);
-
-  if (!product) {
-    return 0;
-  }
-
-  return Number(
-    product.cost || 0
-  );
-}
-
-function getProductStock(item) {
-  const itemId =
-    item?.item?.id ||
-    item?.item_id ||
-    item?.listing_id ||
-    null;
-
-  const product =
-    findProductByItemId(itemId);
-
-  if (!product) {
-    return null;
-  }
-
-  return Number(
-    product.stock || 0
+  return (
+    productConfig[String(itemId)] || {
+      cost: 0,
+      minStock: 5,
+      targetDays: 15
+    }
   );
 }
 
@@ -241,39 +229,36 @@ function createPKCE() {
 // ============================================================
 
 function escapeHtml(value) {
-  return String(value)
-    .replace(
-      /[&<>'"]/g,
-      char => {
-        const map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          "'": '&#39;',
-          '"': '&quot;'
-        };
+  return String(value).replace(
+    /[&<>'"]/g,
+    char => {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      };
 
-        return map[char];
-      }
-    );
+      return map[char];
+    }
+  );
 }
 
-function argentinaDateParts(date = new Date()) {
+function todayArgentina() {
   const parts =
     new Intl.DateTimeFormat(
-      'en-US',
+      'en-CA',
       {
         timeZone:
           'America/Argentina/Buenos_Aires',
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+        day: '2-digit'
       }
-    ).formatToParts(date);
+    ).formatToParts(
+      new Date()
+    );
 
   const result = {};
 
@@ -282,43 +267,8 @@ function argentinaDateParts(date = new Date()) {
       part.value;
   }
 
-  return result;
-}
-
-function todayArgentina() {
-  const p =
-    argentinaDateParts();
-
-  return `${p.year}-${p.month}-${p.day}`;
-}
-
-function dateArgentinaString(value) {
-  if (!value) {
-    return '';
-  }
-
-  try {
-    const p =
-      argentinaDateParts(
-        new Date(value)
-      );
-
-    return `${p.year}-${p.month}-${p.day}`;
-  } catch {
-    return '';
-  }
-}
-
-function money(value) {
-  return new Intl.NumberFormat(
-    'es-AR',
-    {
-      style: 'currency',
-      currency: 'ARS',
-      maximumFractionDigits: 0
-    }
-  ).format(
-    Number(value) || 0
+  return (
+    `${result.year}-${result.month}-${result.day}`
   );
 }
 
@@ -326,21 +276,15 @@ function requireConfig() {
   const missing = [];
 
   if (!CLIENT_ID) {
-    missing.push(
-      'ML_CLIENT_ID'
-    );
+    missing.push('ML_CLIENT_ID');
   }
 
   if (!CLIENT_SECRET) {
-    missing.push(
-      'ML_CLIENT_SECRET'
-    );
+    missing.push('ML_CLIENT_SECRET');
   }
 
   if (!REDIRECT_URI) {
-    missing.push(
-      'ML_REDIRECT_URI'
-    );
+    missing.push('ML_REDIRECT_URI');
   }
 
   if (missing.length) {
@@ -350,8 +294,14 @@ function requireConfig() {
   }
 }
 
+function sleep(ms) {
+  return new Promise(
+    resolve => setTimeout(resolve, ms)
+  );
+}
+
 // ============================================================
-// TOKEN REQUEST
+// TOKEN MERCADO LIBRE
 // ============================================================
 
 async function tokenRequest(body) {
@@ -370,9 +320,7 @@ async function tokenRequest(body) {
         },
 
         body:
-          new URLSearchParams(
-            body
-          )
+          new URLSearchParams(body)
       }
     );
 
@@ -433,9 +381,7 @@ async function exchangeCode(code) {
   }
 
   const data =
-    await tokenRequest(
-      body
-    );
+    await tokenRequest(body);
 
   const now =
     Date.now();
@@ -449,8 +395,7 @@ async function exchangeCode(code) {
     expires_at:
       now +
       (
-        (data.expires_in ||
-          21600) *
+        (data.expires_in || 21600) *
         1000
       )
   });
@@ -494,8 +439,7 @@ async function refreshAccessToken() {
     expires_at:
       now +
       (
-        (data.expires_in ||
-          21600) *
+        (data.expires_in || 21600) *
         1000
       )
   });
@@ -518,8 +462,7 @@ async function getAccessToken() {
   if (
     tokenCache.expires_at &&
     Date.now() <
-      tokenCache.expires_at -
-      safety
+      tokenCache.expires_at - safety
   ) {
     return tokenCache.access_token;
   }
@@ -528,7 +471,7 @@ async function getAccessToken() {
 }
 
 // ============================================================
-// MERCADO LIBRE API
+// REQUEST GENÉRICO ML
 // ============================================================
 
 async function mlFetch(
@@ -689,6 +632,143 @@ async function mlAdsFetch(
 }
 
 // ============================================================
+// ORDERS
+// ============================================================
+
+async function fetchOrders(
+  limit = 50,
+  offset = 0
+) {
+  const me =
+    await mlFetch('/users/me');
+
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'seller',
+    String(me.id)
+  );
+
+  params.set(
+    'limit',
+    String(
+      Math.min(
+        Math.max(
+          Number(limit) || 50,
+          1
+        ),
+        50
+      )
+    )
+  );
+
+  params.set(
+    'offset',
+    String(
+      Math.max(
+        Number(offset) || 0,
+        0
+      )
+    )
+  );
+
+  params.set(
+    'sort',
+    'date_desc'
+  );
+
+  return mlFetch(
+    `/orders/search?${params.toString()}`
+  );
+}
+
+// ============================================================
+// ENRIQUECER ORDEN CON COSTOS
+// ============================================================
+
+function enrichOrder(order) {
+  const items =
+    Array.isArray(
+      order.order_items
+    )
+      ? order.order_items
+      : [];
+
+  let productCost =
+    0;
+
+  let units =
+    0;
+
+  const enrichedItems =
+    items.map(item => {
+      const quantity =
+        Number(
+          item.quantity
+        ) || 0;
+
+      const itemId =
+        item.item?.id ||
+        item.item_id ||
+        null;
+
+      const title =
+        item.item?.title ||
+        item.title ||
+        'Producto';
+
+      const config =
+        getProductConfig(itemId);
+
+      const unitCost =
+        Number(config.cost) || 0;
+
+      const totalCost =
+        unitCost * quantity;
+
+      units += quantity;
+      productCost += totalCost;
+
+      return {
+        ...item,
+
+        conteonix: {
+          itemId,
+          title,
+          quantity,
+          unitCost,
+          totalCost,
+          minStock:
+            Number(config.minStock) || 0,
+          targetDays:
+            Number(config.targetDays) || 15
+        }
+      };
+    });
+
+  return {
+    ...order,
+
+    conteonix: {
+      units,
+      productCost,
+      grossAmount:
+        Number(order.total_amount) || 0,
+
+      estimatedProfit:
+        (
+          Number(order.total_amount) || 0
+        ) -
+        productCost
+    },
+
+    order_items:
+      enrichedItems
+  };
+}
+
+// ============================================================
 // SSE TIEMPO REAL
 // ============================================================
 
@@ -699,7 +779,10 @@ function broadcast(event) {
   const payload =
     JSON.stringify(event);
 
-  for (const client of clients) {
+  for (
+    const client
+    of clients
+  ) {
     try {
       client.write(
         `data: ${payload}\n\n`
@@ -759,9 +842,7 @@ app.get(
           heartbeat
         );
 
-        clients.delete(
-          res
-        );
+        clients.delete(res);
       }
     );
   }
@@ -812,9 +893,6 @@ app.get(
 
       connected:
         !!tokenCache?.access_token,
-
-      argentina_date:
-        todayArgentina(),
 
       time:
         new Date().toISOString()
@@ -1014,7 +1092,6 @@ app.get(
 
         saveTokens({
           ...tokenCache,
-
           user_id:
             me.id
         });
@@ -1033,21 +1110,13 @@ app.get(
 );
 
 // ============================================================
-// ORDERS
+// ORDERS API
 // ============================================================
 
 app.get(
   '/api/orders',
   async (req, res) => {
     try {
-      const me =
-        await mlFetch(
-          '/users/me'
-        );
-
-      const seller =
-        me.id;
-
       const limit =
         Math.min(
           Math.max(
@@ -1067,57 +1136,37 @@ app.get(
           0
         );
 
-      const params =
-        new URLSearchParams();
-
-      params.set(
-        'seller',
-        String(seller)
-      );
-
-      params.set(
-        'limit',
-        String(limit)
-      );
-
-      params.set(
-        'offset',
-        String(offset)
-      );
-
-      params.set(
-        'sort',
-        'date_desc'
-      );
-
-      if (
-        req.query.status
-      ) {
-        params.set(
-          'order.status',
-          req.query.status
-        );
-      }
-
       const data =
-        await mlFetch(
-          `/orders/search?${params.toString()}`
+        await fetchOrders(
+          limit,
+          offset
+        );
+
+      const results =
+        (
+          data.results || []
+        ).map(
+          enrichOrder
         );
 
       res.json({
         ok: true,
 
-        ...data,
+        paging:
+          data.paging || {},
 
-        argentina_date:
-          todayArgentina()
+        results
       });
 
     } catch (error) {
+      console.error(
+        'ORDERS ERROR:',
+        error.message
+      );
+
       res
         .status(
-          error.status ||
-          500
+          error.status || 500
         )
         .json({
           ok: false,
@@ -1134,156 +1183,115 @@ app.get(
 );
 
 // ============================================================
-// RESUMEN DEL DÍA
+// DASHBOARD COMPLETO
 // ============================================================
 
 app.get(
-  '/api/today',
+  '/api/dashboard',
   async (req, res) => {
     try {
-      const me =
-        await mlFetch(
-          '/users/me'
-        );
-
-      const seller =
-        me.id;
-
       const today =
         todayArgentina();
 
-      const params =
-        new URLSearchParams();
-
-      params.set(
-        'seller',
-        String(seller)
-      );
-
-      params.set(
-        'limit',
-        '50'
-      );
-
-      params.set(
-        'offset',
-        '0'
-      );
-
-      params.set(
-        'sort',
-        'date_desc'
-      );
-
-      const data =
-        await mlFetch(
-          `/orders/search?${params.toString()}`
+      const ordersData =
+        await fetchOrders(
+          50,
+          0
         );
 
-      const allOrders =
-        Array.isArray(
-          data.results
-        )
-          ? data.results
-          : [];
+      const rawOrders =
+        ordersData.results || [];
+
+      const orders =
+        rawOrders.map(
+          enrichOrder
+        );
 
       const todayOrders =
-        allOrders.filter(
-          order =>
-            dateArgentinaString(
-              order.date_created
-            ) === today
+        orders.filter(
+          order => {
+            if (
+              !order.date_created
+            ) {
+              return false;
+            }
+
+            const date =
+              new Date(
+                order.date_created
+              );
+
+            const local =
+              new Intl.DateTimeFormat(
+                'en-CA',
+                {
+                  timeZone:
+                    'America/Argentina/Buenos_Aires',
+                  year: 'numeric',
+                  month: '2-digit',
+                  day: '2-digit'
+                }
+              ).format(date);
+
+            return local === today;
+          }
         );
 
-      let billing = 0;
-      let units = 0;
-      let productCost = 0;
+      let sales =
+        0;
 
-      const productSummary =
-        {};
+      let units =
+        0;
+
+      let productCost =
+        0;
 
       for (
         const order
         of todayOrders
       ) {
-        billing +=
+        sales +=
           Number(
             order.total_amount
           ) || 0;
 
-        for (
-          const orderItem
-          of (
-            order.order_items ||
-            []
-          )
-        ) {
-          const quantity =
-            Number(
-              orderItem.quantity
-            ) || 0;
+        units +=
+          Number(
+            order.conteonix?.units
+          ) || 0;
 
-          units +=
-            quantity;
-
-          const itemId =
-            orderItem.item?.id ||
-            orderItem.item_id ||
-            orderItem.listing_id ||
-            null;
-
-          const title =
-            orderItem.item?.title ||
-            orderItem.title ||
-            'Producto';
-
-          const unitPrice =
-            Number(
-              orderItem.unit_price
-            ) || 0;
-
-          const cost =
-            getProductCost(
-              orderItem
-            );
-
-          productCost +=
-            cost *
-            quantity;
-
-          const key =
-            String(
-              itemId ||
-              title
-            );
-
-          if (
-            !productSummary[key]
-          ) {
-            productSummary[key] = {
-              item_id:
-                itemId,
-
-              title,
-
-              units: 0,
-
-              sales:
-                0,
-
-              cost:
-                cost
-            };
-          }
-
-          productSummary[key].units +=
-            quantity;
-
-          productSummary[key].sales +=
-            unitPrice *
-            quantity;
-        }
+        productCost +=
+          Number(
+            order.conteonix?.productCost
+          ) || 0;
       }
+
+      let ads = {
+        cost: 0,
+        total_amount: 0,
+        units_quantity: 0,
+        clicks: 0,
+        roas: 0,
+        acos: 0
+      };
+
+      try {
+        ads =
+          await getAdsSummary(
+            today,
+            today
+          );
+      } catch (error) {
+        console.error(
+          'Dashboard Ads:',
+          error.message
+        );
+      }
+
+      const estimatedProfit =
+        sales -
+        Number(ads.cost || 0) -
+        productCost;
 
       res.json({
         ok: true,
@@ -1291,126 +1299,64 @@ app.get(
         date:
           today,
 
-        billing,
+        summary: {
+          sales,
+          units,
+          orders:
+            todayOrders.length,
 
-        units,
-
-        sales_count:
-          todayOrders.length,
-
-        product_cost:
           productCost,
 
-        orders:
-          todayOrders,
+          advertisingCost:
+            Number(ads.cost || 0),
 
-        products:
-          Object.values(
-            productSummary
-          )
+          advertisingSales:
+            Number(
+              ads.total_amount || 0
+            ),
+
+          profit:
+            estimatedProfit,
+
+          roas:
+            Number(
+              ads.roas || 0
+            ),
+
+          acos:
+            Number(
+              ads.acos || 0
+            )
+        },
+
+        orders:
+          orders.slice(0, 50),
+
+        ads
       });
 
     } catch (error) {
+      console.error(
+        'DASHBOARD ERROR:',
+        error.message
+      );
+
       res
         .status(
-          error.status ||
-          500
+          error.status || 500
         )
         .json({
           ok: false,
 
           error:
-            error.message,
-
-          details:
-            error.details ||
-            null
+            error.message
         });
     }
   }
 );
 
 // ============================================================
-// SYNC
-// ============================================================
-
-app.post(
-  '/api/sync',
-  async (req, res) => {
-    try {
-      const data =
-        await mlFetch(
-          '/users/me'
-        );
-
-      const seller =
-        data.id;
-
-      const params =
-        new URLSearchParams({
-          seller:
-            String(seller),
-
-          limit:
-            '50',
-
-          offset:
-            '0',
-
-          sort:
-            'date_desc'
-        });
-
-      const orders =
-        await mlFetch(
-          `/orders/search?${params.toString()}`
-        );
-
-      saveTokens({
-        ...tokenCache,
-
-        user_id:
-          seller
-      });
-
-      res.json({
-        ok: true,
-
-        synced_at:
-          new Date().toISOString(),
-
-        total:
-          orders.paging?.total ||
-          orders.results?.length ||
-          0,
-
-        orders:
-          orders.results ||
-          []
-      });
-
-    } catch (error) {
-      res
-        .status(
-          error.status ||
-          500
-        )
-        .json({
-          ok: false,
-
-          error:
-            error.message,
-
-          details:
-            error.details ||
-            null
-        });
-    }
-  }
-);
-
-// ============================================================
-// ADVERTISER
+// PRODUCT ADS
 // ============================================================
 
 async function fetchAdvertisers() {
@@ -1449,20 +1395,11 @@ async function fetchAdvertisers() {
   }
 
   if (!response.ok) {
-    const error =
-      new Error(
-        data.message ||
-        data.error ||
-        `Advertising HTTP ${response.status}`
-      );
-
-    error.status =
-      response.status;
-
-    error.details =
-      data;
-
-    throw error;
+    throw new Error(
+      data.message ||
+      data.error ||
+      `Advertising HTTP ${response.status}`
+    );
   }
 
   return data;
@@ -1499,10 +1436,6 @@ async function getAdvertiser() {
     advertisers[0]
   );
 }
-
-// ============================================================
-// ADS
-// ============================================================
 
 const AD_METRICS = [
   'clicks',
@@ -1546,83 +1479,182 @@ function emptyAdsSummary() {
   };
 }
 
-function numberFromObject(
-  object,
-  keys
+async function getAdsSummary(
+  dateFrom,
+  dateTo
 ) {
+  const advertiser =
+    await getAdvertiser();
+
+  const site =
+    advertiser.site_id ||
+    'MLA';
+
+  const advertiserId =
+    advertiser.advertiser_id;
+
+  if (!advertiserId) {
+    throw new Error(
+      'Mercado Libre no devolvió advertiser_id.'
+    );
+  }
+
+  const params =
+    new URLSearchParams();
+
+  params.set(
+    'limit',
+    '50'
+  );
+
+  params.set(
+    'offset',
+    '0'
+  );
+
+  params.set(
+    'date_from',
+    dateFrom
+  );
+
+  params.set(
+    'date_to',
+    dateTo
+  );
+
+  params.set(
+    'metrics',
+    AD_METRICS
+  );
+
+  if (
+    dateFrom === dateTo
+  ) {
+    params.set(
+      'aggregation_type',
+      'DAILY'
+    );
+  } else {
+    params.set(
+      'metrics_summary',
+      'true'
+    );
+  }
+
+  const endpoint =
+    `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
+
+  const data =
+    await mlAdsFetch(
+      endpoint
+    );
+
+  const campaigns =
+    Array.isArray(
+      data.results
+    )
+      ? data.results
+      : [];
+
+  const metrics =
+    emptyAdsSummary();
+
+  const numericFields = [
+    'clicks',
+    'prints',
+    'cost',
+    'direct_amount',
+    'indirect_amount',
+    'total_amount',
+    'direct_units_quantity',
+    'indirect_units_quantity',
+    'units_quantity'
+  ];
+
+  const summary =
+    data.metrics_summary ||
+    {};
+
   for (
-    const key
-    of keys
+    const field
+    of numericFields
   ) {
     if (
-      object &&
-      object[key] !== undefined &&
-      object[key] !== null
+      summary[field] !==
+      undefined
     ) {
-      const value =
+      metrics[field] =
         Number(
-          object[key]
+          summary[field] || 0
         );
+    }
+  }
 
-      if (
-        Number.isFinite(value)
+  if (
+    Object.keys(summary)
+      .length === 0
+  ) {
+    for (
+      const campaign
+      of campaigns
+    ) {
+      for (
+        const field
+        of numericFields
       ) {
-        return value;
+        metrics[field] +=
+          Number(
+            campaign[field] ||
+            campaign.metrics?.[field] ||
+            0
+          );
       }
     }
   }
 
-  return 0;
+  metrics.ctr =
+    metrics.prints > 0
+      ? (
+          metrics.clicks /
+          metrics.prints
+        ) * 100
+      : 0;
+
+  metrics.cpc =
+    metrics.clicks > 0
+      ? (
+          metrics.cost /
+          metrics.clicks
+        )
+      : 0;
+
+  metrics.acos =
+    metrics.total_amount > 0
+      ? (
+          metrics.cost /
+          metrics.total_amount
+        ) * 100
+      : 0;
+
+  metrics.roas =
+    metrics.cost > 0
+      ? (
+          metrics.total_amount /
+          metrics.cost
+        )
+      : 0;
+
+  return {
+    ...metrics,
+
+    campaigns
+  };
 }
-
-app.get(
-  '/api/ads/test',
-  async (req, res) => {
-    try {
-      const advertiser =
-        await getAdvertiser();
-
-      res.json({
-        ok: true,
-
-        advertiser
-      });
-
-    } catch (error) {
-      res.status(200).json({
-        ok: false,
-
-        error:
-          error.message,
-
-        details:
-          error.details ||
-          null
-      });
-    }
-  }
-);
 
 app.get(
   '/api/ads',
   async (req, res) => {
     try {
-      const advertiser =
-        await getAdvertiser();
-
-      const site =
-        advertiser.site_id ||
-        'MLA';
-
-      const advertiserId =
-        advertiser.advertiser_id;
-
-      if (!advertiserId) {
-        throw new Error(
-          'Mercado Libre no devolvió advertiser_id.'
-        );
-      }
-
       const dateFrom =
         req.query.date_from ||
         req.query.date ||
@@ -1633,191 +1665,11 @@ app.get(
         req.query.date ||
         dateFrom;
 
-      const params =
-        new URLSearchParams();
-
-      params.set(
-        'limit',
-        '50'
-      );
-
-      params.set(
-        'offset',
-        '0'
-      );
-
-      params.set(
-        'date_from',
-        dateFrom
-      );
-
-      params.set(
-        'date_to',
-        dateTo
-      );
-
-      params.set(
-        'metrics',
-        AD_METRICS
-      );
-
-      if (
-        dateFrom === dateTo
-      ) {
-        params.set(
-          'aggregation_type',
-          'DAILY'
-        );
-      } else {
-        params.set(
-          'metrics_summary',
-          'true'
-        );
-      }
-
-      const endpoint =
-        `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
-
-      const data =
-        await mlAdsFetch(
-          endpoint
-        );
-
-      const campaigns =
-        Array.isArray(
-          data.results
-        )
-          ? data.results
-          : [];
-
-      const metrics =
-        emptyAdsSummary();
-
       const summary =
-        data.metrics_summary ||
-        data.summary ||
-        {};
-
-      const numericFields = [
-        'clicks',
-        'prints',
-        'cost',
-        'direct_amount',
-        'indirect_amount',
-        'total_amount',
-        'direct_units_quantity',
-        'indirect_units_quantity',
-        'units_quantity'
-      ];
-
-      for (
-        const field
-        of numericFields
-      ) {
-        metrics[field] =
-          numberFromObject(
-            summary,
-            [
-              field
-            ]
-          );
-      }
-
-      // Algunas respuestas entregan las métricas
-      // dentro de metrics.
-      if (
-        Object.keys(summary).length === 0
-      ) {
-        for (
-          const campaign
-          of campaigns
-        ) {
-          const source =
-            campaign.metrics ||
-            campaign;
-
-          for (
-            const field
-            of numericFields
-          ) {
-            metrics[field] +=
-              numberFromObject(
-                source,
-                [
-                  field
-                ]
-              );
-          }
-        }
-      }
-
-      // Si Product Ads devuelve una única métrica
-      // de costo dentro de resultados.
-      if (
-        metrics.cost === 0 &&
-        campaigns.length
-      ) {
-        for (
-          const campaign
-          of campaigns
-        ) {
-          const source =
-            campaign.metrics ||
-            campaign;
-
-          metrics.cost +=
-            numberFromObject(
-              source,
-              [
-                'cost',
-                'spend',
-                'advertising_cost'
-              ]
-            );
-
-          metrics.total_amount +=
-            numberFromObject(
-              source,
-              [
-                'total_amount',
-                'sales_amount',
-                'attributed_sales'
-              ]
-            );
-        }
-      }
-
-      metrics.ctr =
-        metrics.prints > 0
-          ? (
-              metrics.clicks /
-              metrics.prints
-            ) * 100
-          : 0;
-
-      metrics.cpc =
-        metrics.clicks > 0
-          ? (
-              metrics.cost /
-              metrics.clicks
-            )
-          : 0;
-
-      metrics.acos =
-        metrics.total_amount > 0
-          ? (
-              metrics.cost /
-              metrics.total_amount
-            ) * 100
-          : 0;
-
-      metrics.roas =
-        metrics.cost > 0
-          ? (
-              metrics.total_amount /
-              metrics.cost
-            )
-          : 0;
+        await getAdsSummary(
+          dateFrom,
+          dateTo
+        );
 
       res.json({
         ok: true,
@@ -1828,23 +1680,11 @@ app.get(
         date_to:
           dateTo,
 
-        advertiser: {
-          id:
-            advertiserId,
+        summary,
 
-          siteId:
-            site,
-
-          name:
-            advertiser.advertiser_name ||
-            advertiser.name ||
-            null
-        },
-
-        summary:
-          metrics,
-
-        campaigns
+        campaigns:
+          summary.campaigns ||
+          []
       });
 
     } catch (error) {
@@ -1854,7 +1694,7 @@ app.get(
         error.message
       );
 
-      res.status(200).json({
+      res.json({
         ok: true,
 
         date_from:
@@ -1864,9 +1704,6 @@ app.get(
         date_to:
           req.query.date_to ||
           todayArgentina(),
-
-        advertiser:
-          null,
 
         summary:
           emptyAdsSummary(),
@@ -1884,86 +1721,165 @@ app.get(
 // PRODUCTOS
 // ============================================================
 
-app.get(
-  '/api/products',
-  (req, res) => {
-    res.json({
-      ok: true,
+async function getItem(itemId) {
+  return mlFetch(
+    `/items/${encodeURIComponent(itemId)}`
+  );
+}
 
-      products
-    });
-  }
-);
+async function buildProductList() {
+  const map =
+    {};
 
-app.post(
-  '/api/products',
-  (req, res) => {
-    try {
-      const {
-        item_id,
-        title,
-        cost,
-        stock,
-        min_stock
-      } = req.body;
+  const ordersData =
+    await fetchOrders(
+      50,
+      0
+    );
 
-      if (!item_id) {
-        return res
-          .status(400)
-          .json({
-            ok: false,
-            error:
-              'Falta item_id.'
-          });
+  const orders =
+    ordersData.results || [];
+
+  for (
+    const order
+    of orders
+  ) {
+    const items =
+      order.order_items || [];
+
+    for (
+      const item
+      of items
+    ) {
+      const itemId =
+        item.item?.id ||
+        item.item_id;
+
+      if (!itemId) {
+        continue;
       }
 
-      const normalizedId =
-        String(item_id);
+      if (
+        map[itemId]
+      ) {
+        continue;
+      }
 
-      const existing =
-        products.find(
-          product =>
-            String(
-              product.item_id
-            ) ===
-            normalizedId
+      map[itemId] = {
+        id:
+          itemId,
+
+        title:
+          item.item?.title ||
+          item.title ||
+          'Producto',
+
+        soldUnits:
+          0,
+
+        stock:
+          null,
+
+        price:
+          Number(
+            item.unit_price
+          ) || 0
+      };
+    }
+  }
+
+  const ids =
+    Object.keys(map);
+
+  for (
+    const id
+    of ids
+  ) {
+    try {
+      const item =
+        await getItem(id);
+
+      map[id].title =
+        item.title ||
+        map[id].title;
+
+      map[id].stock =
+        Number(
+          item.available_quantity
         );
 
-      if (existing) {
-        existing.title =
-          title ||
-          existing.title;
+      map[id].price =
+        Number(
+          item.price
+        ) ||
+        map[id].price;
 
-        existing.cost =
-          Number(cost) || 0;
+    } catch (error) {
+      console.error(
+        `Error item ${id}:`,
+        error.message
+      );
+    }
 
-        existing.stock =
-          Number(stock) || 0;
+    await sleep(100);
+  }
 
-        existing.min_stock =
-          Number(min_stock) || 0;
+  for (
+    const order
+    of orders
+  ) {
+    for (
+      const orderItem
+      of (
+        order.order_items ||
+        []
+      )
+    ) {
+      const id =
+        orderItem.item?.id ||
+        orderItem.item_id;
 
-      } else {
-        products.push({
-          item_id:
-            normalizedId,
-
-          title:
-            title ||
-            'Producto',
-
-          cost:
-            Number(cost) || 0,
-
-          stock:
-            Number(stock) || 0,
-
-          min_stock:
-            Number(min_stock) || 0
-        });
+      if (
+        id &&
+        map[id]
+      ) {
+        map[id].soldUnits +=
+          Number(
+            orderItem.quantity
+          ) || 0;
       }
+    }
+  }
 
-      saveProducts();
+  return Object.values(
+    map
+  ).map(product => {
+    const config =
+      getProductConfig(
+        product.id
+      );
+
+    return {
+      ...product,
+
+      cost:
+        Number(config.cost) || 0,
+
+      minStock:
+        Number(config.minStock) || 5,
+
+      targetDays:
+        Number(config.targetDays) || 15
+    };
+  });
+}
+
+app.get(
+  '/api/products',
+  async (req, res) => {
+    try {
+      const products =
+        await buildProductList();
 
       res.json({
         ok: true,
@@ -1972,8 +1888,265 @@ app.post(
       });
 
     } catch (error) {
+      console.error(
+        'PRODUCTS ERROR:',
+        error.message
+      );
+
+      res
+        .status(
+          error.status || 500
+        )
+        .json({
+          ok: false,
+
+          error:
+            error.message
+        });
+    }
+  }
+);
+
+// ============================================================
+// GUARDAR CONFIGURACIÓN DE PRODUCTO
+// ============================================================
+
+app.post(
+  '/api/products/config',
+  (req, res) => {
+    try {
+      const {
+        itemId,
+        cost,
+        minStock,
+        targetDays
+      } = req.body || {};
+
+      if (!itemId) {
+        return res
+          .status(400)
+          .json({
+            ok: false,
+            error:
+              'Falta itemId.'
+          });
+      }
+
+      const numericCost =
+        Number(cost);
+
+      const numericMin =
+        Number(minStock);
+
+      const numericTarget =
+        Number(targetDays);
+
+      if (
+        !Number.isFinite(
+          numericCost
+        ) ||
+        numericCost < 0
+      ) {
+        return res
+          .status(400)
+          .json({
+            ok: false,
+            error:
+              'El costo debe ser un número igual o mayor a 0.'
+          });
+      }
+
+      productConfig[
+        String(itemId)
+      ] = {
+        cost:
+          numericCost,
+
+        minStock:
+          Number.isFinite(
+            numericMin
+          )
+            ? Math.max(
+                0,
+                numericMin
+              )
+            : 5,
+
+        targetDays:
+          Number.isFinite(
+            numericTarget
+          )
+            ? Math.max(
+                1,
+                numericTarget
+              )
+            : 15
+      };
+
+      saveProductConfig();
+
+      res.json({
+        ok: true,
+
+        itemId:
+          String(itemId),
+
+        config:
+          productConfig[
+            String(itemId)
+          ]
+      });
+
+    } catch (error) {
+      console.error(
+        'SAVE PRODUCT:',
+        error.message
+      );
+
       res
         .status(500)
+        .json({
+          ok: false,
+
+          error:
+            error.message
+        });
+    }
+  }
+);
+
+// ============================================================
+// BORRAR CONFIGURACIÓN
+// ============================================================
+
+app.delete(
+  '/api/products/config/:itemId',
+  (req, res) => {
+    const itemId =
+      String(
+        req.params.itemId
+      );
+
+    delete productConfig[
+      itemId
+    ];
+
+    saveProductConfig();
+
+    res.json({
+      ok: true
+    });
+  }
+);
+
+// ============================================================
+// STOCK / REPOSICIÓN
+// ============================================================
+
+app.get(
+  '/api/stock',
+  async (req, res) => {
+    try {
+      const products =
+        await buildProductList();
+
+      const result =
+        products.map(
+          product => {
+            const avgDaily =
+              product.soldUnits > 0
+                ? (
+                    product.soldUnits /
+                    30
+                  )
+                : 0;
+
+            const daysStock =
+              avgDaily > 0
+                ? (
+                    product.stock /
+                    avgDaily
+                  )
+                : null;
+
+            const targetUnits =
+              avgDaily > 0
+                ? Math.ceil(
+                    avgDaily *
+                    product.targetDays
+                  )
+                : product.minStock;
+
+            const reorder =
+              Math.max(
+                0,
+                targetUnits -
+                Number(
+                  product.stock || 0
+                )
+              );
+
+            let status =
+              'ok';
+
+            if (
+              Number(
+                product.stock || 0
+              ) <=
+              Number(
+                product.minStock
+              )
+            ) {
+              status =
+                'critical';
+            } else if (
+              daysStock !== null &&
+              daysStock <= 7
+            ) {
+              status =
+                'warning';
+            }
+
+            return {
+              ...product,
+
+              avgDailySales:
+                Number(
+                  avgDaily.toFixed(2)
+                ),
+
+              daysStock:
+                daysStock === null
+                  ? null
+                  : Number(
+                      daysStock.toFixed(1)
+                    ),
+
+              reorderQuantity:
+                reorder,
+
+              status
+            };
+          }
+        );
+
+      res.json({
+        ok: true,
+
+        products:
+          result
+      });
+
+    } catch (error) {
+      console.error(
+        'STOCK ERROR:',
+        error.message
+      );
+
+      res
+        .status(
+          error.status || 500
+        )
         .json({
           ok: false,
 
@@ -1988,9 +2161,15 @@ app.post(
 // WEBHOOK MERCADO LIBRE
 // ============================================================
 
-async function processNotification(
+async function processMLNotification(
   notification
 ) {
+  if (
+    !notification
+  ) {
+    return;
+  }
+
   console.log(
     'NOTIFICACIÓN MERCADO LIBRE:',
     JSON.stringify(
@@ -2020,6 +2199,11 @@ async function processNotification(
         resource
       );
 
+    const enriched =
+      enrichOrder(
+        order
+      );
+
     console.log(
       'NUEVA/ACTUALIZADA ORDEN:',
       order.id
@@ -2029,7 +2213,8 @@ async function processNotification(
       type:
         'new_order',
 
-      order,
+      order:
+        enriched,
 
       time:
         new Date().toISOString()
@@ -2060,7 +2245,7 @@ app.post(
 
     setImmediate(
       () =>
-        processNotification(
+        processMLNotification(
           req.body || {}
         )
     );
@@ -2076,10 +2261,66 @@ app.post(
 
     setImmediate(
       () =>
-        processNotification(
+        processMLNotification(
           req.body || {}
         )
     );
+  }
+);
+
+// ============================================================
+// SYNC
+// ============================================================
+
+app.post(
+  '/api/sync',
+  async (req, res) => {
+    try {
+      const me =
+        await mlFetch(
+          '/users/me'
+        );
+
+      saveTokens({
+        ...tokenCache,
+
+        user_id:
+          me.id
+      });
+
+      const orders =
+        await fetchOrders(
+          50,
+          0
+        );
+
+      res.json({
+        ok: true,
+
+        synced_at:
+          new Date().toISOString(),
+
+        total:
+          orders.paging?.total ||
+          orders.results?.length ||
+          0,
+
+        orders:
+          orders.results || []
+      });
+
+    } catch (error) {
+      res
+        .status(
+          error.status || 500
+        )
+        .json({
+          ok: false,
+
+          error:
+            error.message
+        });
+    }
   }
 );
 
@@ -2090,8 +2331,7 @@ app.post(
 app.post(
   '/api/logout',
   (req, res) => {
-    tokenCache =
-      null;
+    tokenCache = null;
 
     try {
       if (
@@ -2122,14 +2362,12 @@ app.post(
 app.use(
   '/api',
   (req, res) => {
-    res
-      .status(404)
-      .json({
-        ok: false,
+    res.status(404).json({
+      ok: false,
 
-        error:
-          `Ruta no encontrada: ${req.method} ${req.originalUrl}`
-      });
+      error:
+        `Ruta no encontrada: ${req.method} ${req.originalUrl}`
+    });
   }
 );
 
@@ -2156,6 +2394,7 @@ const server =
     PORT,
     '0.0.0.0',
     () => {
+
       console.log(
         '=========================================='
       );
@@ -2173,11 +2412,11 @@ const server =
       );
 
       console.log(
-        `ARGENTINA DATE: ${todayArgentina()}`
+        `HEALTH: ${BASE_URL}/api/health`
       );
 
       console.log(
-        `HEALTH: ${BASE_URL}/api/health`
+        `DASHBOARD: ${BASE_URL}/api/dashboard`
       );
 
       console.log(
@@ -2185,7 +2424,11 @@ const server =
       );
 
       console.log(
-        `TODAY: ${BASE_URL}/api/today`
+        `PRODUCTS: ${BASE_URL}/api/products`
+      );
+
+      console.log(
+        `STOCK: ${BASE_URL}/api/stock`
       );
 
       console.log(
@@ -2227,3 +2470,4 @@ process.on(
     );
   }
 );
+```
