@@ -490,14 +490,51 @@ function urlBase64ToUint8Array(base64String) {
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
 }
 
+// Evita que una promesa se quede colgada para siempre sin avisar nada
+function withTimeout(promise, ms, message){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms))
+  ]);
+}
+
 async function registerServiceWorker(){
   if(!('serviceWorker' in navigator)) return null;
+
+  // Verificamos que /sw.js realmente exista y sea JS antes de registrar,
+  // para poder avisar un error claro en vez de quedarnos esperando para siempre.
   try{
-    return await navigator.serviceWorker.register('/sw.js');
+    const check = await fetch('/sw.js', { cache: 'no-store' });
+    if(!check.ok){
+      throw new Error(`/sw.js respondió ${check.status}. Verificá que el archivo esté en tu carpeta "public".`);
+    }
+    const ct = check.headers.get('content-type') || '';
+    if(ct.includes('text/html')){
+      throw new Error('/sw.js está devolviendo una página HTML en vez del script. Verificá que el archivo esté en "public/sw.js".');
+    }
   }catch(e){
-    console.error('No se pudo registrar el service worker', e);
+    console.error('sw.js no accesible', e);
+    setPushError(e.message.startsWith('/sw.js') || e.message.startsWith('sw.js') ? e.message : `No se pudo acceder a /sw.js: ${e.message}`);
     return null;
   }
+
+  try{
+    const reg = await navigator.serviceWorker.register('/sw.js');
+    await withTimeout(navigator.serviceWorker.ready, 10000, 'El service worker no terminó de activarse a tiempo.');
+    return reg;
+  }catch(e){
+    console.error('No se pudo registrar el service worker', e);
+    setPushError(`No se pudo activar el service worker: ${e.message}`);
+    return null;
+  }
+}
+
+function setPushError(text){
+  const btn = document.getElementById('pushBtn');
+  const note = document.getElementById('pushNote');
+  btn.disabled = true;
+  btn.textContent = 'No disponible';
+  note.textContent = text;
 }
 
 function pushSupported(){
@@ -529,14 +566,19 @@ async function refreshPushButton(){
     return;
   }
 
-  const reg = await navigator.serviceWorker.ready;
-  const sub = await reg.pushManager.getSubscription();
-  if(sub){
-    btn.textContent = 'Desactivar notificaciones';
-    note.textContent = 'Notificaciones activas en este dispositivo.';
-  } else {
-    btn.textContent = 'Activar notificaciones';
-    note.textContent = 'Activalas para enterarte de una venta nueva sin tener que abrir el panel.';
+  try{
+    const reg = await withTimeout(navigator.serviceWorker.ready, 10000, 'El service worker no respondió a tiempo.');
+    const sub = await reg.pushManager.getSubscription();
+    btn.disabled = false;
+    if(sub){
+      btn.textContent = 'Desactivar notificaciones';
+      note.textContent = 'Notificaciones activas en este dispositivo.';
+    } else {
+      btn.textContent = 'Activar notificaciones';
+      note.textContent = 'Activalas para enterarte de una venta nueva sin tener que abrir el panel.';
+    }
+  }catch(e){
+    setPushError(`No se pudo consultar el estado: ${e.message}`);
   }
 }
 
@@ -545,7 +587,7 @@ async function togglePush(){
   const note = document.getElementById('pushNote');
   btn.disabled = true;
   try{
-    const reg = await navigator.serviceWorker.ready;
+    const reg = await withTimeout(navigator.serviceWorker.ready, 10000, 'El service worker no respondió a tiempo. Recargá la página e intentá de nuevo.');
     const existing = await reg.pushManager.getSubscription();
 
     if(existing){
@@ -585,13 +627,9 @@ async function togglePush(){
 }
 
 async function initPush(){
-  await registerServiceWorker();
-  if(pushSupported()) refreshPushButton();
-  else {
-    const btn = document.getElementById('pushBtn');
-    btn.disabled = true;
-    btn.textContent = 'No disponible';
-  }
+  const reg = await registerServiceWorker();
+  if(!reg) return; // el motivo ya quedó mostrado en el note por setPushError
+  refreshPushButton();
 }
 
 // ---------- Sonido de caja registradora ----------
