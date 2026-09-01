@@ -14,14 +14,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Servir frontend
-app.use(express.static(path.join(__dirname, 'public')));
-
 // ============================================================
 // CONFIGURACIÓN
 // ============================================================
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 const BASE_URL =
 process.env.BASE_URL ||
@@ -47,7 +44,15 @@ process.env.TOKEN_FILE ||
 path.join(__dirname, 'data', 'tokens.json');
 
 // ============================================================
-// CREAR CARPETA DE TOKENS
+// FRONTEND
+// ============================================================
+
+const publicDirectory = path.join(__dirname, 'public');
+
+app.use(express.static(publicDirectory));
+
+// ============================================================
+// TOKENS
 // ============================================================
 
 const tokenDirectory = path.dirname(TOKEN_FILE);
@@ -58,18 +63,10 @@ recursive: true
 });
 }
 
-// ============================================================
-// ESTADO OAUTH
-// ============================================================
-
 let oauthState = null;
 let pkceVerifier = null;
 
 let tokenCache = loadTokens();
-
-// ============================================================
-// TOKENS
-// ============================================================
 
 function loadTokens() {
 try {
@@ -237,7 +234,7 @@ acos: 0
 }
 
 // ============================================================
-// REQUEST GENÉRICO A MERCADO LIBRE
+// REQUEST OAUTH
 // ============================================================
 
 async function tokenRequest(body) {
@@ -364,7 +361,7 @@ return data.access_token;
 }
 
 // ============================================================
-// OBTENER ACCESS TOKEN
+// ACCESS TOKEN
 // ============================================================
 
 async function getAccessToken() {
@@ -563,7 +560,7 @@ return data;
 }
 
 // ============================================================
-// PÁGINA PRINCIPAL
+// HOME
 // ============================================================
 
 app.get(
@@ -571,8 +568,7 @@ app.get(
 (req, res) => {
 const indexPath =
 path.join(
-__dirname,
-'public',
+publicDirectory,
 'index.html'
 );
 
@@ -764,7 +760,7 @@ requireConfig();
 );
 
 // ============================================================
-// ESTADO DE CONEXIÓN
+// STATUS
 // ============================================================
 
 app.get(
@@ -805,7 +801,6 @@ if (
         me.country_id
     };
 
-    // Guardar user_id por seguridad
     if (
       tokenCache &&
       me.id
@@ -832,27 +827,19 @@ res.json(result);
 );
 
 // ============================================================
-// OBTENER VENTAS
+// ORDERS
 // ============================================================
 
 app.get(
 '/api/orders',
 async (req, res) => {
 try {
-if (
-!tokenCache?.access_token
-) {
-throw new Error(
-'Primero conectá Mercado Libre.'
+const me =
+await mlFetch(
+'/users/me'
 );
-}
 
 ```
-  const me =
-    await mlFetch(
-      '/users/me'
-    );
-
   const sellerId =
     me.id;
 
@@ -932,27 +919,19 @@ throw new Error(
 );
 
 // ============================================================
-// SINCRONIZAR VENTAS
+// SYNC
 // ============================================================
 
 app.post(
 '/api/sync',
 async (req, res) => {
 try {
-if (
-!tokenCache?.access_token
-) {
-throw new Error(
-'Primero conectá Mercado Libre.'
+const me =
+await mlFetch(
+'/users/me'
 );
-}
 
 ```
-  const me =
-    await mlFetch(
-      '/users/me'
-    );
-
   const sellerId =
     me.id;
 
@@ -988,10 +967,10 @@ throw new Error(
       `/orders/search?${params.toString()}`
     );
 
-  // Guardamos user_id
   saveTokens({
     ...tokenCache,
-    user_id: sellerId
+    user_id:
+      sellerId
   });
 
   res.json({
@@ -1062,7 +1041,6 @@ try {
 
 res.json({
   ok: true,
-
   message:
     'Credenciales locales eliminadas.'
 });
@@ -1072,11 +1050,7 @@ res.json({
 );
 
 // ============================================================
-// OBTENER ADVERTISER PRODUCT ADS
-//
-// Este endpoint utiliza Api-Version: 1.
-// Mercado Libre documenta actualmente:
-// GET /advertising/advertisers?product_id=PADS
+// PRODUCT ADS
 // ============================================================
 
 async function getAdvertiser() {
@@ -1105,8 +1079,7 @@ throw new Error(
 const advertiser =
 advertisers.find(
 item =>
-String(item.site_id)
-.toUpperCase() ===
+String(item.site_id).toUpperCase() ===
 'MLA'
 ) ||
 advertisers[0];
@@ -1276,8 +1249,6 @@ await getAdvertiser();
     }
   }
 
-  // Si no vino metrics_summary,
-  // sumar las campañas
   if (
     Object.keys(summary).length === 0
   ) {
@@ -1338,9 +1309,11 @@ await getAdvertiser();
 
     period:
       req.query.period ||
-      (dateFrom === dateTo
-        ? 'today'
-        : 'custom'),
+      (
+        dateFrom === dateTo
+          ? 'today'
+          : 'custom'
+      ),
 
     date_from:
       dateFrom,
@@ -1417,7 +1390,7 @@ await getAdvertiser();
 );
 
 // ============================================================
-// RUTA DE PRUEBA PRODUCT ADS
+// TEST PRODUCT ADS
 // ============================================================
 
 app.get(
@@ -1434,6 +1407,11 @@ await getAdvertiser();
   });
 
 } catch (error) {
+  console.error(
+    'Error /api/ads/test:',
+    error.details || error
+  );
+
   res.status(200).json({
     ok: false,
     error:
@@ -1541,6 +1519,14 @@ console.log(
 
   console.log(
     `Health: ${BASE_URL}/api/health`
+  );
+
+  console.log(
+    `Ads: ${BASE_URL}/api/ads`
+  );
+
+  console.log(
+    `Ads Test: ${BASE_URL}/api/ads/test`
   );
 
   console.log(
