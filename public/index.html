@@ -207,6 +207,7 @@
       <h2 class="ads">Publicidad (Product Ads)</h2>
     </div>
     <div id="adsKpis" class="loading">Cargando publicidad…</div>
+    <div class="note" id="adsWarnings" style="color:var(--alert)"></div>
 
     <div class="section-head" style="margin-top:22px">
       <h3 class="sub-title">Gasto por anuncio</h3>
@@ -385,9 +386,11 @@ async function loadSales(){
 
 async function loadAds(){
   const box = document.getElementById('adsKpis');
+  const warnBox = document.getElementById('adsWarnings');
   const itemsBody = document.getElementById('adsItemsBody');
   const campBody = document.getElementById('campaignsBody');
   box.innerHTML = 'Cargando publicidad…';
+  warnBox.textContent = '';
   itemsBody.innerHTML = `<tr><td colspan="8" class="empty">Cargando…</td></tr>`;
   campBody.innerHTML = `<tr><td colspan="6" class="empty">Cargando…</td></tr>`;
   try{
@@ -395,6 +398,10 @@ async function loadAds(){
     const d = await r.json();
     if(!d.ok) throw new Error(d.error);
     const s = d.summary;
+
+    if(d.warnings?.length){
+      warnBox.textContent = d.warnings.join(' · ');
+    }
 
     box.innerHTML = kpiHtml([
       { label:'Inversión', value: fmtMoney(s.cost) },
