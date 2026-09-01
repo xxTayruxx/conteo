@@ -1,330 +1,742 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
+<meta charset="UTF-8">
 
-  <meta
-    name="theme-color"
-    content="#111111"
-  >
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+>
 
-  <meta
-    name="mobile-web-app-capable"
-    content="yes"
-  >
+<meta
+  name="theme-color"
+  content="#090909"
+>
 
-  <meta
-    name="apple-mobile-web-app-capable"
-    content="yes"
-  >
+<meta
+  name="mobile-web-app-capable"
+  content="yes"
+>
 
-  <meta
-    name="apple-mobile-web-app-status-bar-style"
-    content="black-translucent"
-  >
+<meta
+  name="apple-mobile-web-app-capable"
+  content="yes"
+>
 
-  <title>Conteonix</title>
+<meta
+  name="apple-mobile-web-app-status-bar-style"
+  content="black-translucent"
+>
 
-  <link
-    rel="manifest"
-    href="/manifest.json"
-  >
+<title>Conteonix</title>
 
-  <style>
+<link
+  rel="manifest"
+  href="/manifest.json"
+>
 
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
+<style>
 
-    html,
-    body {
-      margin: 0;
-      padding: 0;
-      min-height: 100%;
-      background: #0b0b0b;
-      color: #ffffff;
-      font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-    }
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-    body {
-      min-height: 100vh;
-    }
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #080808;
+  color: #fff;
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
 
-    button {
-      font: inherit;
-    }
+body {
+  min-height: 100vh;
+}
 
-    .app {
-      width: 100%;
-      max-width: 900px;
-      margin: 0 auto;
-      padding:
-        env(safe-area-inset-top)
-        14px
-        calc(20px + env(safe-area-inset-bottom));
-    }
+button,
+input {
+  font: inherit;
+}
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 2px 14px;
-    }
+button {
+  cursor: pointer;
+}
 
-    .brand {
-      font-size: 25px;
-      font-weight: 900;
-      letter-spacing: -1px;
-    }
+.app {
+  width: 100%;
+  max-width: 1100px;
+  margin: auto;
+  padding:
+    env(safe-area-inset-top)
+    14px
+    calc(30px + env(safe-area-inset-bottom));
+}
 
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 12px;
-      color: #aaa;
-    }
+/* =========================================================
+HEADER
+========================================================= */
 
-    .dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      background: #777;
-    }
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 2px 15px;
+}
 
-    .dot.online {
-      background: #36d17c;
-      box-shadow:
-        0 0 10px
-        rgba(54,209,124,.7);
-    }
+.brand {
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: -1.5px;
+}
 
-    .hero {
-      background:
-        linear-gradient(
-          145deg,
-          #181818,
-          #101010
-        );
+.brand span {
+  color: #888;
+  font-size: 11px;
+  display: block;
+  letter-spacing: 1px;
+  margin-top: 1px;
+}
 
-      border: 1px solid #272727;
-      border-radius: 24px;
-      padding: 24px 20px;
-      margin-bottom: 14px;
-    }
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #888;
+  font-size: 11px;
+}
 
-    .hero-label {
-      color: #999;
-      font-size: 13px;
-      margin-bottom: 7px;
-    }
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #555;
+}
 
-    .hero-value {
-      font-size: 42px;
-      line-height: 1;
-      font-weight: 900;
-      letter-spacing: -2px;
-    }
+.dot.online {
+  background: #39d98a;
+  box-shadow:
+    0 0 12px
+    rgba(57,217,138,.7);
+}
 
-    .hero-sub {
-      margin-top: 12px;
-      color: #aaa;
-      font-size: 13px;
-    }
+/* =========================================================
+NAV
+========================================================= */
 
-    .grid {
-      display: grid;
-      grid-template-columns:
-        repeat(2, 1fr);
-      gap: 10px;
-    }
+.nav {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding-bottom: 5px;
+  margin-bottom: 13px;
+}
 
-    .card {
-      background: #151515;
-      border: 1px solid #252525;
-      border-radius: 18px;
-      padding: 17px;
-      min-height: 110px;
-    }
+.nav::-webkit-scrollbar {
+  display: none;
+}
 
-    .card-label {
-      font-size: 12px;
-      color: #909090;
-      margin-bottom: 10px;
-    }
+.nav button {
+  flex: 0 0 auto;
+  border: 1px solid #292929;
+  background: #151515;
+  color: #999;
+  border-radius: 13px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 800;
+}
 
-    .card-value {
-      font-size: 23px;
-      font-weight: 850;
-      letter-spacing: -.6px;
-    }
+.nav button.active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
 
-    .card-small {
-      margin-top: 7px;
-      font-size: 11px;
-      color: #777;
-    }
+/* =========================================================
+PAGES
+========================================================= */
 
-    .section {
-      margin-top: 20px;
-    }
+.page {
+  display: none;
+}
 
-    .section-title {
-      font-size: 17px;
-      font-weight: 800;
-      margin-bottom: 10px;
-    }
+.page.active {
+  display: block;
+}
 
-    .toolbar {
-      display: flex;
-      gap: 8px;
-      margin-top: 14px;
-    }
+/* =========================================================
+HERO
+========================================================= */
 
-    .btn {
-      flex: 1;
-      border: 0;
-      border-radius: 14px;
-      padding: 14px;
-      font-weight: 800;
-      color: #fff;
-      background: #222;
-      border: 1px solid #333;
-      cursor: pointer;
-    }
+.hero {
+  background:
+    linear-gradient(
+      145deg,
+      #1c1c1c,
+      #101010
+    );
 
-    .btn.primary {
-      background: #fff;
-      color: #000;
-    }
+  border:
+    1px solid #292929;
 
-    .btn:active {
-      transform: scale(.98);
-    }
+  border-radius: 24px;
 
-    .order {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
+  padding: 23px 20px;
 
-      background: #151515;
-      border: 1px solid #252525;
-      border-radius: 16px;
+  margin-bottom: 10px;
+}
 
-      padding: 15px;
-      margin-bottom: 8px;
-    }
+.hero-label {
+  color: #888;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
 
-    .order-main {
-      min-width: 0;
-    }
+.hero-value {
+  font-size: 42px;
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -2px;
+}
 
-    .order-id {
-      font-weight: 800;
-      font-size: 14px;
-    }
+.hero-sub {
+  margin-top: 11px;
+  color: #999;
+  font-size: 12px;
+}
 
-    .order-date {
-      color: #777;
-      font-size: 11px;
-      margin-top: 5px;
-    }
+/* =========================================================
+CARDS
+========================================================= */
 
-    .order-price {
-      font-weight: 900;
-      white-space: nowrap;
-    }
+.grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 1fr);
+  gap: 9px;
+}
 
-    .connected-box {
-      margin-top: 10px;
-      padding: 13px;
-      border-radius: 14px;
-      background: #101b14;
-      border: 1px solid #1f5032;
-      color: #72e6a0;
-      font-size: 13px;
-    }
+.card {
+  background: #151515;
+  border: 1px solid #272727;
+  border-radius: 18px;
+  padding: 16px;
+  min-height: 108px;
+}
 
-    .warning {
-      margin-top: 10px;
-      padding: 13px;
-      border-radius: 14px;
-      background: #1d1710;
-      border: 1px solid #4a3218;
-      color: #e9b56b;
-      font-size: 13px;
-    }
+.card-label {
+  color: #888;
+  font-size: 11px;
+  margin-bottom: 9px;
+}
 
-    .empty {
-      text-align: center;
-      padding: 30px 10px;
-      color: #666;
-      font-size: 13px;
-    }
+.card-value {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -.6px;
+}
 
-    .footer {
-      text-align: center;
-      color: #444;
-      font-size: 11px;
-      padding: 30px 0 10px;
-    }
+.card-small {
+  color: #666;
+  font-size: 10px;
+  margin-top: 7px;
+}
 
-    @media (min-width: 700px) {
+/* =========================================================
+PROFIT
+========================================================= */
 
-      .grid {
-        grid-template-columns:
-          repeat(4, 1fr);
-      }
+.profit-box {
+  margin-top: 10px;
+  background: #101810;
+  border: 1px solid #254c2d;
+  border-radius: 19px;
+  padding: 17px;
+}
 
-      .hero-value {
-        font-size: 54px;
-      }
-    }
+.profit-title {
+  color: #86d79d;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 7px;
+}
 
-  </style>
+.profit-value {
+  font-size: 29px;
+  font-weight: 950;
+}
+
+/* =========================================================
+SECTION
+========================================================= */
+
+.section {
+  margin-top: 21px;
+}
+
+.section-title {
+  font-size: 17px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.section-subtitle {
+  color: #666;
+  font-size: 11px;
+  margin-top: -5px;
+  margin-bottom: 11px;
+}
+
+/* =========================================================
+TOOLBAR
+========================================================= */
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 11px;
+}
+
+.btn {
+  flex: 1;
+  border-radius: 14px;
+  border: 1px solid #333;
+  background: #1c1c1c;
+  color: #fff;
+  padding: 13px;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.btn.primary {
+  background: #fff;
+  color: #000;
+}
+
+.btn:active {
+  transform: scale(.98);
+}
+
+/* =========================================================
+ORDERS
+========================================================= */
+
+.order {
+  background: #151515;
+  border: 1px solid #272727;
+  border-radius: 17px;
+  padding: 15px;
+  margin-bottom: 8px;
+}
+
+.order-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.order-id {
+  font-weight: 850;
+  font-size: 13px;
+}
+
+.order-price {
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.order-date {
+  color: #666;
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+.order-items {
+  margin-top: 11px;
+  border-top: 1px solid #242424;
+  padding-top: 9px;
+}
+
+.order-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 6px;
+}
+
+.order-item span:last-child {
+  color: #fff;
+  font-weight: 800;
+}
+
+/* =========================================================
+PRODUCTS
+========================================================= */
+
+.product {
+  background: #151515;
+  border: 1px solid #272727;
+  border-radius: 18px;
+  padding: 15px;
+  margin-bottom: 9px;
+}
+
+.product-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-title {
+  font-weight: 850;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.product-id {
+  color: #555;
+  font-size: 9px;
+  margin-top: 5px;
+}
+
+.stock-number {
+  font-size: 23px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.stock-label {
+  color: #666;
+  font-size: 9px;
+  text-align: right;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 13px;
+}
+
+.product-stat {
+  background: #101010;
+  border-radius: 11px;
+  padding: 10px;
+}
+
+.product-stat-label {
+  color: #666;
+  font-size: 9px;
+}
+
+.product-stat-value {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.badge.ok {
+  background: #102217;
+  color: #67d88e;
+}
+
+.badge.warning {
+  background: #2a2110;
+  color: #e4b767;
+}
+
+.badge.critical {
+  background: #2b1111;
+  color: #ff7777;
+}
+
+/* =========================================================
+COST
+========================================================= */
+
+.cost-row {
+  display: flex;
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.cost-row input {
+  min-width: 0;
+  flex: 1;
+  background: #0d0d0d;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 11px;
+  padding: 10px;
+  outline: none;
+  font-size: 12px;
+}
+
+.cost-row button {
+  border: 0;
+  background: #fff;
+  color: #000;
+  border-radius: 11px;
+  padding: 0 13px;
+  font-weight: 900;
+  font-size: 11px;
+}
+
+/* =========================================================
+AD CAMPAIGNS
+========================================================= */
+
+.campaign {
+  background: #151515;
+  border: 1px solid #272727;
+  border-radius: 17px;
+  padding: 15px;
+  margin-bottom: 8px;
+}
+
+.campaign-title {
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.campaign-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 11px;
+}
+
+.campaign-stat {
+  background: #101010;
+  border-radius: 10px;
+  padding: 9px;
+}
+
+.campaign-stat-label {
+  color: #666;
+  font-size: 9px;
+}
+
+.campaign-stat-value {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+/* =========================================================
+ALERTS
+========================================================= */
+
+.alert {
+  background: #151515;
+  border: 1px solid #272727;
+  border-radius: 17px;
+  padding: 15px;
+  margin-bottom: 8px;
+}
+
+.alert.warning {
+  border-color: #554019;
+}
+
+.alert.critical {
+  border-color: #5b2020;
+}
+
+.alert-title {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.alert-text {
+  color: #888;
+  font-size: 11px;
+  margin-top: 5px;
+}
+
+/* =========================================================
+CONNECTED
+========================================================= */
+
+.connected-box {
+  margin-top: 10px;
+  padding: 13px;
+  border-radius: 14px;
+  background: #101b14;
+  border: 1px solid #1f5032;
+  color: #72e6a0;
+  font-size: 12px;
+}
+
+.warning-box {
+  margin-top: 10px;
+  padding: 13px;
+  border-radius: 14px;
+  background: #1d1710;
+  border: 1px solid #4a3218;
+  color: #e9b56b;
+  font-size: 12px;
+}
+
+/* =========================================================
+EMPTY
+========================================================= */
+
+.empty {
+  text-align: center;
+  padding: 30px 10px;
+  color: #555;
+  font-size: 12px;
+}
+
+/* =========================================================
+FOOTER
+========================================================= */
+
+.footer {
+  text-align: center;
+  color: #333;
+  font-size: 10px;
+  padding: 30px 0 10px;
+}
+
+/* =========================================================
+DESKTOP
+========================================================= */
+
+@media (min-width: 700px) {
+
+  .grid {
+    grid-template-columns:
+      repeat(4, 1fr);
+  }
+
+  .hero-value {
+    font-size: 55px;
+  }
+
+  .product-grid {
+    grid-template-columns:
+      repeat(4, 1fr);
+  }
+
+  .campaign-grid {
+    grid-template-columns:
+      repeat(4, 1fr);
+  }
+
+}
+
+</style>
+
 </head>
 
 <body>
 
 <div class="app">
 
-  <header class="topbar">
+<header class="topbar">
 
-    <div class="brand">
-      Conteonix
-    </div>
+  <div class="brand">
+    Conteonix
+    <span>CONTROL DE MERCADO LIBRE</span>
+  </div>
 
-    <div class="status">
-      <span
-        id="statusDot"
-        class="dot"
-      ></span>
+  <div class="status">
 
-      <span id="statusText">
-        Conectando...
-      </span>
-    </div>
+    <span
+      id="statusDot"
+      class="dot"
+    ></span>
 
-  </header>
+    <span
+      id="statusText"
+    >
+      Conectando...
+    </span>
 
+  </div>
+
+</header>
+
+
+<nav class="nav">
+
+  <button
+    class="active"
+    data-page="dashboard"
+    onclick="showPage('dashboard')"
+  >
+    Dashboard
+  </button>
+
+  <button
+    data-page="ventas"
+    onclick="showPage('ventas')"
+  >
+    Ventas
+  </button>
+
+  <button
+    data-page="publicidad"
+    onclick="showPage('publicidad')"
+  >
+    Publicidad
+  </button>
+
+  <button
+    data-page="productos"
+    onclick="showPage('productos')"
+  >
+    Productos
+  </button>
+
+  <button
+    data-page="alertas"
+    onclick="showPage('alertas')"
+  >
+    Alertas
+  </button>
+
+</nav>
+
+
+<!-- ======================================================
+DASHBOARD
+====================================================== -->
+
+<section
+  id="page-dashboard"
+  class="page active"
+>
 
   <section class="hero">
 
     <div class="hero-label">
-      Ventas de hoy
+      Facturación de hoy
     </div>
 
     <div
@@ -349,7 +761,7 @@
     <div class="card">
 
       <div class="card-label">
-        Cantidad
+        Ventas
       </div>
 
       <div
@@ -360,7 +772,27 @@
       </div>
 
       <div class="card-small">
-        ventas hoy
+        operaciones hoy
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        Costo mercadería
+      </div>
+
+      <div
+        id="productCost"
+        class="card-value"
+      >
+        $0
+      </div>
+
+      <div class="card-small">
+        costo estimado
       </div>
 
     </div>
@@ -380,7 +812,7 @@
       </div>
 
       <div class="card-small">
-        gasto Product Ads
+        Product Ads hoy
       </div>
 
     </div>
@@ -389,43 +821,39 @@
     <div class="card">
 
       <div class="card-label">
-        ROAS
+        Margen
       </div>
 
       <div
-        id="roas"
-        class="card-value"
-      >
-        0x
-      </div>
-
-      <div class="card-small">
-        retorno publicidad
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        ACOS
-      </div>
-
-      <div
-        id="acos"
+        id="margin"
         class="card-value"
       >
         0%
       </div>
 
       <div class="card-small">
-        publicidad / ventas
+        después de publicidad
       </div>
 
     </div>
 
   </section>
+
+
+  <div class="profit-box">
+
+    <div class="profit-title">
+      GANANCIA ESTIMADA DESPUÉS DE PUBLICIDAD
+    </div>
+
+    <div
+      id="netProfit"
+      class="profit-value"
+    >
+      $0
+    </div>
+
+  </div>
 
 
   <div
@@ -455,10 +883,113 @@
   <section class="section">
 
     <div class="section-title">
+      Resumen publicitario
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+
+        <div class="card-label">
+          ROAS
+        </div>
+
+        <div
+          id="roas"
+          class="card-value"
+        >
+          0x
+        </div>
+
+        <div class="card-small">
+          retorno publicitario
+        </div>
+
+      </div>
+
+
+      <div class="card">
+
+        <div class="card-label">
+          ACOS
+        </div>
+
+        <div
+          id="acos"
+          class="card-value"
+        >
+          0%
+        </div>
+
+        <div class="card-small">
+          publicidad / ventas ads
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section class="section">
+
+    <div class="section-title">
       Últimas ventas
     </div>
 
-    <div id="orders">
+    <div id="dashboardOrders">
+      <div class="empty">
+        Cargando...
+      </div>
+    </div>
+
+  </section>
+
+</section>
+
+
+<!-- ======================================================
+VENTAS
+====================================================== -->
+
+<section
+  id="page-ventas"
+  class="page"
+>
+
+  <section class="hero">
+
+    <div class="hero-label">
+      Ventas de hoy
+    </div>
+
+    <div
+      id="salesPageTotal"
+      class="hero-value"
+    >
+      $0
+    </div>
+
+    <div
+      id="salesPageUnits"
+      class="hero-sub"
+    >
+      0 unidades
+    </div>
+
+  </section>
+
+
+  <section class="section">
+
+    <div class="section-title">
+      Historial
+    </div>
+
+    <div
+      id="orders"
+    >
       <div class="empty">
         Cargando ventas...
       </div>
@@ -466,494 +997,998 @@
 
   </section>
 
+</section>
 
-  <div class="footer">
-    Conteonix · Mercado Libre
+
+<!-- ======================================================
+PUBLICIDAD
+====================================================== -->
+
+<section
+  id="page-publicidad"
+  class="page"
+>
+
+  <section class="hero">
+
+    <div class="hero-label">
+      Gasto Product Ads hoy
+    </div>
+
+    <div
+      id="adsPageCost"
+      class="hero-value"
+    >
+      $0
+    </div>
+
+    <div
+      id="adsPageRevenue"
+      class="hero-sub"
+    >
+      $0 ventas atribuidas
+    </div>
+
+  </section>
+
+
+  <section class="grid">
+
+    <div class="card">
+
+      <div class="card-label">
+        ROAS
+      </div>
+
+      <div
+        id="adsPageRoas"
+        class="card-value"
+      >
+        0x
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        ACOS
+      </div>
+
+      <div
+        id="adsPageAcos"
+        class="card-value"
+      >
+        0%
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        Clics
+      </div>
+
+      <div
+        id="adsClicks"
+        class="card-value"
+      >
+        0
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        CPC
+      </div>
+
+      <div
+        id="adsCpc"
+        class="card-value"
+      >
+        $0
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <section class="section">
+
+    <div class="section-title">
+      Campañas
+    </div>
+
+    <div
+      id="campaigns"
+    >
+      <div class="empty">
+        Cargando campañas...
+      </div>
+    </div>
+
+  </section>
+
+</section>
+
+
+<!-- ======================================================
+PRODUCTOS
+====================================================== -->
+
+<section
+  id="page-productos"
+  class="page"
+>
+
+  <section class="hero">
+
+    <div class="hero-label">
+      Control de stock
+    </div>
+
+    <div
+      id="productsCount"
+      class="hero-value"
+    >
+      0
+    </div>
+
+    <div class="hero-sub">
+      publicaciones detectadas en tus ventas recientes
+    </div>
+
+  </section>
+
+
+  <div class="warning-box">
+
+    El costo de compra es ingresado por vos.
+    Conteonix lo utiliza para calcular ganancia,
+    margen y valor del stock.
+
   </div>
+
+
+  <section class="section">
+
+    <div class="section-title">
+      Productos
+    </div>
+
+    <div
+      id="products"
+    >
+      <div class="empty">
+        Cargando productos...
+      </div>
+    </div>
+
+  </section>
+
+</section>
+
+
+<!-- ======================================================
+ALERTAS
+====================================================== -->
+
+<section
+  id="page-alertas"
+  class="page"
+>
+
+  <section class="hero">
+
+    <div class="hero-label">
+      Centro de alertas
+    </div>
+
+    <div
+      id="alertsCount"
+      class="hero-value"
+    >
+      0
+    </div>
+
+    <div class="hero-sub">
+      situaciones que requieren atención
+    </div>
+
+  </section>
+
+
+  <div
+    id="alerts"
+  >
+    <div class="empty">
+      Analizando...
+    </div>
+  </div>
+
+
+  <section class="section">
+
+    <div class="section-title">
+      Configuración
+    </div>
+
+    <div class="card">
+
+      <div class="card-label">
+        Avisar cuando queden menos de X días
+      </div>
+
+      <div class="cost-row">
+
+        <input
+          id="alertDays"
+          type="number"
+          min="1"
+          placeholder="10"
+        >
+
+        <button
+          onclick="saveSettings()"
+        >
+          Guardar
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</section>
+
+
+<div class="footer">
+  Conteonix · Mercado Libre
+</div>
 
 </div>
 
 
 <script>
 
-  // ==========================================================
-  // VARIABLES
-  // ==========================================================
+/* =========================================================
+VARIABLES
+========================================================= */
 
-  let orders = [];
-  let audioContext = null;
+let orders = [];
+let products = [];
+let adsData = null;
 
-  // ==========================================================
-  // FORMATO
-  // ==========================================================
+let audioContext = null;
 
-  function money(value) {
+let firstLoad = true;
 
-    return new Intl.NumberFormat(
-      'es-AR',
-      {
-        style: 'currency',
-        currency: 'ARS',
-        maximumFractionDigits: 0
-      }
-    ).format(
-      Number(value) || 0
-    );
+let previousOrderIds =
+  new Set();
 
-  }
 
-  function dateText(value) {
+/* =========================================================
+FORMATO
+========================================================= */
 
-    if (!value) {
-      return '';
-    }
+function money(value) {
 
-    const date =
-      new Date(value);
-
-    return date.toLocaleString(
-      'es-AR',
-      {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      }
-    );
-
-  }
-
-  // ==========================================================
-  // AUDIO
-  // ==========================================================
-
-  function unlockAudio() {
-
-    try {
-
-      if (!audioContext) {
-
-        audioContext =
-          new (
-            window.AudioContext ||
-            window.webkitAudioContext
-          )();
-
-      }
-
-      if (
-        audioContext.state ===
-        'suspended'
-      ) {
-
-        audioContext.resume();
-
-      }
-
-    } catch (error) {
-
-      console.log(
-        'Audio no disponible',
-        error
-      );
-
-    }
-
-  }
-
-  document.addEventListener(
-    'click',
-    unlockAudio,
+  return new Intl.NumberFormat(
+    'es-AR',
     {
-      once: true
+      style: 'currency',
+      currency: 'ARS',
+      maximumFractionDigits: 0
+    }
+  ).format(
+    Number(value) || 0
+  );
+
+}
+
+
+function number(value) {
+
+  return new Intl.NumberFormat(
+    'es-AR'
+  ).format(
+    Number(value) || 0
+  );
+
+}
+
+
+function dateText(value) {
+
+  if (!value) {
+    return '';
+  }
+
+  return new Date(
+    value
+  ).toLocaleString(
+    'es-AR',
+    {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
     }
   );
 
+}
 
-  function playSaleSound() {
+
+function todayString() {
+
+  const now =
+    new Date();
+
+  return (
+    now.getFullYear() +
+    '-' +
+    String(
+      now.getMonth() + 1
+    ).padStart(2, '0') +
+    '-' +
+    String(
+      now.getDate()
+    ).padStart(2, '0')
+  );
+
+}
+
+
+/* =========================================================
+NAVEGACIÓN
+========================================================= */
+
+function showPage(page) {
+
+  document
+    .querySelectorAll('.page')
+    .forEach(
+      element =>
+        element.classList.remove(
+          'active'
+        )
+    );
+
+  document
+    .getElementById(
+      `page-${page}`
+    )
+    .classList.add(
+      'active'
+    );
+
+  document
+    .querySelectorAll('.nav button')
+    .forEach(
+      button =>
+        button.classList.remove(
+          'active'
+        )
+    );
+
+  const active =
+    document.querySelector(
+      `.nav button[data-page="${page}"]`
+    );
+
+  if (active) {
+    active.classList.add(
+      'active'
+    );
+  }
+
+}
+
+
+/* =========================================================
+AUDIO
+========================================================= */
+
+function unlockAudio() {
+
+  try {
+
+    if (!audioContext) {
+
+      audioContext =
+        new (
+          window.AudioContext ||
+          window.webkitAudioContext
+        )();
+
+    }
+
+    if (
+      audioContext.state ===
+      'suspended'
+    ) {
+
+      audioContext.resume();
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      'Audio no disponible',
+      error
+    );
+
+  }
+
+}
+
+
+document.addEventListener(
+  'click',
+  unlockAudio,
+  {
+    once: true
+  }
+);
+
+
+function playSaleSound() {
+
+  unlockAudio();
+
+  if (!audioContext) {
+    return;
+  }
+
+  const now =
+    audioContext.currentTime;
+
+  const oscillator =
+    audioContext.createOscillator();
+
+  const gain =
+    audioContext.createGain();
+
+  oscillator.type =
+    'square';
+
+  oscillator.frequency.setValueAtTime(
+    880,
+    now
+  );
+
+  oscillator.frequency.setValueAtTime(
+    1174,
+    now + .09
+  );
+
+  oscillator.frequency.setValueAtTime(
+    1568,
+    now + .18
+  );
+
+  gain.gain.setValueAtTime(
+    .0001,
+    now
+  );
+
+  gain.gain.exponentialRampToValueAtTime(
+    .35,
+    now + .02
+  );
+
+  gain.gain.exponentialRampToValueAtTime(
+    .0001,
+    now + .5
+  );
+
+  oscillator.connect(
+    gain
+  );
+
+  gain.connect(
+    audioContext.destination
+  );
+
+  oscillator.start(
+    now
+  );
+
+  oscillator.stop(
+    now + .55
+  );
+
+}
+
+
+/* =========================================================
+NOTIFICACIONES
+========================================================= */
+
+async function enableNotifications() {
+
+  if (
+    !(
+      'Notification'
+      in window
+    )
+  ) {
+
+    alert(
+      'Este navegador no soporta notificaciones.'
+    );
+
+    return;
+
+  }
+
+  try {
+
+    const permission =
+      await Notification.requestPermission();
 
     unlockAudio();
 
-    if (!audioContext) {
-      return;
-    }
-
-    const now =
-      audioContext.currentTime;
-
-    const oscillator =
-      audioContext.createOscillator();
-
-    const gain =
-      audioContext.createGain();
-
-    oscillator.type =
-      'square';
-
-    oscillator.frequency.setValueAtTime(
-      880,
-      now
-    );
-
-    oscillator.frequency.setValueAtTime(
-      1174,
-      now + .09
-    );
-
-    oscillator.frequency.setValueAtTime(
-      1568,
-      now + .18
-    );
-
-    gain.gain.setValueAtTime(
-      .0001,
-      now
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-      .35,
-      now + .02
-    );
-
-    gain.gain.exponentialRampToValueAtTime(
-      .0001,
-      now + .5
-    );
-
-    oscillator.connect(
-      gain
-    );
-
-    gain.connect(
-      audioContext.destination
-    );
-
-    oscillator.start(
-      now
-    );
-
-    oscillator.stop(
-      now + .55
-    );
-
-  }
-
-  // ==========================================================
-  // NOTIFICACIONES
-  // ==========================================================
-
-  async function enableNotifications() {
-
     if (
-      !('Notification' in window)
-    ) {
-
-      alert(
-        'Este navegador no soporta notificaciones.'
-      );
-
-      return;
-
-    }
-
-    try {
-
-      const permission =
-        await Notification.requestPermission();
-
-      if (
-        permission ===
-        'granted'
-      ) {
-
-        new Notification(
-          'Conteonix',
-          {
-            body:
-              'Alertas de ventas activadas.'
-          }
-        );
-
-        unlockAudio();
-
-      }
-
-    } catch (error) {
-
-      console.error(
-        error
-      );
-
-    }
-
-  }
-
-
-  function notifySale(order) {
-
-    playSaleSound();
-
-    if (
-      'Notification' in window &&
-      Notification.permission ===
-        'granted'
+      permission ===
+      'granted'
     ) {
 
       new Notification(
-        'Nueva venta',
+        'Conteonix',
         {
           body:
-            `Venta #${order.id} · ${money(order.total_amount)}`,
+            'Alertas de ventas activadas.',
           icon:
-            '/icon-192.png',
-          tag:
-            `order-${order.id}`
+            '/icon-192.png'
         }
       );
 
     }
 
-  }
+  } catch (error) {
 
-  // ==========================================================
-  // STATUS
-  // ==========================================================
-
-  async function loadStatus() {
-
-    try {
-
-      const response =
-        await fetch(
-          '/api/status'
-        );
-
-      const data =
-        await response.json();
-
-      const dot =
-        document.getElementById(
-          'statusDot'
-        );
-
-      const text =
-        document.getElementById(
-          'statusText'
-        );
-
-      if (
-        data.connected
-      ) {
-
-        dot.classList.add(
-          'online'
-        );
-
-        text.textContent =
-          data.user?.nickname ||
-          'Mercado Libre';
-
-        document.getElementById(
-          'connectionBox'
-        ).innerHTML = `
-          <div class="connected-box">
-            Conectado como
-            <strong>
-              ${data.user?.nickname || ''}
-            </strong>
-          </div>
-        `;
-
-      } else {
-
-        text.textContent =
-          'Sin conectar';
-
-        document.getElementById(
-          'connectionBox'
-        ).innerHTML = `
-          <div class="warning">
-            Mercado Libre no está conectado.
-            <br><br>
-            <button
-              class="btn primary"
-              onclick="location.href='/auth/login'"
-            >
-              Conectar Mercado Libre
-            </button>
-          </div>
-        `;
-
-      }
-
-    } catch (error) {
-
-      document.getElementById(
-        'statusText'
-      ).textContent =
-        'Offline';
-
-    }
+    console.error(
+      error
+    );
 
   }
 
-  // ==========================================================
-  // ORDERS
-  // ==========================================================
+}
 
-  async function loadOrders() {
 
-    try {
+function notifySale(order) {
 
-      const response =
-        await fetch(
-          '/api/orders?limit=50'
-        );
+  playSaleSound();
 
-      const data =
-        await response.json();
+  if (
+    'Notification'
+    in window &&
+    Notification.permission ===
+      'granted'
+  ) {
 
-      if (!data.ok) {
-        throw new Error(
-          data.error
-        );
+    new Notification(
+      'Nueva venta',
+      {
+        body:
+          `Venta #${order.id} · ${money(order.total_amount)}`,
+
+        icon:
+          '/icon-192.png',
+
+        tag:
+          `order-${order.id}`
       }
+    );
 
-      orders =
-        data.results || [];
+  }
 
-      renderOrders();
+}
 
-      calculateSales();
 
-    } catch (error) {
+/* =========================================================
+STATUS
+========================================================= */
 
-      console.error(
-        error
+async function loadStatus() {
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/status'
       );
 
+    const data =
+      await response.json();
+
+    const dot =
       document.getElementById(
-        'orders'
+        'statusDot'
+      );
+
+    const text =
+      document.getElementById(
+        'statusText'
+      );
+
+    if (
+      data.connected
+    ) {
+
+      dot.classList.add(
+        'online'
+      );
+
+      text.textContent =
+        data.user?.nickname ||
+        'Mercado Libre';
+
+      document.getElementById(
+        'connectionBox'
       ).innerHTML = `
-        <div class="empty">
-          No se pudieron cargar las ventas.
+
+        <div class="connected-box">
+
+          Conectado como
+          <strong>
+            ${
+              data.user?.nickname ||
+              'Mercado Libre'
+            }
+          </strong>
+
         </div>
+
+      `;
+
+    } else {
+
+      text.textContent =
+        'Sin conectar';
+
+      document.getElementById(
+        'connectionBox'
+      ).innerHTML = `
+
+        <div class="warning-box">
+
+          Mercado Libre no está conectado.
+
+          <br><br>
+
+          <button
+            class="btn primary"
+            onclick="location.href='/auth/login'"
+          >
+            Conectar Mercado Libre
+          </button>
+
+        </div>
+
       `;
 
     }
 
+  } catch (error) {
+
+    document.getElementById(
+      'statusText'
+    ).textContent =
+      'Offline';
+
   }
 
+}
 
-  function calculateSales() {
 
-    const today =
-      new Date();
+/* =========================================================
+DASHBOARD
+========================================================= */
 
-    const y =
-      today.getFullYear();
+async function loadDashboard() {
 
-    const m =
-      today.getMonth();
+  try {
 
-    const d =
-      today.getDate();
-
-    const todayOrders =
-      orders.filter(
-        order => {
-
-          const date =
-            new Date(
-              order.date_created
-            );
-
-          return (
-            date.getFullYear() === y &&
-            date.getMonth() === m &&
-            date.getDate() === d
-          );
-
-        }
+    const response =
+      await fetch(
+        '/api/dashboard'
       );
 
-    let total = 0;
-    let units = 0;
+    const data =
+      await response.json();
 
-    for (
-      const order
-      of todayOrders
-    ) {
+    if (!data.ok) {
+      throw new Error(
+        data.error
+      );
+    }
+
+    document.getElementById(
+      'todaySales'
+    ).textContent =
+      money(data.sales);
+
+    document.getElementById(
+      'todayUnits'
+    ).textContent =
+      `${number(data.units)} unidades vendidas`;
+
+    document.getElementById(
+      'salesCount'
+    ).textContent =
+      number(data.orders);
+
+    document.getElementById(
+      'productCost'
+    ).textContent =
+      money(data.product_cost);
+
+    document.getElementById(
+      'adCost'
+    ).textContent =
+      money(data.advertising);
+
+    document.getElementById(
+      'netProfit'
+    ).textContent =
+      money(data.net_profit);
+
+    document.getElementById(
+      'margin'
+    ).textContent =
+      `${Number(data.margin || 0).toFixed(1)}%`;
+
+    const ads =
+      data.ads || {};
+
+    document.getElementById(
+      'roas'
+    ).textContent =
+      `${Number(ads.roas || 0).toFixed(2)}x`;
+
+    document.getElementById(
+      'acos'
+    ).textContent =
+      `${Number(ads.acos || 0).toFixed(1)}%`;
+
+  } catch (error) {
+
+    console.error(
+      'DASHBOARD:',
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+ORDERS
+========================================================= */
+
+async function loadOrders() {
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/orders?limit=50'
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+      throw new Error(
+        data.error
+      );
+    }
+
+    orders =
+      data.results || [];
+
+    renderOrders();
+
+    calculateSalesPage();
+
+  } catch (error) {
+
+    console.error(
+      'ORDERS:',
+      error
+    );
+
+    document.getElementById(
+      'orders'
+    ).innerHTML = `
+
+      <div class="empty">
+        No se pudieron cargar las ventas.
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+function calculateSalesPage() {
+
+  const today =
+    todayString();
+
+  const todayOrders =
+    orders.filter(
+      order => {
+
+        if (
+          !order.date_created
+        ) {
+          return false;
+        }
+
+        const date =
+          new Date(
+            order.date_created
+          );
+
+        return (
+          date.getFullYear() ===
+            new Date().getFullYear() &&
+          date.getMonth() ===
+            new Date().getMonth() &&
+          date.getDate() ===
+            new Date().getDate()
+        );
+
+      }
+    );
+
+  let total = 0;
+  let units = 0;
+
+  todayOrders.forEach(
+    order => {
 
       total +=
         Number(
           order.total_amount
         ) || 0;
 
-      for (
-        const item
-        of (
-          order.order_items ||
-          []
-        )
-      ) {
+      (
+        order.order_items ||
+        []
+      ).forEach(
+        item => {
 
-        units +=
-          Number(
-            item.quantity
-          ) || 0;
+          units +=
+            Number(
+              item.quantity
+            ) || 0;
 
-      }
+        }
+      );
 
     }
+  );
 
-    document.getElementById(
-      'todaySales'
-    ).textContent =
-      money(total);
+  document.getElementById(
+    'salesPageTotal'
+  ).textContent =
+    money(total);
 
-    document.getElementById(
-      'salesCount'
-    ).textContent =
-      todayOrders.length;
+  document.getElementById(
+    'salesPageUnits'
+  ).textContent =
+    `${number(units)} unidades`;
 
+}
+
+
+function renderOrders() {
+
+  const container =
     document.getElementById(
-      'todayUnits'
-    ).textContent =
-      `${units} unidades vendidas`;
+      'orders'
+    );
+
+  const dashboard =
+    document.getElementById(
+      'dashboardOrders'
+    );
+
+  if (!orders.length) {
+
+    const html = `
+      <div class="empty">
+        Todavía no hay ventas.
+      </div>
+    `;
+
+    container.innerHTML =
+      html;
+
+    dashboard.innerHTML =
+      html;
+
+    return;
 
   }
 
+  const render =
+    orders
+      .slice(0, 30)
+      .map(
+        order => {
 
-  function renderOrders() {
+          const items =
+            order.order_items ||
+            [];
 
-    const container =
-      document.getElementById(
-        'orders'
-      );
+          const itemHtml =
+            items
+              .map(
+                item => {
 
-    if (!orders.length) {
+                  const title =
+                    item.item?.title ||
+                    item.item?.id ||
+                    'Producto';
 
-      container.innerHTML = `
-        <div class="empty">
-          Todavía no hay ventas.
-        </div>
-      `;
+                  const quantity =
+                    Number(
+                      item.quantity
+                    ) || 0;
 
-      return;
+                  const price =
+                    Number(
+                      item.unit_price
+                    ) || 0;
 
-    }
+                  return `
 
-    container.innerHTML =
-      orders
-        .slice(0, 20)
-        .map(
-          order => {
+                    <div class="order-item">
 
-            return `
-              <div class="order">
+                      <span>
+                        ${escapeText(title)}
+                        × ${quantity}
+                      </span>
 
-                <div class="order-main">
+                      <span>
+                        ${money(
+                          price *
+                          quantity
+                        )}
+                      </span>
+
+                    </div>
+
+                  `;
+
+                }
+              )
+              .join('');
+
+          return `
+
+            <div class="order">
+
+              <div class="order-top">
+
+                <div>
 
                   <div class="order-id">
                     Venta #${order.id}
@@ -974,199 +2009,981 @@
                 </div>
 
               </div>
-            `;
+
+              <div class="order-items">
+                ${itemHtml}
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join('');
+
+  container.innerHTML =
+    render;
+
+  dashboard.innerHTML =
+    orders
+      .slice(0, 5)
+      .map(
+        order => `
+
+          <div class="order">
+
+            <div class="order-top">
+
+              <div>
+
+                <div class="order-id">
+                  Venta #${order.id}
+                </div>
+
+                <div class="order-date">
+                  ${dateText(
+                    order.date_created
+                  )}
+                </div>
+
+              </div>
+
+              <div class="order-price">
+                ${money(
+                  order.total_amount
+                )}
+              </div>
+
+            </div>
+
+          </div>
+
+        `
+      )
+      .join('');
+
+}
+
+
+function escapeText(value) {
+
+  return String(
+    value || ''
+  )
+    .replaceAll(
+      '&',
+      '&amp;'
+    )
+    .replaceAll(
+      '<',
+      '&lt;'
+    )
+    .replaceAll(
+      '>',
+      '&gt;'
+    )
+    .replaceAll(
+      '"',
+      '&quot;'
+    )
+    .replaceAll(
+      "'",
+      '&#039;'
+    );
+
+}
+
+
+/* =========================================================
+ADS
+========================================================= */
+
+async function loadAds() {
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/ads'
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+      return;
+    }
+
+    adsData =
+      data;
+
+    const summary =
+      data.summary || {};
+
+    document.getElementById(
+      'adsPageCost'
+    ).textContent =
+      money(summary.cost);
+
+    document.getElementById(
+      'adsPageRevenue'
+    ).textContent =
+      `${money(summary.total_amount)} ventas atribuidas`;
+
+    document.getElementById(
+      'adsPageRoas'
+    ).textContent =
+      `${Number(summary.roas || 0).toFixed(2)}x`;
+
+    document.getElementById(
+      'adsPageAcos'
+    ).textContent =
+      `${Number(summary.acos || 0).toFixed(1)}%`;
+
+    document.getElementById(
+      'adsClicks'
+    ).textContent =
+      number(summary.clicks);
+
+    document.getElementById(
+      'adsCpc'
+    ).textContent =
+      money(summary.cpc);
+
+    renderCampaigns(
+      data.campaigns || []
+    );
+
+  } catch (error) {
+
+    console.error(
+      'ADS:',
+      error
+    );
+
+  }
+
+}
+
+
+function renderCampaigns(
+  campaigns
+) {
+
+  const container =
+    document.getElementById(
+      'campaigns'
+    );
+
+  if (!campaigns.length) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        No se encontraron campañas para hoy.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  container.innerHTML =
+    campaigns
+      .map(
+        campaign => {
+
+          const metrics =
+            campaign.metrics ||
+            campaign;
+
+          const name =
+            campaign.name ||
+            campaign.campaign_name ||
+            campaign.id ||
+            'Campaña';
+
+          return `
+
+            <div class="campaign">
+
+              <div class="campaign-title">
+                ${escapeText(name)}
+              </div>
+
+              <div class="campaign-grid">
+
+                <div class="campaign-stat">
+
+                  <div class="campaign-stat-label">
+                    Gasto
+                  </div>
+
+                  <div class="campaign-stat-value">
+                    ${money(
+                      metrics.cost
+                    )}
+                  </div>
+
+                </div>
+
+                <div class="campaign-stat">
+
+                  <div class="campaign-stat-label">
+                    Ventas
+                  </div>
+
+                  <div class="campaign-stat-value">
+                    ${money(
+                      metrics.total_amount
+                    )}
+                  </div>
+
+                </div>
+
+                <div class="campaign-stat">
+
+                  <div class="campaign-stat-label">
+                    ROAS
+                  </div>
+
+                  <div class="campaign-stat-value">
+                    ${Number(
+                      metrics.roas ||
+                      0
+                    ).toFixed(2)}x
+                  </div>
+
+                </div>
+
+                <div class="campaign-stat">
+
+                  <div class="campaign-stat-label">
+                    Clics
+                  </div>
+
+                  <div class="campaign-stat-value">
+                    ${number(
+                      metrics.clicks
+                    )}
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join('');
+
+}
+
+
+/* =========================================================
+PRODUCTS
+========================================================= */
+
+async function loadProducts() {
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/products'
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+      throw new Error(
+        data.error
+      );
+    }
+
+    products =
+      data.products || [];
+
+    document.getElementById(
+      'productsCount'
+    ).textContent =
+      number(
+        products.length
+      );
+
+    renderProducts();
+
+    renderAlerts();
+
+    if (
+      data.settings
+    ) {
+
+      document.getElementById(
+        'alertDays'
+      ).value =
+        data.settings.stockAlertDays ||
+        10;
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      'PRODUCTS:',
+      error
+    );
+
+    document.getElementById(
+      'products'
+    ).innerHTML = `
+
+      <div class="empty">
+        No se pudieron cargar los productos.
+        <br><br>
+        ${escapeText(
+          error.message
+        )}
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+function renderProducts() {
+
+  const container =
+    document.getElementById(
+      'products'
+    );
+
+  if (!products.length) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+        Todavía no hay productos detectados.
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  container.innerHTML =
+    products
+      .map(
+        product => {
+
+          let badgeText =
+            'Stock saludable';
+
+          if (
+            product.status ===
+            'critical'
+          ) {
+
+            badgeText =
+              'REPOSICIÓN URGENTE';
+
+          } else if (
+            product.status ===
+            'warning'
+          ) {
+
+            badgeText =
+              'PREPARAR REPOSICIÓN';
 
           }
+
+          return `
+
+            <div class="product">
+
+              <div class="product-head">
+
+                <div>
+
+                  <div class="product-title">
+                    ${escapeText(
+                      product.title
+                    )}
+                  </div>
+
+                  <div class="product-id">
+                    ${escapeText(
+                      product.id
+                    )}
+                  </div>
+
+                </div>
+
+                <div>
+
+                  <div class="stock-number">
+                    ${
+                      product.stock === null
+                        ? '—'
+                        : number(
+                            product.stock
+                          )
+                    }
+                  </div>
+
+                  <div class="stock-label">
+                    STOCK
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <div class="product-grid">
+
+                <div class="product-stat">
+
+                  <div class="product-stat-label">
+                    Vendidos
+                  </div>
+
+                  <div class="product-stat-value">
+                    ${number(
+                      product.sold_units
+                    )}
+                  </div>
+
+                </div>
+
+
+                <div class="product-stat">
+
+                  <div class="product-stat-label">
+                    Facturación
+                  </div>
+
+                  <div class="product-stat-value">
+                    ${money(
+                      product.revenue
+                    )}
+                  </div>
+
+                </div>
+
+
+                <div class="product-stat">
+
+                  <div class="product-stat-label">
+                    Costo
+                  </div>
+
+                  <div class="product-stat-value">
+                    ${
+                      product.cost_configured
+                        ? money(
+                            product.cost
+                          )
+                        : 'NO CARGADO'
+                    }
+                  </div>
+
+                </div>
+
+
+                <div class="product-stat">
+
+                  <div class="product-stat-label">
+                    Días de stock
+                  </div>
+
+                  <div class="product-stat-value">
+                    ${
+                      product.days_stock === null
+                        ? 'Sin datos'
+                        : `${Number(
+                            product.days_stock
+                          ).toFixed(1)} días`
+                    }
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <div class="cost-row">
+
+                <input
+                  id="cost-${escapeText(
+                    product.id
+                  )}"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Costo unitario"
+                  value="${
+                    product.cost_configured
+                      ? product.cost
+                      : ''
+                  }"
+                >
+
+                <button
+                  onclick="saveCost(
+                    '${escapeJs(
+                      product.id
+                    )}'
+                  )"
+                >
+                  Guardar costo
+                </button>
+
+              </div>
+
+
+              <div
+                class="badge ${product.status}"
+              >
+                ${badgeText}
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join('');
+
+}
+
+
+function escapeJs(value) {
+
+  return String(
+    value || ''
+  )
+    .replaceAll(
+      '\\',
+      '\\\\'
+    )
+    .replaceAll(
+      "'",
+      "\\'"
+    );
+
+}
+
+
+async function saveCost(
+  itemId
+) {
+
+  const input =
+    document.getElementById(
+      `cost-${itemId}`
+    );
+
+  if (!input) {
+    return;
+  }
+
+  const cost =
+    Number(
+      input.value
+    );
+
+  if (
+    !Number.isFinite(cost) ||
+    cost < 0
+  ) {
+
+    alert(
+      'Ingresá un costo válido.'
+    );
+
+    return;
+
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/costs',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify({
+              item_id:
+                itemId,
+
+              cost
+            })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+
+      throw new Error(
+        data.error
+      );
+
+    }
+
+    await refreshAll();
+
+    showPage(
+      'productos'
+    );
+
+  } catch (error) {
+
+    alert(
+      `No se pudo guardar: ${error.message}`
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+ALERTS
+========================================================= */
+
+function renderAlerts() {
+
+  const container =
+    document.getElementById(
+      'alerts'
+    );
+
+  const alerts = [];
+
+  products.forEach(
+    product => {
+
+      if (
+        product.status ===
+        'critical'
+      ) {
+
+        alerts.push({
+          type: 'critical',
+
+          title:
+            'Reposición urgente',
+
+          text:
+            `${product.title} tiene ${
+              product.stock
+            } unidades y aproximadamente ${
+              Number(
+                product.days_stock
+              ).toFixed(1)
+            } días de stock.`
+        });
+
+      } else if (
+        product.status ===
+        'warning'
+      ) {
+
+        alerts.push({
+          type: 'warning',
+
+          title:
+            'Stock bajo',
+
+          text:
+            `${product.title} tiene aproximadamente ${
+              Number(
+                product.days_stock
+              ).toFixed(1)
+            } días de stock.`
+        });
+
+      }
+
+    }
+  );
+
+  if (!alerts.length) {
+
+    container.innerHTML = `
+
+      <div class="alert">
+
+        <div class="alert-title">
+          Todo en orden
+        </div>
+
+        <div class="alert-text">
+          No hay productos actualmente
+          en situación de reposición.
+        </div>
+
+      </div>
+
+    `;
+
+  } else {
+
+    container.innerHTML =
+      alerts
+        .map(
+          alert => `
+
+            <div class="alert ${alert.type}">
+
+              <div class="alert-title">
+                ${escapeText(
+                  alert.title
+                )}
+              </div>
+
+              <div class="alert-text">
+                ${escapeText(
+                  alert.text
+                )}
+              </div>
+
+            </div>
+
+          `
         )
         .join('');
 
   }
 
-  // ==========================================================
-  // ADS
-  // ==========================================================
+  document.getElementById(
+    'alertsCount'
+  ).textContent =
+    number(
+      alerts.length
+    );
 
-  async function loadAds() {
+}
 
-    try {
 
-      const response =
-        await fetch(
-          '/api/ads'
-        );
+/* =========================================================
+SETTINGS
+========================================================= */
 
-      const data =
-        await response.json();
+async function saveSettings() {
 
-      if (!data.ok) {
-        return;
-      }
-
-      const summary =
-        data.summary || {};
-
+  const value =
+    Number(
       document.getElementById(
-        'adCost'
-      ).textContent =
-        money(
-          summary.cost
-        );
+        'alertDays'
+      ).value
+    );
 
-      document.getElementById(
-        'roas'
-      ).textContent =
-        `${Number(
-          summary.roas || 0
-        ).toFixed(2)}x`;
+  if (
+    !Number.isFinite(value) ||
+    value < 1
+  ) {
 
-      document.getElementById(
-        'acos'
-      ).textContent =
-        `${Number(
-          summary.acos || 0
-        ).toFixed(1)}%`;
+    alert(
+      'Ingresá una cantidad válida de días.'
+    );
 
-    } catch (error) {
+    return;
 
-      console.error(
-        'ADS:',
-        error
+  }
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/settings',
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json'
+          },
+
+          body:
+            JSON.stringify({
+              stockAlertDays:
+                value
+            })
+        }
       );
 
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+      throw new Error(
+        data.error
+      );
     }
 
-  }
+    await loadProducts();
 
-  // ==========================================================
-  // TODO JUNTO
-  // ==========================================================
+  } catch (error) {
 
-  async function refreshAll() {
-
-    await loadStatus();
-
-    await loadOrders();
-
-    await loadAds();
+    alert(
+      error.message
+    );
 
   }
 
-  // ==========================================================
-  // TIEMPO REAL
-  // ==========================================================
+}
 
-  function connectRealtime() {
 
-    if (
-      !window.EventSource
-    ) {
+/* =========================================================
+REAL TIME
+========================================================= */
+
+function connectRealtime() {
+
+  if (
+    !window.EventSource
+  ) {
+    return;
+  }
+
+  const source =
+    new EventSource(
+      '/api/events'
+    );
+
+  source.onopen =
+    () => {
 
       console.log(
-        'EventSource no disponible'
+        'Tiempo real conectado'
       );
 
-      return;
+    };
 
-    }
+  source.onmessage =
+    event => {
 
-    const source =
-      new EventSource(
-        '/api/events'
-      );
+      try {
 
-    source.onopen =
-      () => {
-
-        console.log(
-          'Tiempo real conectado'
-        );
-
-      };
-
-    source.onmessage =
-      event => {
-
-        try {
-
-          const data =
-            JSON.parse(
-              event.data
-            );
-
-          if (
-            data.type ===
-            'new_order'
-          ) {
-
-            console.log(
-              'NUEVA VENTA',
-              data.order
-            );
-
-            notifySale(
-              data.order
-            );
-
-            refreshAll();
-
-          }
-
-        } catch (error) {
-
-          console.error(
-            error
+        const data =
+          JSON.parse(
+            event.data
           );
+
+        if (
+          data.type ===
+          'new_order'
+        ) {
+
+          console.log(
+            'NUEVA VENTA',
+            data.order
+          );
+
+          notifySale(
+            data.order
+          );
+
+          refreshAll();
 
         }
 
-      };
+      } catch (error) {
 
-    source.onerror =
-      () => {
-
-        console.log(
-          'Reconectando tiempo real...'
+        console.error(
+          error
         );
 
-      };
+      }
 
-  }
+    };
 
-  // ==========================================================
-  // SERVICE WORKER
-  // ==========================================================
+  source.onerror =
+    () => {
 
-  if (
-    'serviceWorker' in
-    navigator
-  ) {
-
-    navigator.serviceWorker
-      .register(
-        '/sw.js'
-      )
-      .catch(
-        error =>
-          console.log(
-            'SW:',
-            error
-          )
+      console.log(
+        'Tiempo real reconectando...'
       );
 
-  }
+    };
 
-  // ==========================================================
-  // START
-  // ==========================================================
+}
 
-  refreshAll();
 
-  connectRealtime();
+/* =========================================================
+SERVICE WORKER
+========================================================= */
 
-  setInterval(
-    refreshAll,
-    60000
-  );
+if (
+  'serviceWorker'
+  in navigator
+) {
+
+  navigator.serviceWorker
+    .register(
+      '/sw.js'
+    )
+    .catch(
+      error =>
+        console.log(
+          'SW:',
+          error
+        )
+    );
+
+}
+
+
+/* =========================================================
+REFRESH
+========================================================= */
+
+async function refreshAll() {
+
+  await Promise.all([
+    loadStatus(),
+    loadDashboard(),
+    loadOrders(),
+    loadAds(),
+    loadProducts()
+  ]);
+
+}
+
+
+/* =========================================================
+START
+========================================================= */
+
+refreshAll();
+
+connectRealtime();
+
+setInterval(
+  refreshAll,
+  60000
+);
 
 </script>
 
