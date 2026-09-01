@@ -8,755 +8,838 @@ const crypto = require('crypto');
 const app = express();
 
 // ============================================================
-// MIDDLEWARE
-// ============================================================
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ============================================================
-// CONFIGURACIÓN
+// CONFIG
 // ============================================================
 
 const PORT = Number(process.env.PORT) || 3000;
 
 const BASE_URL =
-process.env.BASE_URL ||
-'https://conteo-rt2c.onrender.com';
-
-const REDIRECT_URI =
-process.env.ML_REDIRECT_URI ||
-`${BASE_URL}/auth/callback`;
+  process.env.BASE_URL ||
+  'https://conteo-rt2c.onrender.com';
 
 const CLIENT_ID = process.env.ML_CLIENT_ID;
 const CLIENT_SECRET = process.env.ML_CLIENT_SECRET;
 
+const REDIRECT_URI =
+  process.env.ML_REDIRECT_URI ||
+  `${BASE_URL}/auth/callback`;
+
 const AUTH_DOMAIN =
-process.env.ML_AUTH_DOMAIN ||
-'https://auth.mercadolibre.com.ar';
+  process.env.ML_AUTH_DOMAIN ||
+  'https://auth.mercadolibre.com.ar';
 
 const API_BASE =
-process.env.ML_API_BASE ||
-'https://api.mercadolibre.com';
+  process.env.ML_API_BASE ||
+  'https://api.mercadolibre.com';
 
 const TOKEN_FILE =
-process.env.TOKEN_FILE ||
-path.join(__dirname, 'data', 'tokens.json');
+  process.env.TOKEN_FILE ||
+  path.join(__dirname, 'data', 'tokens.json');
 
 // ============================================================
-// FRONTEND
+// EXPRESS
 // ============================================================
 
-const publicDirectory = path.join(__dirname, 'public');
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(express.static(publicDirectory));
+const PUBLIC_DIR =
+  path.join(__dirname, 'public');
+
+app.use(express.static(PUBLIC_DIR));
 
 // ============================================================
-// TOKENS
+// TOKEN STORAGE
 // ============================================================
 
-const tokenDirectory = path.dirname(TOKEN_FILE);
+const tokenDirectory =
+  path.dirname(TOKEN_FILE);
 
 if (!fs.existsSync(tokenDirectory)) {
-fs.mkdirSync(tokenDirectory, {
-recursive: true
-});
+  fs.mkdirSync(tokenDirectory, {
+    recursive: true
+  });
 }
-
-let oauthState = null;
-let pkceVerifier = null;
 
 let tokenCache = loadTokens();
 
 function loadTokens() {
-try {
-if (!fs.existsSync(TOKEN_FILE)) {
-return null;
-}
+  try {
+    if (!fs.existsSync(TOKEN_FILE)) {
+      return null;
+    }
 
-```
-const content = fs.readFileSync(
-  TOKEN_FILE,
-  'utf8'
-);
+    const content =
+      fs.readFileSync(
+        TOKEN_FILE,
+        'utf8'
+      );
 
-if (!content.trim()) {
-  return null;
-}
+    if (!content.trim()) {
+      return null;
+    }
 
-return JSON.parse(content);
-```
+    return JSON.parse(content);
 
-} catch (error) {
-console.error(
-'No se pudieron cargar los tokens:',
-error.message
-);
+  } catch (error) {
+    console.error(
+      'Error cargando tokens:',
+      error.message
+    );
 
-```
-return null;
-```
-
-}
+    return null;
+  }
 }
 
 function saveTokens(tokens) {
-const temporaryFile = `${TOKEN_FILE}.tmp`;
+  const tmp =
+    `${TOKEN_FILE}.tmp`;
 
-fs.writeFileSync(
-temporaryFile,
-JSON.stringify(tokens, null, 2),
-{
-mode: 0o600
-}
-);
+  fs.writeFileSync(
+    tmp,
+    JSON.stringify(
+      tokens,
+      null,
+      2
+    ),
+    {
+      mode: 0o600
+    }
+  );
 
-fs.renameSync(
-temporaryFile,
-TOKEN_FILE
-);
+  fs.renameSync(
+    tmp,
+    TOKEN_FILE
+  );
 
-tokenCache = tokens;
-}
-
-// ============================================================
-// CONFIGURACIÓN OBLIGATORIA
-// ============================================================
-
-function requireConfig() {
-const missing = [];
-
-if (!CLIENT_ID) {
-missing.push('ML_CLIENT_ID');
-}
-
-if (!CLIENT_SECRET) {
-missing.push('ML_CLIENT_SECRET');
-}
-
-if (!REDIRECT_URI) {
-missing.push('ML_REDIRECT_URI');
-}
-
-if (missing.length > 0) {
-throw new Error(
-`Faltan variables de entorno: ${missing.join(', ')}`
-);
-}
+  tokenCache = tokens;
 }
 
 // ============================================================
-// UTILIDADES
+// OAUTH
 // ============================================================
+
+let oauthState = null;
+let pkceVerifier = null;
 
 function base64url(buffer) {
-return buffer
-.toString('base64')
-.replace(/=/g, '')
-.replace(/+/g, '-')
-.replace(///g, '_');
+  return buffer
+    .toString('base64')
+    .replace(/=/g, '')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_');
 }
 
 function createPKCE() {
-const verifier = base64url(
-crypto.randomBytes(32)
-);
+  const verifier =
+    base64url(
+      crypto.randomBytes(32)
+    );
 
-const challenge = base64url(
-crypto
-.createHash('sha256')
-.update(verifier)
-.digest()
-);
+  const challenge =
+    base64url(
+      crypto
+        .createHash('sha256')
+        .update(verifier)
+        .digest()
+    );
 
-return {
-verifier,
-challenge
-};
+  return {
+    verifier,
+    challenge
+  };
 }
+
+// ============================================================
+// HELPERS
+// ============================================================
 
 function escapeHtml(value) {
-return String(value).replace(
-/[&<>'"]/g,
-function (character) {
-const map = {
-'&': '&',
-'<': '<',
-'>': '>',
-"'": ''',
-'"': '"'
-};
+  return String(value).replace(
+    /[&<>'"]/g,
+    char => {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        "'": '&#39;',
+        '"': '&quot;'
+      };
 
-```
-  return map[character];
-}
-```
-
-);
+      return map[char];
+    }
+  );
 }
 
 function todayArgentina() {
-const parts = new Intl.DateTimeFormat(
-'en-CA',
-{
-timeZone: 'America/Argentina/Buenos_Aires',
-year: 'numeric',
-month: '2-digit',
-day: '2-digit'
+  const parts =
+    new Intl.DateTimeFormat(
+      'en-CA',
+      {
+        timeZone:
+          'America/Argentina/Buenos_Aires',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    ).formatToParts(
+      new Date()
+    );
+
+  const result = {};
+
+  for (const part of parts) {
+    result[part.type] =
+      part.value;
+  }
+
+  return (
+    `${result.year}-${result.month}-${result.day}`
+  );
 }
-).formatToParts(new Date());
 
-const result = {};
+function requireConfig() {
+  const missing = [];
 
-for (const part of parts) {
-result[part.type] = part.value;
-}
+  if (!CLIENT_ID) {
+    missing.push(
+      'ML_CLIENT_ID'
+    );
+  }
 
-return `${result.year}-${result.month}-${result.day}`;
-}
+  if (!CLIENT_SECRET) {
+    missing.push(
+      'ML_CLIENT_SECRET'
+    );
+  }
 
-function emptyAdsSummary() {
-return {
-clicks: 0,
-prints: 0,
-cost: 0,
-total_amount: 0,
-direct_amount: 0,
-indirect_amount: 0,
-units_quantity: 0,
-direct_units_quantity: 0,
-indirect_units_quantity: 0,
-ctr: 0,
-cpc: 0,
-roas: 0,
-acos: 0
-};
+  if (!REDIRECT_URI) {
+    missing.push(
+      'ML_REDIRECT_URI'
+    );
+  }
+
+  if (missing.length) {
+    throw new Error(
+      `Faltan variables de entorno: ${missing.join(', ')}`
+    );
+  }
 }
 
 // ============================================================
-// REQUEST OAUTH
+// MERCADO LIBRE TOKEN
 // ============================================================
 
 async function tokenRequest(body) {
-const response = await fetch(
-`${API_BASE}/oauth/token`,
-{
-method: 'POST',
+  const response =
+    await fetch(
+      `${API_BASE}/oauth/token`,
+      {
+        method: 'POST',
 
-```
-  headers: {
-    accept: 'application/json',
-    'content-type':
-      'application/x-www-form-urlencoded'
-  },
+        headers: {
+          accept:
+            'application/json',
 
-  body: new URLSearchParams(body)
+          'content-type':
+            'application/x-www-form-urlencoded'
+        },
+
+        body:
+          new URLSearchParams(
+            body
+          )
+      }
+    );
+
+  const text =
+    await response.text();
+
+  let data;
+
+  try {
+    data =
+      JSON.parse(text);
+  } catch {
+    data = {
+      raw: text
+    };
+  }
+
+  if (!response.ok) {
+    const error =
+      new Error(
+        data.error_description ||
+        data.error ||
+        `HTTP ${response.status}`
+      );
+
+    error.status =
+      response.status;
+
+    error.details =
+      data;
+
+    throw error;
+  }
+
+  return data;
 }
-```
-
-);
-
-const text = await response.text();
-
-let data;
-
-try {
-data = JSON.parse(text);
-} catch {
-data = {
-raw: text
-};
-}
-
-if (!response.ok) {
-const error = new Error(
-data.error_description ||
-data.error ||
-`HTTP ${response.status}`
-);
-
-```
-error.status = response.status;
-error.details = data;
-
-throw error;
-```
-
-}
-
-return data;
-}
-
-// ============================================================
-// OAUTH - INTERCAMBIO DE CÓDIGO
-// ============================================================
 
 async function exchangeCode(code) {
-const body = {
-grant_type: 'authorization_code',
-client_id: CLIENT_ID,
-client_secret: CLIENT_SECRET,
-code,
-redirect_uri: REDIRECT_URI
-};
+  const body = {
+    grant_type:
+      'authorization_code',
 
-if (pkceVerifier) {
-body.code_verifier = pkceVerifier;
+    client_id:
+      CLIENT_ID,
+
+    client_secret:
+      CLIENT_SECRET,
+
+    code,
+
+    redirect_uri:
+      REDIRECT_URI
+  };
+
+  if (pkceVerifier) {
+    body.code_verifier =
+      pkceVerifier;
+  }
+
+  const data =
+    await tokenRequest(
+      body
+    );
+
+  const now =
+    Date.now();
+
+  saveTokens({
+    ...data,
+
+    obtained_at:
+      now,
+
+    expires_at:
+      now +
+      (
+        (data.expires_in ||
+          21600) *
+        1000
+      )
+  });
+
+  return data;
 }
-
-const data = await tokenRequest(body);
-
-const now = Date.now();
-
-saveTokens({
-...data,
-
-```
-obtained_at: now,
-
-expires_at:
-  now +
-  ((data.expires_in || 21600) * 1000)
-```
-
-});
-
-return data;
-}
-
-// ============================================================
-// REFRESH TOKEN
-// ============================================================
 
 async function refreshAccessToken() {
-if (!tokenCache?.refresh_token) {
-throw new Error(
-'No hay refresh_token. Hay que conectar Mercado Libre nuevamente.'
-);
+  if (
+    !tokenCache?.refresh_token
+  ) {
+    throw new Error(
+      'No existe refresh_token. Hay que conectar Mercado Libre nuevamente.'
+    );
+  }
+
+  const data =
+    await tokenRequest({
+      grant_type:
+        'refresh_token',
+
+      client_id:
+        CLIENT_ID,
+
+      client_secret:
+        CLIENT_SECRET,
+
+      refresh_token:
+        tokenCache.refresh_token
+    });
+
+  const now =
+    Date.now();
+
+  saveTokens({
+    ...data,
+
+    obtained_at:
+      now,
+
+    expires_at:
+      now +
+      (
+        (data.expires_in ||
+          21600) *
+        1000
+      )
+  });
+
+  return data.access_token;
 }
-
-const data = await tokenRequest({
-grant_type: 'refresh_token',
-client_id: CLIENT_ID,
-client_secret: CLIENT_SECRET,
-refresh_token: tokenCache.refresh_token
-});
-
-const now = Date.now();
-
-saveTokens({
-...data,
-
-```
-obtained_at: now,
-
-expires_at:
-  now +
-  ((data.expires_in || 21600) * 1000)
-```
-
-});
-
-return data.access_token;
-}
-
-// ============================================================
-// ACCESS TOKEN
-// ============================================================
 
 async function getAccessToken() {
-if (!tokenCache?.access_token) {
-throw new Error(
-'Mercado Libre no está conectado.'
-);
-}
+  if (
+    !tokenCache?.access_token
+  ) {
+    throw new Error(
+      'Mercado Libre no está conectado.'
+    );
+  }
 
-const safetyWindow = 60 * 1000;
+  const safety =
+    60 * 1000;
 
-if (
-tokenCache.expires_at &&
-Date.now() <
-tokenCache.expires_at - safetyWindow
-) {
-return tokenCache.access_token;
-}
+  if (
+    tokenCache.expires_at &&
+    Date.now() <
+      tokenCache.expires_at -
+      safety
+  ) {
+    return tokenCache.access_token;
+  }
 
-return refreshAccessToken();
+  return refreshAccessToken();
 }
 
 // ============================================================
-// REQUEST API MERCADO LIBRE
+// GENERIC ML REQUEST
 // ============================================================
 
 async function mlFetch(
-endpoint,
-options = {},
-retry = true
-) {
-const accessToken =
-await getAccessToken();
-
-const headers = {
-...(options.headers || {}),
-
-```
-Authorization:
-  `Bearer ${accessToken}`,
-
-Accept:
-  'application/json'
-```
-
-};
-
-const response = await fetch(
-`${API_BASE}${endpoint}`,
-{
-...options,
-headers
-}
-);
-
-if (
-response.status === 401 &&
-retry &&
-tokenCache?.refresh_token
-) {
-await refreshAccessToken();
-
-```
-return mlFetch(
   endpoint,
-  options,
-  false
-);
-```
+  options = {},
+  retry = true
+) {
+  const accessToken =
+    await getAccessToken();
 
-}
+  const headers = {
+    ...(options.headers || {}),
 
-const text =
-await response.text();
+    Authorization:
+      `Bearer ${accessToken}`,
 
-let data;
+    Accept:
+      'application/json'
+  };
 
-try {
-data = JSON.parse(text);
-} catch {
-data = {
-raw: text
-};
-}
+  const response =
+    await fetch(
+      `${API_BASE}${endpoint}`,
+      {
+        ...options,
+        headers
+      }
+    );
 
-if (!response.ok) {
-const error = new Error(
-data.message ||
-data.error ||
-`Mercado Libre HTTP ${response.status}`
-);
+  if (
+    response.status === 401 &&
+    retry &&
+    tokenCache?.refresh_token
+  ) {
+    await refreshAccessToken();
 
-```
-error.status =
-  response.status;
+    return mlFetch(
+      endpoint,
+      options,
+      false
+    );
+  }
 
-error.details =
-  data;
+  const text =
+    await response.text();
 
-throw error;
-```
+  let data;
 
-}
+  try {
+    data =
+      JSON.parse(text);
+  } catch {
+    data = {
+      raw: text
+    };
+  }
 
-return data;
+  if (!response.ok) {
+    const error =
+      new Error(
+        data.message ||
+        data.error ||
+        `Mercado Libre HTTP ${response.status}`
+      );
+
+    error.status =
+      response.status;
+
+    error.details =
+      data;
+
+    throw error;
+  }
+
+  return data;
 }
 
 // ============================================================
-// REQUEST PRODUCT ADS
+// PRODUCT ADS REQUEST
 // ============================================================
 
 async function mlAdsFetch(
-endpoint,
-options = {},
-retry = true,
-apiVersion = '2'
-) {
-const accessToken =
-await getAccessToken();
-
-const headers = {
-...(options.headers || {}),
-
-```
-Authorization:
-  `Bearer ${accessToken}`,
-
-Accept:
-  'application/json',
-
-'api-version':
-  apiVersion
-```
-
-};
-
-const response = await fetch(
-`${API_BASE}${endpoint}`,
-{
-...options,
-headers
-}
-);
-
-if (
-response.status === 401 &&
-retry &&
-tokenCache?.refresh_token
-) {
-await refreshAccessToken();
-
-```
-return mlAdsFetch(
   endpoint,
-  options,
-  false,
-  apiVersion
+  options = {},
+  retry = true
+) {
+  const accessToken =
+    await getAccessToken();
+
+  const headers = {
+    ...(options.headers || {}),
+
+    Authorization:
+      `Bearer ${accessToken}`,
+
+    Accept:
+      'application/json',
+
+    'api-version':
+      '2'
+  };
+
+  const response =
+    await fetch(
+      `${API_BASE}${endpoint}`,
+      {
+        ...options,
+        headers
+      }
+    );
+
+  if (
+    response.status === 401 &&
+    retry &&
+    tokenCache?.refresh_token
+  ) {
+    await refreshAccessToken();
+
+    return mlAdsFetch(
+      endpoint,
+      options,
+      false
+    );
+  }
+
+  const text =
+    await response.text();
+
+  let data;
+
+  try {
+    data =
+      JSON.parse(text);
+  } catch {
+    data = {
+      raw: text
+    };
+  }
+
+  if (!response.ok) {
+    const error =
+      new Error(
+        data.message ||
+        data.error ||
+        `Product Ads HTTP ${response.status}`
+      );
+
+    error.status =
+      response.status;
+
+    error.details =
+      data;
+
+    throw error;
+  }
+
+  return data;
+}
+
+// ============================================================
+// SSE - ACTUALIZACIÓN EN TIEMPO REAL
+// ============================================================
+
+const clients = new Set();
+
+function broadcast(event) {
+  const payload =
+    JSON.stringify(event);
+
+  for (const client of clients) {
+    try {
+      client.write(
+        `data: ${payload}\n\n`
+      );
+    } catch {
+      clients.delete(client);
+    }
+  }
+}
+
+app.get(
+  '/api/events',
+  (req, res) => {
+    res.setHeader(
+      'Content-Type',
+      'text/event-stream'
+    );
+
+    res.setHeader(
+      'Cache-Control',
+      'no-cache'
+    );
+
+    res.setHeader(
+      'Connection',
+      'keep-alive'
+    );
+
+    res.flushHeaders();
+
+    res.write(
+      `data: ${JSON.stringify({
+        type: 'connected',
+        time:
+          new Date().toISOString()
+      })}\n\n`
+    );
+
+    clients.add(res);
+
+    const heartbeat =
+      setInterval(
+        () => {
+          try {
+            res.write(
+              ': heartbeat\n\n'
+            );
+          } catch {}
+        },
+        25000
+      );
+
+    req.on(
+      'close',
+      () => {
+        clearInterval(
+          heartbeat
+        );
+
+        clients.delete(
+          res
+        );
+      }
+    );
+  }
 );
-```
-
-}
-
-const text =
-await response.text();
-
-let data;
-
-try {
-data = JSON.parse(text);
-} catch {
-data = {
-raw: text
-};
-}
-
-if (!response.ok) {
-const error = new Error(
-data.message ||
-data.error ||
-`Mercado Libre HTTP ${response.status}`
-);
-
-```
-error.status =
-  response.status;
-
-error.details =
-  data;
-
-throw error;
-```
-
-}
-
-return data;
-}
 
 // ============================================================
 // HOME
 // ============================================================
 
 app.get(
-'/',
-(req, res) => {
-const indexPath =
-path.join(
-publicDirectory,
-'index.html'
-);
+  '/',
+  (req, res) => {
+    const index =
+      path.join(
+        PUBLIC_DIR,
+        'index.html'
+      );
 
-```
-if (!fs.existsSync(indexPath)) {
-  return res
-    .status(500)
-    .send(
-      'No existe public/index.html'
-    );
-}
+    if (
+      !fs.existsSync(index)
+    ) {
+      return res
+        .status(500)
+        .send(
+          'No existe public/index.html'
+        );
+    }
 
-res.sendFile(indexPath);
-```
-
-}
+    res.sendFile(index);
+  }
 );
 
 // ============================================================
-// HEALTH CHECK
+// HEALTH
 // ============================================================
 
 app.get(
-'/api/health',
-(req, res) => {
-res.status(200).json({
-ok: true,
-service: 'conteonix',
-status: 'online',
-time: new Date().toISOString(),
-connected:
-!!tokenCache?.access_token
-});
-}
+  '/api/health',
+  (req, res) => {
+    res.json({
+      ok: true,
+      service:
+        'conteonix',
+
+      status:
+        'online',
+
+      connected:
+        !!tokenCache?.access_token,
+
+      time:
+        new Date().toISOString()
+    });
+  }
 );
 
 // ============================================================
-// LOGIN MERCADO LIBRE
+// LOGIN
 // ============================================================
 
 app.get(
-'/auth/login',
-(req, res) => {
-try {
-requireConfig();
+  '/auth/login',
+  (req, res) => {
+    try {
+      requireConfig();
 
-```
-  oauthState =
-    crypto
-      .randomBytes(24)
-      .toString('hex');
+      oauthState =
+        crypto
+          .randomBytes(24)
+          .toString('hex');
 
-  const pkce =
-    createPKCE();
+      const pkce =
+        createPKCE();
 
-  pkceVerifier =
-    pkce.verifier;
+      pkceVerifier =
+        pkce.verifier;
 
-  const authorizationUrl =
-    new URL(
-      `${AUTH_DOMAIN}/authorization`
-    );
+      const url =
+        new URL(
+          `${AUTH_DOMAIN}/authorization`
+        );
 
-  authorizationUrl.searchParams.set(
-    'response_type',
-    'code'
-  );
+      url.searchParams.set(
+        'response_type',
+        'code'
+      );
 
-  authorizationUrl.searchParams.set(
-    'client_id',
-    CLIENT_ID
-  );
+      url.searchParams.set(
+        'client_id',
+        CLIENT_ID
+      );
 
-  authorizationUrl.searchParams.set(
-    'redirect_uri',
-    REDIRECT_URI
-  );
+      url.searchParams.set(
+        'redirect_uri',
+        REDIRECT_URI
+      );
 
-  authorizationUrl.searchParams.set(
-    'state',
-    oauthState
-  );
+      url.searchParams.set(
+        'state',
+        oauthState
+      );
 
-  authorizationUrl.searchParams.set(
-    'code_challenge',
-    pkce.challenge
-  );
+      url.searchParams.set(
+        'code_challenge',
+        pkce.challenge
+      );
 
-  authorizationUrl.searchParams.set(
-    'code_challenge_method',
-    'S256'
-  );
+      url.searchParams.set(
+        'code_challenge_method',
+        'S256'
+      );
 
-  res.redirect(
-    authorizationUrl.toString()
-  );
+      res.redirect(
+        url.toString()
+      );
 
-} catch (error) {
-  console.error(
-    'Error /auth/login:',
-    error
-  );
-
-  res
-    .status(500)
-    .send(
-      `<pre>${escapeHtml(
-        error.message
-      )}</pre>`
-    );
-}
-```
-
-}
+    } catch (error) {
+      res
+        .status(500)
+        .send(
+          `<pre>${escapeHtml(
+            error.message
+          )}</pre>`
+        );
+    }
+  }
 );
 
 // ============================================================
-// CALLBACK OAUTH
+// CALLBACK
 // ============================================================
 
 app.get(
-'/auth/callback',
-async (req, res) => {
-try {
-requireConfig();
+  '/auth/callback',
+  async (req, res) => {
+    try {
+      requireConfig();
 
-```
-  if (req.query.error) {
-    return res
-      .status(400)
-      .send(
-        `<pre>${escapeHtml(
-          req.query.error_description ||
-          req.query.error
-        )}</pre>`
+      if (req.query.error) {
+        return res
+          .status(400)
+          .send(
+            `<pre>${escapeHtml(
+              req.query.error_description ||
+              req.query.error
+            )}</pre>`
+          );
+      }
+
+      if (
+        !oauthState ||
+        req.query.state !==
+          oauthState
+      ) {
+        return res
+          .status(400)
+          .send(
+            'State OAuth inválido o expirado.'
+          );
+      }
+
+      if (!req.query.code) {
+        return res
+          .status(400)
+          .send(
+            'Falta el código OAuth.'
+          );
+      }
+
+      await exchangeCode(
+        req.query.code
       );
-  }
 
-  if (
-    !oauthState ||
-    req.query.state !== oauthState
-  ) {
-    return res
-      .status(400)
-      .send(
-        'State OAuth inválido o expirado.'
+      oauthState =
+        null;
+
+      pkceVerifier =
+        null;
+
+      res.redirect(
+        '/?connected=1'
       );
-  }
 
-  if (!req.query.code) {
-    return res
-      .status(400)
-      .send(
-        'Falta el código de autorización.'
+    } catch (error) {
+      console.error(
+        'OAuth error:',
+        error.details ||
+        error
       );
+
+      res
+        .status(
+          error.status ||
+          500
+        )
+        .send(
+          `<h1>Error conectando Mercado Libre</h1>
+           <pre>${escapeHtml(
+             error.message
+           )}</pre>`
+        );
+    }
   }
-
-  await exchangeCode(
-    req.query.code
-  );
-
-  oauthState = null;
-  pkceVerifier = null;
-
-  res.redirect(
-    '/?connected=1'
-  );
-
-} catch (error) {
-  console.error(
-    'Error OAuth:',
-    error.details || error
-  );
-
-  res
-    .status(
-      error.status || 500
-    )
-    .send(
-      `<h1>No se pudo conectar Mercado Libre</h1>
-       <pre>${escapeHtml(
-         error.message
-       )}</pre>`
-    );
-}
-```
-
-}
 );
 
 // ============================================================
@@ -764,66 +847,59 @@ requireConfig();
 // ============================================================
 
 app.get(
-'/api/status',
-async (req, res) => {
-const result = {
-ok: true,
+  '/api/status',
+  async (req, res) => {
+    const result = {
+      ok: true,
 
-```
-  connected:
-    !!tokenCache?.access_token,
+      connected:
+        !!tokenCache?.access_token,
 
-  user_id:
-    tokenCache?.user_id ||
-    null,
+      user_id:
+        tokenCache?.user_id ||
+        null,
 
-  redirect_uri:
-    REDIRECT_URI
-};
-
-if (
-  result.connected
-) {
-  try {
-    const me =
-      await mlFetch(
-        '/users/me'
-      );
-
-    result.user = {
-      id:
-        me.id,
-
-      nickname:
-        me.nickname,
-
-      country_id:
-        me.country_id
+      redirect_uri:
+        REDIRECT_URI
     };
 
     if (
-      tokenCache &&
-      me.id
+      result.connected
     ) {
-      saveTokens({
-        ...tokenCache,
-        user_id: me.id
-      });
+      try {
+        const me =
+          await mlFetch(
+            '/users/me'
+          );
 
-      result.user_id =
-        me.id;
+        result.user = {
+          id:
+            me.id,
+
+          nickname:
+            me.nickname,
+
+          country_id:
+            me.country_id
+        };
+
+        saveTokens({
+          ...tokenCache,
+          user_id:
+            me.id
+        });
+
+        result.user_id =
+          me.id;
+
+      } catch (error) {
+        result.api_error =
+          error.message;
+      }
     }
 
-  } catch (error) {
-    result.api_error =
-      error.message;
+    res.json(result);
   }
-}
-
-res.json(result);
-```
-
-}
 );
 
 // ============================================================
@@ -831,91 +907,95 @@ res.json(result);
 // ============================================================
 
 app.get(
-'/api/orders',
-async (req, res) => {
-try {
-const me =
-await mlFetch(
-'/users/me'
-);
+  '/api/orders',
+  async (req, res) => {
+    try {
+      const me =
+        await mlFetch(
+          '/users/me'
+        );
 
-```
-  const sellerId =
-    me.id;
+      const seller =
+        me.id;
 
-  const limit =
-    Math.min(
-      Math.max(
-        Number(
-          req.query.limit
-        ) || 50,
-        1
-      ),
-      50
-    );
+      const limit =
+        Math.min(
+          Math.max(
+            Number(
+              req.query.limit
+            ) || 50,
+            1
+          ),
+          50
+        );
 
-  const offset =
-    Math.max(
-      Number(
-        req.query.offset
-      ) || 0,
-      0
-    );
+      const offset =
+        Math.max(
+          Number(
+            req.query.offset
+          ) || 0,
+          0
+        );
 
-  const params =
-    new URLSearchParams({
-      seller:
-        String(sellerId),
+      const params =
+        new URLSearchParams();
 
-      limit:
-        String(limit),
+      params.set(
+        'seller',
+        String(seller)
+      );
 
-      offset:
-        String(offset),
+      params.set(
+        'limit',
+        String(limit)
+      );
 
-      sort:
+      params.set(
+        'offset',
+        String(offset)
+      );
+
+      params.set(
+        'sort',
         'date_desc'
-    });
+      );
 
-  if (req.query.status) {
-    params.set(
-      'order.status',
-      req.query.status
-    );
+      if (
+        req.query.status
+      ) {
+        params.set(
+          'order.status',
+          req.query.status
+        );
+      }
+
+      const data =
+        await mlFetch(
+          `/orders/search?${params.toString()}`
+        );
+
+      res.json({
+        ok: true,
+        ...data
+      });
+
+    } catch (error) {
+      res
+        .status(
+          error.status ||
+          500
+        )
+        .json({
+          ok: false,
+          error:
+            error.message,
+
+          details:
+            error.details ||
+            null
+        });
+    }
   }
-
-  const data =
-    await mlFetch(
-      `/orders/search?${params.toString()}`
-    );
-
-  res.json({
-    ok: true,
-    ...data
-  });
-
-} catch (error) {
-  console.error(
-    'Error /api/orders:',
-    error.details || error
-  );
-
-  res
-    .status(
-      error.status || 500
-    )
-    .json({
-      ok: false,
-      error:
-        error.message,
-      details:
-        error.details ||
-        null
-    });
-}
-```
-
-}
 );
 
 // ============================================================
@@ -923,93 +1003,592 @@ await mlFetch(
 // ============================================================
 
 app.post(
-'/api/sync',
-async (req, res) => {
-try {
-const me =
-await mlFetch(
-'/users/me'
+  '/api/sync',
+  async (req, res) => {
+    try {
+      const data =
+        await mlFetch(
+          '/users/me'
+        );
+
+      const seller =
+        data.id;
+
+      const params =
+        new URLSearchParams({
+          seller:
+            String(seller),
+
+          limit:
+            '50',
+
+          offset:
+            '0',
+
+          sort:
+            'date_desc'
+        });
+
+      const orders =
+        await mlFetch(
+          `/orders/search?${params.toString()}`
+        );
+
+      saveTokens({
+        ...tokenCache,
+        user_id:
+          seller
+      });
+
+      res.json({
+        ok: true,
+
+        synced_at:
+          new Date().toISOString(),
+
+        total:
+          orders.paging?.total ||
+          orders.results?.length ||
+          0,
+
+        orders:
+          orders.results ||
+          []
+      });
+
+    } catch (error) {
+      res
+        .status(
+          error.status ||
+          500
+        )
+        .json({
+          ok: false,
+          error:
+            error.message,
+
+          details:
+            error.details ||
+            null
+        });
+    }
+  }
 );
 
-```
-  const sellerId =
-    me.id;
+// ============================================================
+// PRODUCT ADS - ADVERTISER
+// ============================================================
 
-  const limit =
-    Math.min(
-      Math.max(
-        Number(
-          req.body?.limit ||
-          req.query.limit
-        ) || 50,
-        1
-      ),
-      50
-    );
-
-  const params =
-    new URLSearchParams({
-      seller:
-        String(sellerId),
-
-      limit:
-        String(limit),
-
-      offset:
-        '0',
-
-      sort:
-        'date_desc'
-    });
-
+async function getAdvertiser() {
   const data =
-    await mlFetch(
-      `/orders/search?${params.toString()}`
+    await fetchAdvertisers();
+
+  const advertisers =
+    data.advertisers ||
+    data.results ||
+    [];
+
+  if (
+    !Array.isArray(
+      advertisers
+    ) ||
+    advertisers.length === 0
+  ) {
+    throw new Error(
+      'No se encontró advertiser de Product Ads.'
+    );
+  }
+
+  return (
+    advertisers.find(
+      advertiser =>
+        String(
+          advertiser.site_id
+        ).toUpperCase() ===
+        'MLA'
+    ) ||
+    advertisers[0]
+  );
+}
+
+async function fetchAdvertisers() {
+  const accessToken =
+    await getAccessToken();
+
+  const response =
+    await fetch(
+      `${API_BASE}/advertising/advertisers?product_id=PADS`,
+      {
+        headers: {
+          Authorization:
+            `Bearer ${accessToken}`,
+
+          Accept:
+            'application/json',
+
+          'api-version':
+            '1'
+        }
+      }
     );
 
-  saveTokens({
-    ...tokenCache,
-    user_id:
-      sellerId
-  });
+  const text =
+    await response.text();
 
-  res.json({
-    ok: true,
+  let data;
 
-    synced_at:
-      new Date().toISOString(),
+  try {
+    data =
+      JSON.parse(text);
+  } catch {
+    data = {
+      raw: text
+    };
+  }
 
-    total:
-      data.paging?.total ??
-      data.results?.length ??
-      0,
+  if (!response.ok) {
+    throw new Error(
+      data.message ||
+      data.error ||
+      `Advertising HTTP ${response.status}`
+    );
+  }
 
-    orders:
-      data.results || []
-  });
+  return data;
+}
 
-} catch (error) {
-  console.error(
-    'Error /api/sync:',
-    error.details || error
-  );
+// ============================================================
+// ADS
+// ============================================================
 
-  res
-    .status(
-      error.status || 500
-    )
-    .json({
-      ok: false,
-      error:
-        error.message,
-      details:
+const AD_METRICS = [
+  'clicks',
+  'prints',
+  'ctr',
+  'cost',
+  'cpc',
+  'acos',
+  'organic_units_quantity',
+  'organic_units_amount',
+  'organic_items_quantity',
+  'direct_items_quantity',
+  'indirect_items_quantity',
+  'advertising_items_quantity',
+  'cvr',
+  'roas',
+  'sov',
+  'direct_units_quantity',
+  'indirect_units_quantity',
+  'units_quantity',
+  'direct_amount',
+  'indirect_amount',
+  'total_amount'
+].join(',');
+
+function emptyAdsSummary() {
+  return {
+    clicks: 0,
+    prints: 0,
+    cost: 0,
+    total_amount: 0,
+    direct_amount: 0,
+    indirect_amount: 0,
+    units_quantity: 0,
+    direct_units_quantity: 0,
+    indirect_units_quantity: 0,
+    ctr: 0,
+    cpc: 0,
+    roas: 0,
+    acos: 0
+  };
+}
+
+app.get(
+  '/api/ads/test',
+  async (req, res) => {
+    try {
+      const advertiser =
+        await getAdvertiser();
+
+      res.json({
+        ok: true,
+        advertiser
+      });
+
+    } catch (error) {
+      res.status(200).json({
+        ok: false,
+        error:
+          error.message,
+
+        details:
+          error.details ||
+          null
+      });
+    }
+  }
+);
+
+app.get(
+  '/api/ads',
+  async (req, res) => {
+    try {
+      const advertiser =
+        await getAdvertiser();
+
+      const site =
+        advertiser.site_id ||
+        'MLA';
+
+      const advertiserId =
+        advertiser.advertiser_id;
+
+      if (!advertiserId) {
+        throw new Error(
+          'Mercado Libre no devolvió advertiser_id.'
+        );
+      }
+
+      const dateFrom =
+        req.query.date_from ||
+        req.query.date ||
+        todayArgentina();
+
+      const dateTo =
+        req.query.date_to ||
+        req.query.date ||
+        dateFrom;
+
+      const params =
+        new URLSearchParams();
+
+      params.set(
+        'limit',
+        '50'
+      );
+
+      params.set(
+        'offset',
+        '0'
+      );
+
+      params.set(
+        'date_from',
+        dateFrom
+      );
+
+      params.set(
+        'date_to',
+        dateTo
+      );
+
+      params.set(
+        'metrics',
+        AD_METRICS
+      );
+
+      if (
+        dateFrom === dateTo
+      ) {
+        params.set(
+          'aggregation_type',
+          'DAILY'
+        );
+      } else {
+        params.set(
+          'metrics_summary',
+          'true'
+        );
+      }
+
+      const endpoint =
+        `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
+
+      const data =
+        await mlAdsFetch(
+          endpoint
+        );
+
+      const campaigns =
+        Array.isArray(
+          data.results
+        )
+          ? data.results
+          : [];
+
+      const metrics =
+        emptyAdsSummary();
+
+      const numericFields = [
+        'clicks',
+        'prints',
+        'cost',
+        'direct_amount',
+        'indirect_amount',
+        'total_amount',
+        'direct_units_quantity',
+        'indirect_units_quantity',
+        'units_quantity'
+      ];
+
+      const summary =
+        data.metrics_summary ||
+        {};
+
+      for (
+        const field
+        of numericFields
+      ) {
+        if (
+          summary[field] !==
+          undefined
+        ) {
+          metrics[field] =
+            Number(
+              summary[field] || 0
+            );
+        }
+      }
+
+      if (
+        Object.keys(summary)
+          .length === 0
+      ) {
+        for (
+          const campaign
+          of campaigns
+        ) {
+          for (
+            const field
+            of numericFields
+          ) {
+            metrics[field] +=
+              Number(
+                campaign[field] ||
+                campaign.metrics?.[field] ||
+                0
+              );
+          }
+        }
+      }
+
+      metrics.ctr =
+        metrics.prints > 0
+          ? (
+              metrics.clicks /
+              metrics.prints
+            ) * 100
+          : 0;
+
+      metrics.cpc =
+        metrics.clicks > 0
+          ? (
+              metrics.cost /
+              metrics.clicks
+            )
+          : 0;
+
+      metrics.acos =
+        metrics.total_amount > 0
+          ? (
+              metrics.cost /
+              metrics.total_amount
+            ) * 100
+          : 0;
+
+      metrics.roas =
+        metrics.cost > 0
+          ? (
+              metrics.total_amount /
+              metrics.cost
+            )
+          : 0;
+
+      res.json({
+        ok: true,
+
+        date_from:
+          dateFrom,
+
+        date_to:
+          dateTo,
+
+        advertiser: {
+          id:
+            advertiserId,
+
+          siteId:
+            site,
+
+          name:
+            advertiser.advertiser_name ||
+            advertiser.name ||
+            null
+        },
+
+        summary:
+          metrics,
+
+        campaigns
+      });
+
+    } catch (error) {
+      console.error(
+        'ADS ERROR:',
         error.details ||
-        null
-    });
-}
-```
+        error.message
+      );
 
-}
+      res.status(200).json({
+        ok: true,
+
+        date_from:
+          req.query.date_from ||
+          todayArgentina(),
+
+        date_to:
+          req.query.date_to ||
+          todayArgentina(),
+
+        advertiser:
+          null,
+
+        summary:
+          emptyAdsSummary(),
+
+        campaigns: [],
+
+        fetch_error:
+          error.message
+      });
+    }
+  }
+);
+
+// ============================================================
+// WEBHOOK MERCADO LIBRE
+// ============================================================
+
+app.post(
+  '/notifications',
+  async (req, res) => {
+
+    // IMPORTANTE:
+    // Mercado Libre necesita una respuesta rápida.
+    res.status(200).json({
+      ok: true
+    });
+
+    const notification =
+      req.body || {};
+
+    console.log(
+      'NOTIFICACIÓN MERCADO LIBRE:',
+      JSON.stringify(
+        notification
+      )
+    );
+
+    if (
+      notification.topic ===
+        'orders_v2' ||
+      notification.topic ===
+        'orders'
+    ) {
+      const resource =
+        notification.resource;
+
+      if (!resource) {
+        return;
+      }
+
+      try {
+        const order =
+          await mlFetch(
+            resource
+          );
+
+        console.log(
+          'NUEVA/ACTUALIZADA ORDEN:',
+          order.id
+        );
+
+        broadcast({
+          type:
+            'new_order',
+
+          order,
+
+          time:
+            new Date().toISOString()
+        });
+
+      } catch (error) {
+        console.error(
+          'Error procesando webhook:',
+          error.message
+        );
+
+        broadcast({
+          type:
+            'notification_error',
+
+          error:
+            error.message
+        });
+      }
+    }
+  }
+);
+
+// Algunos configuradores usan /webhooks
+app.post(
+  '/webhooks/mercadolibre',
+  (req, res) => {
+    res.status(200).json({
+      ok: true
+    });
+
+    setImmediate(
+      async () => {
+        const notification =
+          req.body || {};
+
+        if (
+          notification.topic ===
+            'orders_v2' ||
+          notification.topic ===
+            'orders'
+        ) {
+          try {
+            if (
+              notification.resource
+            ) {
+              const order =
+                await mlFetch(
+                  notification.resource
+                );
+
+              broadcast({
+                type:
+                  'new_order',
+
+                order,
+
+                time:
+                  new Date().toISOString()
+              });
+            }
+          } catch (error) {
+            console.error(
+              'Webhook error:',
+              error.message
+            );
+          }
+        }
+      }
+    );
+  }
 );
 
 // ============================================================
@@ -1017,430 +1596,46 @@ await mlFetch(
 // ============================================================
 
 app.post(
-'/api/logout',
-(req, res) => {
-tokenCache = null;
+  '/api/logout',
+  (req, res) => {
+    tokenCache = null;
 
-```
-try {
-  if (
-    fs.existsSync(
-      TOKEN_FILE
-    )
-  ) {
-    fs.unlinkSync(
-      TOKEN_FILE
-    );
-  }
-} catch (error) {
-  console.error(
-    'Error eliminando tokens:',
-    error.message
-  );
-}
-
-res.json({
-  ok: true,
-  message:
-    'Credenciales locales eliminadas.'
-});
-```
-
-}
-);
-
-// ============================================================
-// PRODUCT ADS
-// ============================================================
-
-async function getAdvertiser() {
-const data =
-await mlAdsFetch(
-'/advertising/advertisers?product_id=PADS',
-{},
-true,
-'1'
-);
-
-const advertisers =
-data.advertisers ||
-data.results ||
-[];
-
-if (
-!Array.isArray(advertisers) ||
-advertisers.length === 0
-) {
-throw new Error(
-'No se encontró un anunciante de Product Ads para esta cuenta.'
-);
-}
-
-const advertiser =
-advertisers.find(
-item =>
-String(item.site_id).toUpperCase() ===
-'MLA'
-) ||
-advertisers[0];
-
-return advertiser;
-}
-
-// ============================================================
-// MÉTRICAS PRODUCT ADS
-// ============================================================
-
-const AD_METRICS = [
-'clicks',
-'prints',
-'ctr',
-'cost',
-'cpc',
-'acos',
-'organic_units_quantity',
-'organic_units_amount',
-'organic_items_quantity',
-'direct_items_quantity',
-'indirect_items_quantity',
-'advertising_items_quantity',
-'cvr',
-'roas',
-'sov',
-'direct_units_quantity',
-'indirect_units_quantity',
-'units_quantity',
-'direct_amount',
-'indirect_amount',
-'total_amount'
-].join(',');
-
-// ============================================================
-// API ADS
-// ============================================================
-
-app.get(
-'/api/ads',
-async (req, res) => {
-try {
-const advertiser =
-await getAdvertiser();
-
-```
-  const site =
-    advertiser.site_id ||
-    'MLA';
-
-  const advertiserId =
-    advertiser.advertiser_id;
-
-  if (!advertiserId) {
-    throw new Error(
-      'Mercado Libre no devolvió advertiser_id.'
-    );
-  }
-
-  const dateFrom =
-    req.query.date_from ||
-    req.query.date ||
-    todayArgentina();
-
-  const dateTo =
-    req.query.date_to ||
-    req.query.date ||
-    dateFrom;
-
-  const params =
-    new URLSearchParams();
-
-  params.set(
-    'limit',
-    '50'
-  );
-
-  params.set(
-    'offset',
-    '0'
-  );
-
-  params.set(
-    'date_from',
-    dateFrom
-  );
-
-  params.set(
-    'date_to',
-    dateTo
-  );
-
-  params.set(
-    'metrics',
-    AD_METRICS
-  );
-
-  if (
-    dateFrom === dateTo
-  ) {
-    params.set(
-      'aggregation_type',
-      'DAILY'
-    );
-  } else {
-    params.set(
-      'metrics_summary',
-      'true'
-    );
-  }
-
-  const endpoint =
-    `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
-
-  const data =
-    await mlAdsFetch(
-      endpoint,
-      {},
-      true,
-      '2'
-    );
-
-  const campaigns =
-    Array.isArray(
-      data.results
-    )
-      ? data.results
-      : [];
-
-  const summary =
-    data.metrics_summary ||
-    {};
-
-  const numericFields = [
-    'clicks',
-    'prints',
-    'cost',
-    'direct_amount',
-    'indirect_amount',
-    'total_amount',
-    'direct_units_quantity',
-    'indirect_units_quantity',
-    'units_quantity',
-    'direct_items_quantity',
-    'indirect_items_quantity',
-    'advertising_items_quantity',
-    'organic_units_quantity',
-    'organic_units_amount',
-    'organic_items_quantity'
-  ];
-
-  const metrics =
-    emptyAdsSummary();
-
-  for (
-    const field
-    of numericFields
-  ) {
-    if (
-      summary[field] !== undefined
-    ) {
-      metrics[field] =
-        Number(
-          summary[field] || 0
-        );
-    }
-  }
-
-  if (
-    Object.keys(summary).length === 0
-  ) {
-    for (
-      const campaign
-      of campaigns
-    ) {
-      const values =
-        campaign.metrics ||
-        campaign;
-
-      for (
-        const field
-        of numericFields
+    try {
+      if (
+        fs.existsSync(
+          TOKEN_FILE
+        )
       ) {
-        metrics[field] +=
-          Number(
-            values[field] || 0
-          );
+        fs.unlinkSync(
+          TOKEN_FILE
+        );
       }
+    } catch (error) {
+      console.error(
+        error.message
+      );
     }
+
+    res.json({
+      ok: true
+    });
   }
-
-  metrics.ctr =
-    metrics.prints > 0
-      ? (
-          metrics.clicks /
-          metrics.prints
-        ) * 100
-      : 0;
-
-  metrics.cpc =
-    metrics.clicks > 0
-      ? (
-          metrics.cost /
-          metrics.clicks
-        )
-      : 0;
-
-  metrics.acos =
-    metrics.total_amount > 0
-      ? (
-          metrics.cost /
-          metrics.total_amount
-        ) * 100
-      : 0;
-
-  metrics.roas =
-    metrics.cost > 0
-      ? (
-          metrics.total_amount /
-          metrics.cost
-        )
-      : 0;
-
-  res.json({
-    ok: true,
-
-    period:
-      req.query.period ||
-      (
-        dateFrom === dateTo
-          ? 'today'
-          : 'custom'
-      ),
-
-    date_from:
-      dateFrom,
-
-    date_to:
-      dateTo,
-
-    advertiser: {
-      id:
-        advertiserId,
-
-      siteId:
-        site,
-
-      name:
-        advertiser.advertiser_name ||
-        advertiser.name ||
-        null,
-
-      account:
-        advertiser.account_name ||
-        advertiser.account ||
-        null
-    },
-
-    summary:
-      metrics,
-
-    campaigns,
-
-    items: []
-  });
-
-} catch (error) {
-  console.error(
-    'Error /api/ads:',
-    error.details || error
-  );
-
-  res.status(200).json({
-    ok: true,
-
-    period:
-      req.query.period ||
-      'today',
-
-    date_from:
-      req.query.date_from ||
-      req.query.date ||
-      todayArgentina(),
-
-    date_to:
-      req.query.date_to ||
-      req.query.date ||
-      todayArgentina(),
-
-    advertiser:
-      null,
-
-    summary:
-      emptyAdsSummary(),
-
-    campaigns: [],
-
-    items: [],
-
-    fetch_error:
-      error.message
-  });
-}
-```
-
-}
 );
 
 // ============================================================
-// TEST PRODUCT ADS
-// ============================================================
-
-app.get(
-'/api/ads/test',
-async (req, res) => {
-try {
-const advertiser =
-await getAdvertiser();
-
-```
-  res.json({
-    ok: true,
-    advertiser
-  });
-
-} catch (error) {
-  console.error(
-    'Error /api/ads/test:',
-    error.details || error
-  );
-
-  res.status(200).json({
-    ok: false,
-    error:
-      error.message,
-    details:
-      error.details ||
-      null
-  });
-}
-```
-
-}
-);
-
-// ============================================================
-// RUTA 404 API
+// 404 API
 // ============================================================
 
 app.use(
-'/api',
-(req, res) => {
-res
-.status(404)
-.json({
-ok: false,
-error:
-`Ruta no encontrada: ${req.method} ${req.originalUrl}`
-});
-}
+  '/api',
+  (req, res) => {
+    res.status(404).json({
+      ok: false,
+
+      error:
+        `Ruta no encontrada: ${req.method} ${req.originalUrl}`
+    });
+  }
 );
 
 // ============================================================
@@ -1448,121 +1643,83 @@ error:
 // ============================================================
 
 app.use(
-(req, res) => {
-res
-.status(404)
-.send(
-`Ruta no encontrada: ${req.method} ${req.originalUrl}`
-);
-}
+  (req, res) => {
+    res.status(404).send(
+      `Ruta no encontrada: ${req.method} ${req.originalUrl}`
+    );
+  }
 );
 
 // ============================================================
-// MANEJO DE ERRORES
-// ============================================================
-
-app.use(
-(error, req, res, next) => {
-console.error(
-'Error no controlado:',
-error
-);
-
-```
-if (res.headersSent) {
-  return next(error);
-}
-
-res
-  .status(500)
-  .json({
-    ok: false,
-    error:
-      'Error interno del servidor.',
-    details:
-      error.message
-  });
-```
-
-}
-);
-
-// ============================================================
-// INICIAR SERVIDOR
+// SERVER
 // ============================================================
 
 const server =
-app.listen(
-PORT,
-'0.0.0.0',
-() => {
-console.log(
-'========================================'
-);
+  app.listen(
+    PORT,
+    '0.0.0.0',
+    () => {
 
-```
-  console.log(
-    'CONTEONIX INICIADO CORRECTAMENTE'
+      console.log(
+        '=========================================='
+      );
+
+      console.log(
+        'CONTEONIX ONLINE'
+      );
+
+      console.log(
+        `PORT: ${PORT}`
+      );
+
+      console.log(
+        `BASE_URL: ${BASE_URL}`
+      );
+
+      console.log(
+        `HEALTH: ${BASE_URL}/api/health`
+      );
+
+      console.log(
+        `ADS: ${BASE_URL}/api/ads`
+      );
+
+      console.log(
+        `WEBHOOK: ${BASE_URL}/notifications`
+      );
+
+      console.log(
+        '=========================================='
+      );
+    }
   );
-
-  console.log(
-    `Puerto: ${PORT}`
-  );
-
-  console.log(
-    `BASE_URL: ${BASE_URL}`
-  );
-
-  console.log(
-    `REDIRECT_URI: ${REDIRECT_URI}`
-  );
-
-  console.log(
-    `Health: ${BASE_URL}/api/health`
-  );
-
-  console.log(
-    `Ads: ${BASE_URL}/api/ads`
-  );
-
-  console.log(
-    `Ads Test: ${BASE_URL}/api/ads/test`
-  );
-
-  console.log(
-    '========================================'
-  );
-}
-```
-
-);
 
 server.on(
-'error',
-(error) => {
-console.error(
-'ERROR DEL SERVIDOR:',
-error
-);
-}
-);
-
-process.on(
-'uncaughtException',
-(error) => {
-console.error(
-'UNCAUGHT EXCEPTION:',
-error
-);
-}
+  'error',
+  error => {
+    console.error(
+      'SERVER ERROR:',
+      error
+    );
+  }
 );
 
 process.on(
-'unhandledRejection',
-(error) => {
-console.error(
-'UNHANDLED REJECTION:',
-error
+  'uncaughtException',
+  error => {
+    console.error(
+      'UNCAUGHT EXCEPTION:',
+      error
+    );
+  }
 );
-}
+
+process.on(
+  'unhandledRejection',
+  error => {
+    console.error(
+      'UNHANDLED REJECTION:',
+      error
+    );
+  }
 );
