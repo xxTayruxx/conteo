@@ -25,17 +25,7 @@
   content="yes"
 >
 
-<meta
-  name="apple-mobile-web-app-status-bar-style"
-  content="black-translucent"
->
-
 <title>Conteonix</title>
-
-<link
-  rel="manifest"
-  href="/manifest.json"
->
 
 <style>
 
@@ -48,7 +38,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #080808;
+  min-height: 100%;
+  background: #090909;
   color: #fff;
   font-family:
     Inter,
@@ -63,18 +54,13 @@ body {
   min-height: 100vh;
 }
 
-button,
-input {
-  font: inherit;
-}
-
 button {
-  cursor: pointer;
+  font: inherit;
 }
 
 .app {
   width: 100%;
-  max-width: 1100px;
+  max-width: 1000px;
   margin: auto;
   padding:
     env(safe-area-inset-top)
@@ -82,107 +68,46 @@ button {
     calc(30px + env(safe-area-inset-bottom));
 }
 
-/* =========================================================
-HEADER
-========================================================= */
-
 .topbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 18px 2px 15px;
+  justify-content: space-between;
+  padding: 18px 2px;
 }
 
 .brand {
   font-size: 26px;
-  font-weight: 950;
-  letter-spacing: -1.5px;
-}
-
-.brand span {
-  color: #888;
-  font-size: 11px;
-  display: block;
-  letter-spacing: 1px;
-  margin-top: 1px;
+  font-weight: 900;
+  letter-spacing: -1px;
 }
 
 .status {
   display: flex;
   align-items: center;
   gap: 7px;
-  color: #888;
-  font-size: 11px;
+  color: #999;
+  font-size: 12px;
 }
 
 .dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #555;
+  background: #666;
 }
 
 .dot.online {
-  background: #39d98a;
+  background: #35d17c;
   box-shadow:
     0 0 12px
-    rgba(57,217,138,.7);
+    rgba(53,209,124,.7);
 }
-
-/* =========================================================
-NAV
-========================================================= */
-
-.nav {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  padding-bottom: 5px;
-  margin-bottom: 13px;
-}
-
-.nav::-webkit-scrollbar {
-  display: none;
-}
-
-.nav button {
-  flex: 0 0 auto;
-  border: 1px solid #292929;
-  background: #151515;
-  color: #999;
-  border-radius: 13px;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.nav button.active {
-  background: #fff;
-  color: #000;
-  border-color: #fff;
-}
-
-/* =========================================================
-PAGES
-========================================================= */
-
-.page {
-  display: none;
-}
-
-.page.active {
-  display: block;
-}
-
-/* =========================================================
-HERO
-========================================================= */
 
 .hero {
   background:
     linear-gradient(
       145deg,
-      #1c1c1c,
+      #191919,
       #101010
     );
 
@@ -191,131 +116,114 @@ HERO
 
   border-radius: 24px;
 
-  padding: 23px 20px;
+  padding:
+    25px
+    21px;
 
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .hero-label {
-  color: #888;
-  font-size: 12px;
-  margin-bottom: 8px;
+  color: #999;
+  font-size: 13px;
 }
 
 .hero-value {
-  font-size: 42px;
+  margin-top: 8px;
+  font-size: 43px;
   line-height: 1;
-  font-weight: 950;
+  font-weight: 900;
   letter-spacing: -2px;
 }
 
 .hero-sub {
-  margin-top: 11px;
-  color: #999;
-  font-size: 12px;
+  margin-top: 12px;
+  color: #aaa;
+  font-size: 13px;
 }
-
-/* =========================================================
-CARDS
-========================================================= */
 
 .grid {
   display: grid;
   grid-template-columns:
-    repeat(2, 1fr);
-  gap: 9px;
+    repeat(2,1fr);
+  gap: 10px;
 }
 
 .card {
   background: #151515;
-  border: 1px solid #272727;
+  border:
+    1px solid #252525;
   border-radius: 18px;
-  padding: 16px;
-  min-height: 108px;
+  padding: 17px;
+  min-height: 115px;
 }
 
 .card-label {
-  color: #888;
-  font-size: 11px;
+  color: #8f8f8f;
+  font-size: 12px;
   margin-bottom: 9px;
 }
 
 .card-value {
-  font-size: 22px;
+  font-size: 23px;
   font-weight: 900;
-  letter-spacing: -.6px;
 }
 
 .card-small {
-  color: #666;
-  font-size: 10px;
   margin-top: 7px;
-}
-
-/* =========================================================
-PROFIT
-========================================================= */
-
-.profit-box {
-  margin-top: 10px;
-  background: #101810;
-  border: 1px solid #254c2d;
-  border-radius: 19px;
-  padding: 17px;
-}
-
-.profit-title {
-  color: #86d79d;
+  color: #666;
   font-size: 11px;
-  font-weight: 800;
-  margin-bottom: 7px;
 }
 
-.profit-value {
-  font-size: 29px;
-  font-weight: 950;
+.profit {
+  margin-top: 10px;
+  background: #111b15;
+  border:
+    1px solid #245233;
 }
 
-/* =========================================================
-SECTION
-========================================================= */
+.profit .card-value {
+  color: #5be391;
+}
+
+.ad {
+  background: #17130e;
+  border:
+    1px solid #4b351d;
+}
 
 .section {
-  margin-top: 21px;
+  margin-top: 22px;
 }
 
 .section-title {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 900;
-  margin-bottom: 10px;
-}
-
-.section-subtitle {
-  color: #666;
-  font-size: 11px;
-  margin-top: -5px;
   margin-bottom: 11px;
 }
 
-/* =========================================================
-TOOLBAR
-========================================================= */
+.section-sub {
+  color: #777;
+  font-size: 12px;
+  margin-top: -6px;
+  margin-bottom: 12px;
+}
 
 .toolbar {
   display: flex;
   gap: 8px;
-  margin-top: 11px;
+  margin-top: 12px;
 }
 
 .btn {
   flex: 1;
-  border-radius: 14px;
-  border: 1px solid #333;
-  background: #1c1c1c;
+  border:
+    1px solid #333;
+  background: #222;
   color: #fff;
-  padding: 13px;
+  border-radius: 14px;
+  padding: 14px;
   font-weight: 800;
-  font-size: 12px;
 }
 
 .btn.primary {
@@ -327,14 +235,11 @@ TOOLBAR
   transform: scale(.98);
 }
 
-/* =========================================================
-ORDERS
-========================================================= */
-
 .order {
   background: #151515;
-  border: 1px solid #272727;
-  border-radius: 17px;
+  border:
+    1px solid #252525;
+  border-radius: 16px;
   padding: 15px;
   margin-bottom: 8px;
 }
@@ -346,306 +251,139 @@ ORDERS
 }
 
 .order-id {
+  font-size: 14px;
   font-weight: 850;
-  font-size: 13px;
 }
 
 .order-price {
-  font-weight: 950;
+  font-weight: 900;
   white-space: nowrap;
 }
 
 .order-date {
-  color: #666;
-  font-size: 10px;
   margin-top: 5px;
+  color: #777;
+  font-size: 11px;
 }
 
 .order-items {
   margin-top: 11px;
-  border-top: 1px solid #242424;
-  padding-top: 9px;
-}
-
-.order-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 11px;
+  padding-top: 10px;
+  border-top:
+    1px solid #252525;
   color: #aaa;
-  margin-top: 6px;
+  font-size: 12px;
 }
 
-.order-item span:last-child {
-  color: #fff;
-  font-weight: 800;
-}
-
-/* =========================================================
-PRODUCTS
-========================================================= */
-
-.product {
+.campaign {
   background: #151515;
-  border: 1px solid #272727;
-  border-radius: 18px;
+  border:
+    1px solid #252525;
+  border-radius: 17px;
   padding: 15px;
   margin-bottom: 9px;
 }
 
-.product-head {
+.campaign-head {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.product-title {
-  font-weight: 850;
-  font-size: 13px;
-  line-height: 1.3;
-}
-
-.product-id {
-  color: #555;
-  font-size: 9px;
-  margin-top: 5px;
-}
-
-.stock-number {
-  font-size: 23px;
-  font-weight: 950;
-  white-space: nowrap;
-}
-
-.stock-label {
-  color: #666;
-  font-size: 9px;
-  text-align: right;
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns:
-    repeat(2, 1fr);
-  gap: 7px;
-  margin-top: 13px;
-}
-
-.product-stat {
-  background: #101010;
-  border-radius: 11px;
-  padding: 10px;
-}
-
-.product-stat-label {
-  color: #666;
-  font-size: 9px;
-}
-
-.product-stat-value {
-  margin-top: 4px;
-  font-size: 12px;
+.campaign-name {
   font-weight: 850;
 }
 
-.badge {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 6px 9px;
-  border-radius: 8px;
-  font-size: 9px;
-  font-weight: 900;
-}
-
-.badge.ok {
-  background: #102217;
-  color: #67d88e;
-}
-
-.badge.warning {
-  background: #2a2110;
-  color: #e4b767;
-}
-
-.badge.critical {
-  background: #2b1111;
-  color: #ff7777;
-}
-
-/* =========================================================
-COST
-========================================================= */
-
-.cost-row {
-  display: flex;
-  gap: 7px;
-  margin-top: 11px;
-}
-
-.cost-row input {
-  min-width: 0;
-  flex: 1;
-  background: #0d0d0d;
-  color: #fff;
-  border: 1px solid #333;
-  border-radius: 11px;
-  padding: 10px;
-  outline: none;
-  font-size: 12px;
-}
-
-.cost-row button {
-  border: 0;
-  background: #fff;
-  color: #000;
-  border-radius: 11px;
-  padding: 0 13px;
-  font-weight: 900;
-  font-size: 11px;
-}
-
-/* =========================================================
-AD CAMPAIGNS
-========================================================= */
-
-.campaign {
-  background: #151515;
-  border: 1px solid #272727;
-  border-radius: 17px;
-  padding: 15px;
-  margin-bottom: 8px;
-}
-
-.campaign-title {
-  font-size: 13px;
-  font-weight: 850;
+.campaign-status {
+  font-size: 10px;
+  padding: 5px 8px;
+  border-radius: 20px;
+  background: #1c3827;
+  color: #6ee59b;
 }
 
 .campaign-grid {
   display: grid;
   grid-template-columns:
-    repeat(2, 1fr);
-  gap: 7px;
-  margin-top: 11px;
+    repeat(3,1fr);
+  gap: 8px;
+  margin-top: 13px;
 }
 
-.campaign-stat {
+.metric {
   background: #101010;
   border-radius: 10px;
   padding: 9px;
 }
 
-.campaign-stat-label {
+.metric-label {
   color: #666;
-  font-size: 9px;
+  font-size: 10px;
 }
 
-.campaign-stat-value {
+.metric-value {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 850;
 }
 
-/* =========================================================
-ALERTS
-========================================================= */
-
-.alert {
-  background: #151515;
-  border: 1px solid #272727;
-  border-radius: 17px;
-  padding: 15px;
-  margin-bottom: 8px;
-}
-
-.alert.warning {
-  border-color: #554019;
-}
-
-.alert.critical {
-  border-color: #5b2020;
-}
-
-.alert-title {
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.alert-text {
-  color: #888;
-  font-size: 11px;
-  margin-top: 5px;
-}
-
-/* =========================================================
-CONNECTED
-========================================================= */
-
-.connected-box {
-  margin-top: 10px;
+.connection {
+  margin-top: 12px;
   padding: 13px;
   border-radius: 14px;
   background: #101b14;
-  border: 1px solid #1f5032;
-  color: #72e6a0;
-  font-size: 12px;
+  border:
+    1px solid #205131;
+  color: #6ee29a;
+  font-size: 13px;
 }
 
-.warning-box {
-  margin-top: 10px;
+.warning {
+  margin-top: 12px;
   padding: 13px;
   border-radius: 14px;
-  background: #1d1710;
-  border: 1px solid #4a3218;
-  color: #e9b56b;
-  font-size: 12px;
+  background: #21180e;
+  border:
+    1px solid #4d351c;
+  color: #e9b66d;
+  font-size: 13px;
 }
 
-/* =========================================================
-EMPTY
-========================================================= */
+.error-box {
+  margin-top: 12px;
+  padding: 13px;
+  border-radius: 14px;
+  background: #241111;
+  border:
+    1px solid #5a2222;
+  color: #ff8b8b;
+  font-size: 12px;
+  word-break: break-word;
+}
 
 .empty {
+  padding: 30px;
   text-align: center;
-  padding: 30px 10px;
-  color: #555;
-  font-size: 12px;
+  color: #666;
+  font-size: 13px;
 }
-
-/* =========================================================
-FOOTER
-========================================================= */
 
 .footer {
-  text-align: center;
-  color: #333;
-  font-size: 10px;
   padding: 30px 0 10px;
+  text-align: center;
+  color: #444;
+  font-size: 11px;
 }
-
-/* =========================================================
-DESKTOP
-========================================================= */
 
 @media (min-width: 700px) {
 
   .grid {
     grid-template-columns:
-      repeat(4, 1fr);
+      repeat(4,1fr);
   }
 
   .hero-value {
     font-size: 55px;
-  }
-
-  .product-grid {
-    grid-template-columns:
-      repeat(4, 1fr);
-  }
-
-  .campaign-grid {
-    grid-template-columns:
-      repeat(4, 1fr);
   }
 
 }
@@ -662,7 +400,6 @@ DESKTOP
 
   <div class="brand">
     Conteonix
-    <span>CONTROL DE MERCADO LIBRE</span>
   </div>
 
   <div class="status">
@@ -672,9 +409,7 @@ DESKTOP
       class="dot"
     ></span>
 
-    <span
-      id="statusText"
-    >
+    <span id="statusText">
       Conectando...
     </span>
 
@@ -683,569 +418,208 @@ DESKTOP
 </header>
 
 
-<nav class="nav">
+<section class="hero">
 
-  <button
-    class="active"
-    data-page="dashboard"
-    onclick="showPage('dashboard')"
-  >
-    Dashboard
-  </button>
-
-  <button
-    data-page="ventas"
-    onclick="showPage('ventas')"
-  >
-    Ventas
-  </button>
-
-  <button
-    data-page="publicidad"
-    onclick="showPage('publicidad')"
-  >
-    Publicidad
-  </button>
-
-  <button
-    data-page="productos"
-    onclick="showPage('productos')"
-  >
-    Productos
-  </button>
-
-  <button
-    data-page="alertas"
-    onclick="showPage('alertas')"
-  >
-    Alertas
-  </button>
-
-</nav>
-
-
-<!-- ======================================================
-DASHBOARD
-====================================================== -->
-
-<section
-  id="page-dashboard"
-  class="page active"
->
-
-  <section class="hero">
-
-    <div class="hero-label">
-      Facturación de hoy
-    </div>
-
-    <div
-      id="todaySales"
-      class="hero-value"
-    >
-      $0
-    </div>
-
-    <div
-      id="todayUnits"
-      class="hero-sub"
-    >
-      0 unidades vendidas
-    </div>
-
-  </section>
-
-
-  <section class="grid">
-
-    <div class="card">
-
-      <div class="card-label">
-        Ventas
-      </div>
-
-      <div
-        id="salesCount"
-        class="card-value"
-      >
-        0
-      </div>
-
-      <div class="card-small">
-        operaciones hoy
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        Costo mercadería
-      </div>
-
-      <div
-        id="productCost"
-        class="card-value"
-      >
-        $0
-      </div>
-
-      <div class="card-small">
-        costo estimado
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        Publicidad
-      </div>
-
-      <div
-        id="adCost"
-        class="card-value"
-      >
-        $0
-      </div>
-
-      <div class="card-small">
-        Product Ads hoy
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        Margen
-      </div>
-
-      <div
-        id="margin"
-        class="card-value"
-      >
-        0%
-      </div>
-
-      <div class="card-small">
-        después de publicidad
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <div class="profit-box">
-
-    <div class="profit-title">
-      GANANCIA ESTIMADA DESPUÉS DE PUBLICIDAD
-    </div>
-
-    <div
-      id="netProfit"
-      class="profit-value"
-    >
-      $0
-    </div>
-
+  <div class="hero-label">
+    Facturación de hoy
   </div>
-
 
   <div
-    id="connectionBox"
-  ></div>
-
-
-  <div class="toolbar">
-
-    <button
-      class="btn primary"
-      onclick="refreshAll()"
-    >
-      Actualizar
-    </button>
-
-    <button
-      class="btn"
-      onclick="enableNotifications()"
-    >
-      Activar alertas
-    </button>
-
+    id="todaySales"
+    class="hero-value"
+  >
+    $0
   </div>
 
-
-  <section class="section">
-
-    <div class="section-title">
-      Resumen publicitario
-    </div>
-
-    <div class="grid">
-
-      <div class="card">
-
-        <div class="card-label">
-          ROAS
-        </div>
-
-        <div
-          id="roas"
-          class="card-value"
-        >
-          0x
-        </div>
-
-        <div class="card-small">
-          retorno publicitario
-        </div>
-
-      </div>
-
-
-      <div class="card">
-
-        <div class="card-label">
-          ACOS
-        </div>
-
-        <div
-          id="acos"
-          class="card-value"
-        >
-          0%
-        </div>
-
-        <div class="card-small">
-          publicidad / ventas ads
-        </div>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <section class="section">
-
-    <div class="section-title">
-      Últimas ventas
-    </div>
-
-    <div id="dashboardOrders">
-      <div class="empty">
-        Cargando...
-      </div>
-    </div>
-
-  </section>
+  <div
+    id="todayUnits"
+    class="hero-sub"
+  >
+    0 unidades · 0 ventas
+  </div>
 
 </section>
 
 
-<!-- ======================================================
-VENTAS
-====================================================== -->
+<section class="grid">
 
-<section
-  id="page-ventas"
-  class="page"
->
 
-  <section class="hero">
+  <div class="card">
 
-    <div class="hero-label">
-      Ventas de hoy
+    <div class="card-label">
+      Ventas
     </div>
 
     <div
-      id="salesPageTotal"
-      class="hero-value"
-    >
-      $0
-    </div>
-
-    <div
-      id="salesPageUnits"
-      class="hero-sub"
-    >
-      0 unidades
-    </div>
-
-  </section>
-
-
-  <section class="section">
-
-    <div class="section-title">
-      Historial
-    </div>
-
-    <div
-      id="orders"
-    >
-      <div class="empty">
-        Cargando ventas...
-      </div>
-    </div>
-
-  </section>
-
-</section>
-
-
-<!-- ======================================================
-PUBLICIDAD
-====================================================== -->
-
-<section
-  id="page-publicidad"
-  class="page"
->
-
-  <section class="hero">
-
-    <div class="hero-label">
-      Gasto Product Ads hoy
-    </div>
-
-    <div
-      id="adsPageCost"
-      class="hero-value"
-    >
-      $0
-    </div>
-
-    <div
-      id="adsPageRevenue"
-      class="hero-sub"
-    >
-      $0 ventas atribuidas
-    </div>
-
-  </section>
-
-
-  <section class="grid">
-
-    <div class="card">
-
-      <div class="card-label">
-        ROAS
-      </div>
-
-      <div
-        id="adsPageRoas"
-        class="card-value"
-      >
-        0x
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        ACOS
-      </div>
-
-      <div
-        id="adsPageAcos"
-        class="card-value"
-      >
-        0%
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        Clics
-      </div>
-
-      <div
-        id="adsClicks"
-        class="card-value"
-      >
-        0
-      </div>
-
-    </div>
-
-
-    <div class="card">
-
-      <div class="card-label">
-        CPC
-      </div>
-
-      <div
-        id="adsCpc"
-        class="card-value"
-      >
-        $0
-      </div>
-
-    </div>
-
-  </section>
-
-
-  <section class="section">
-
-    <div class="section-title">
-      Campañas
-    </div>
-
-    <div
-      id="campaigns"
-    >
-      <div class="empty">
-        Cargando campañas...
-      </div>
-    </div>
-
-  </section>
-
-</section>
-
-
-<!-- ======================================================
-PRODUCTOS
-====================================================== -->
-
-<section
-  id="page-productos"
-  class="page"
->
-
-  <section class="hero">
-
-    <div class="hero-label">
-      Control de stock
-    </div>
-
-    <div
-      id="productsCount"
-      class="hero-value"
+      id="salesCount"
+      class="card-value"
     >
       0
     </div>
 
-    <div class="hero-sub">
-      publicaciones detectadas en tus ventas recientes
+    <div class="card-small">
+      operaciones hoy
     </div>
-
-  </section>
-
-
-  <div class="warning-box">
-
-    El costo de compra es ingresado por vos.
-    Conteonix lo utiliza para calcular ganancia,
-    margen y valor del stock.
 
   </div>
 
 
-  <section class="section">
+  <div class="card">
 
-    <div class="section-title">
-      Productos
+    <div class="card-label">
+      Unidades
     </div>
 
     <div
-      id="products"
-    >
-      <div class="empty">
-        Cargando productos...
-      </div>
-    </div>
-
-  </section>
-
-</section>
-
-
-<!-- ======================================================
-ALERTAS
-====================================================== -->
-
-<section
-  id="page-alertas"
-  class="page"
->
-
-  <section class="hero">
-
-    <div class="hero-label">
-      Centro de alertas
-    </div>
-
-    <div
-      id="alertsCount"
-      class="hero-value"
+      id="units"
+      class="card-value"
     >
       0
     </div>
 
-    <div class="hero-sub">
-      situaciones que requieren atención
+    <div class="card-small">
+      productos vendidos
     </div>
 
-  </section>
+  </div>
 
 
-  <div
-    id="alerts"
+  <div class="card ad">
+
+    <div class="card-label">
+      Publicidad
+    </div>
+
+    <div
+      id="adCost"
+      class="card-value"
+    >
+      $0
+    </div>
+
+    <div class="card-small">
+      gasto Product Ads hoy
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="card-label">
+      ROAS
+    </div>
+
+    <div
+      id="roas"
+      class="card-value"
+    >
+      0.00x
+    </div>
+
+    <div class="card-small">
+      retorno de publicidad
+    </div>
+
+  </div>
+
+
+  <div class="card">
+
+    <div class="card-label">
+      ACOS
+    </div>
+
+    <div
+      id="acos"
+      class="card-value"
+    >
+      0%
+    </div>
+
+    <div class="card-small">
+      publicidad / ventas atribuidas
+    </div>
+
+  </div>
+
+
+  <div class="card profit">
+
+    <div class="card-label">
+      Facturación - publicidad
+    </div>
+
+    <div
+      id="afterAds"
+      class="card-value"
+    >
+      $0
+    </div>
+
+    <div class="card-small">
+      antes de costos de producto
+    </div>
+
+  </div>
+
+</section>
+
+
+<div id="connectionBox"></div>
+
+
+<div class="toolbar">
+
+  <button
+    class="btn primary"
+    onclick="refreshAll()"
   >
+    Actualizar
+  </button>
+
+  <button
+    class="btn"
+    onclick="enableNotifications()"
+  >
+    Activar alertas
+  </button>
+
+</div>
+
+
+<section class="section">
+
+  <div class="section-title">
+    Publicidad de hoy
+  </div>
+
+  <div class="section-sub">
+    Gasto real informado por Product Ads
+  </div>
+
+  <div id="adDetails">
     <div class="empty">
-      Analizando...
+      Cargando publicidad...
     </div>
   </div>
 
+</section>
 
-  <section class="section">
 
-    <div class="section-title">
-      Configuración
+<section class="section">
+
+  <div class="section-title">
+    Últimas ventas
+  </div>
+
+  <div id="orders">
+
+    <div class="empty">
+      Cargando ventas...
     </div>
 
-    <div class="card">
-
-      <div class="card-label">
-        Avisar cuando queden menos de X días
-      </div>
-
-      <div class="cost-row">
-
-        <input
-          id="alertDays"
-          type="number"
-          min="1"
-          placeholder="10"
-        >
-
-        <button
-          onclick="saveSettings()"
-        >
-          Guardar
-        </button>
-
-      </div>
-
-    </div>
-
-  </section>
+  </div>
 
 </section>
 
@@ -1259,25 +633,17 @@ ALERTAS
 
 <script>
 
-/* =========================================================
-VARIABLES
-========================================================= */
-
 let orders = [];
-let products = [];
-let adsData = null;
 
 let audioContext = null;
 
-let firstLoad = true;
-
-let previousOrderIds =
+let knownOrders =
   new Set();
 
 
-/* =========================================================
-FORMATO
-========================================================= */
+// ============================================================
+// FORMATO
+// ============================================================
 
 function money(value) {
 
@@ -1291,20 +657,7 @@ function money(value) {
   ).format(
     Number(value) || 0
   );
-
 }
-
-
-function number(value) {
-
-  return new Intl.NumberFormat(
-    'es-AR'
-  ).format(
-    Number(value) || 0
-  );
-
-}
-
 
 function dateText(value) {
 
@@ -1323,79 +676,12 @@ function dateText(value) {
       minute: '2-digit'
     }
   );
-
 }
 
 
-function todayString() {
-
-  const now =
-    new Date();
-
-  return (
-    now.getFullYear() +
-    '-' +
-    String(
-      now.getMonth() + 1
-    ).padStart(2, '0') +
-    '-' +
-    String(
-      now.getDate()
-    ).padStart(2, '0')
-  );
-
-}
-
-
-/* =========================================================
-NAVEGACIÓN
-========================================================= */
-
-function showPage(page) {
-
-  document
-    .querySelectorAll('.page')
-    .forEach(
-      element =>
-        element.classList.remove(
-          'active'
-        )
-    );
-
-  document
-    .getElementById(
-      `page-${page}`
-    )
-    .classList.add(
-      'active'
-    );
-
-  document
-    .querySelectorAll('.nav button')
-    .forEach(
-      button =>
-        button.classList.remove(
-          'active'
-        )
-    );
-
-  const active =
-    document.querySelector(
-      `.nav button[data-page="${page}"]`
-    );
-
-  if (active) {
-    active.classList.add(
-      'active'
-    );
-  }
-
-}
-
-
-/* =========================================================
-AUDIO
-========================================================= */
+// ============================================================
+// AUDIO
+// ============================================================
 
 function unlockAudio() {
 
@@ -1408,7 +694,6 @@ function unlockAudio() {
           window.AudioContext ||
           window.webkitAudioContext
         )();
-
     }
 
     if (
@@ -1417,20 +702,16 @@ function unlockAudio() {
     ) {
 
       audioContext.resume();
-
     }
 
   } catch (error) {
 
     console.log(
-      'Audio no disponible',
+      'Audio:',
       error
     );
-
   }
-
 }
-
 
 document.addEventListener(
   'click',
@@ -1482,7 +763,7 @@ function playSaleSound() {
   );
 
   gain.gain.exponentialRampToValueAtTime(
-    .35,
+    .30,
     now + .02
   );
 
@@ -1506,21 +787,19 @@ function playSaleSound() {
   oscillator.stop(
     now + .55
   );
-
 }
 
 
-/* =========================================================
-NOTIFICACIONES
-========================================================= */
+// ============================================================
+// NOTIFICACIONES
+// ============================================================
 
 async function enableNotifications() {
 
+  unlockAudio();
+
   if (
-    !(
-      'Notification'
-      in window
-    )
+    !('Notification' in window)
   ) {
 
     alert(
@@ -1528,15 +807,12 @@ async function enableNotifications() {
     );
 
     return;
-
   }
 
   try {
 
     const permission =
       await Notification.requestPermission();
-
-    unlockAudio();
 
     if (
       permission ===
@@ -1553,6 +829,8 @@ async function enableNotifications() {
         }
       );
 
+      playSaleSound();
+
     }
 
   } catch (error) {
@@ -1560,9 +838,7 @@ async function enableNotifications() {
     console.error(
       error
     );
-
   }
-
 }
 
 
@@ -1571,8 +847,7 @@ function notifySale(order) {
   playSaleSound();
 
   if (
-    'Notification'
-    in window &&
+    'Notification' in window &&
     Notification.permission ===
       'granted'
   ) {
@@ -1590,15 +865,13 @@ function notifySale(order) {
           `order-${order.id}`
       }
     );
-
   }
-
 }
 
 
-/* =========================================================
-STATUS
-========================================================= */
+// ============================================================
+// STATUS
+// ============================================================
 
 async function loadStatus() {
 
@@ -1638,18 +911,14 @@ async function loadStatus() {
         'connectionBox'
       ).innerHTML = `
 
-        <div class="connected-box">
+        <div class="connection">
 
           Conectado como
           <strong>
-            ${
-              data.user?.nickname ||
-              'Mercado Libre'
-            }
+            ${data.user?.nickname || ''}
           </strong>
 
         </div>
-
       `;
 
     } else {
@@ -1661,7 +930,7 @@ async function loadStatus() {
         'connectionBox'
       ).innerHTML = `
 
-        <div class="warning-box">
+        <div class="warning">
 
           Mercado Libre no está conectado.
 
@@ -1675,9 +944,7 @@ async function loadStatus() {
           </button>
 
         </div>
-
       `;
-
     }
 
   } catch (error) {
@@ -1686,15 +953,13 @@ async function loadStatus() {
       'statusText'
     ).textContent =
       'Offline';
-
   }
-
 }
 
 
-/* =========================================================
-DASHBOARD
-========================================================= */
+// ============================================================
+// DASHBOARD
+// ============================================================
 
 async function loadDashboard() {
 
@@ -1709,58 +974,62 @@ async function loadDashboard() {
       await response.json();
 
     if (!data.ok) {
+
       throw new Error(
-        data.error
+        data.error ||
+        'Error cargando dashboard'
       );
     }
 
     document.getElementById(
       'todaySales'
     ).textContent =
-      money(data.sales);
+      money(
+        data.sales
+      );
 
     document.getElementById(
       'todayUnits'
     ).textContent =
-      `${number(data.units)} unidades vendidas`;
+      `${data.units} unidades · ${data.orders} ventas`;
 
     document.getElementById(
       'salesCount'
     ).textContent =
-      number(data.orders);
+      data.orders;
 
     document.getElementById(
-      'productCost'
+      'units'
     ).textContent =
-      money(data.product_cost);
+      data.units;
 
     document.getElementById(
       'adCost'
     ).textContent =
-      money(data.advertising);
-
-    document.getElementById(
-      'netProfit'
-    ).textContent =
-      money(data.net_profit);
-
-    document.getElementById(
-      'margin'
-    ).textContent =
-      `${Number(data.margin || 0).toFixed(1)}%`;
-
-    const ads =
-      data.ads || {};
+      money(
+        data.advertising?.cost
+      );
 
     document.getElementById(
       'roas'
     ).textContent =
-      `${Number(ads.roas || 0).toFixed(2)}x`;
+      `${Number(
+        data.advertising?.roas || 0
+      ).toFixed(2)}x`;
 
     document.getElementById(
       'acos'
     ).textContent =
-      `${Number(ads.acos || 0).toFixed(1)}%`;
+      `${Number(
+        data.advertising?.acos || 0
+      ).toFixed(1)}%`;
+
+    document.getElementById(
+      'afterAds'
+    ).textContent =
+      money(
+        data.after_ads
+      );
 
   } catch (error) {
 
@@ -1768,15 +1037,13 @@ async function loadDashboard() {
       'DASHBOARD:',
       error
     );
-
   }
-
 }
 
 
-/* =========================================================
-ORDERS
-========================================================= */
+// ============================================================
+// ORDERS
+// ============================================================
 
 async function loadOrders() {
 
@@ -1791,6 +1058,7 @@ async function loadOrders() {
       await response.json();
 
     if (!data.ok) {
+
       throw new Error(
         data.error
       );
@@ -1801,7 +1069,7 @@ async function loadOrders() {
 
     renderOrders();
 
-    calculateSalesPage();
+    checkNewOrders();
 
   } catch (error) {
 
@@ -1817,84 +1085,8 @@ async function loadOrders() {
       <div class="empty">
         No se pudieron cargar las ventas.
       </div>
-
     `;
-
   }
-
-}
-
-
-function calculateSalesPage() {
-
-  const today =
-    todayString();
-
-  const todayOrders =
-    orders.filter(
-      order => {
-
-        if (
-          !order.date_created
-        ) {
-          return false;
-        }
-
-        const date =
-          new Date(
-            order.date_created
-          );
-
-        return (
-          date.getFullYear() ===
-            new Date().getFullYear() &&
-          date.getMonth() ===
-            new Date().getMonth() &&
-          date.getDate() ===
-            new Date().getDate()
-        );
-
-      }
-    );
-
-  let total = 0;
-  let units = 0;
-
-  todayOrders.forEach(
-    order => {
-
-      total +=
-        Number(
-          order.total_amount
-        ) || 0;
-
-      (
-        order.order_items ||
-        []
-      ).forEach(
-        item => {
-
-          units +=
-            Number(
-              item.quantity
-            ) || 0;
-
-        }
-      );
-
-    }
-  );
-
-  document.getElementById(
-    'salesPageTotal'
-  ).textContent =
-    money(total);
-
-  document.getElementById(
-    'salesPageUnits'
-  ).textContent =
-    `${number(units)} unidades`;
-
 }
 
 
@@ -1905,82 +1097,38 @@ function renderOrders() {
       'orders'
     );
 
-  const dashboard =
-    document.getElementById(
-      'dashboardOrders'
-    );
-
   if (!orders.length) {
 
-    const html = `
+    container.innerHTML = `
+
       <div class="empty">
         Todavía no hay ventas.
       </div>
     `;
 
-    container.innerHTML =
-      html;
-
-    dashboard.innerHTML =
-      html;
-
     return;
-
   }
 
-  const render =
+  container.innerHTML =
     orders
-      .slice(0, 30)
+      .slice(0,25)
       .map(
         order => {
 
           const items =
-            order.order_items ||
-            [];
+            order.order_items || [];
 
-          const itemHtml =
+          const itemText =
             items
               .map(
-                item => {
-
-                  const title =
+                item =>
+                  `${item.quantity || 0} × ${
                     item.item?.title ||
                     item.item?.id ||
-                    'Producto';
-
-                  const quantity =
-                    Number(
-                      item.quantity
-                    ) || 0;
-
-                  const price =
-                    Number(
-                      item.unit_price
-                    ) || 0;
-
-                  return `
-
-                    <div class="order-item">
-
-                      <span>
-                        ${escapeText(title)}
-                        × ${quantity}
-                      </span>
-
-                      <span>
-                        ${money(
-                          price *
-                          quantity
-                        )}
-                      </span>
-
-                    </div>
-
-                  `;
-
-                }
+                    'Producto'
+                  }`
               )
-              .join('');
+              .join('<br>');
 
           return `
 
@@ -2010,94 +1158,66 @@ function renderOrders() {
 
               </div>
 
-              <div class="order-items">
-                ${itemHtml}
-              </div>
+              ${
+                itemText
+                  ? `
+                    <div class="order-items">
+                      ${itemText}
+                    </div>
+                  `
+                  : ''
+              }
 
             </div>
-
           `;
-
         }
       )
       .join('');
-
-  container.innerHTML =
-    render;
-
-  dashboard.innerHTML =
-    orders
-      .slice(0, 5)
-      .map(
-        order => `
-
-          <div class="order">
-
-            <div class="order-top">
-
-              <div>
-
-                <div class="order-id">
-                  Venta #${order.id}
-                </div>
-
-                <div class="order-date">
-                  ${dateText(
-                    order.date_created
-                  )}
-                </div>
-
-              </div>
-
-              <div class="order-price">
-                ${money(
-                  order.total_amount
-                )}
-              </div>
-
-            </div>
-
-          </div>
-
-        `
-      )
-      .join('');
-
 }
 
 
-function escapeText(value) {
+function checkNewOrders() {
 
-  return String(
-    value || ''
-  )
-    .replaceAll(
-      '&',
-      '&amp;'
-    )
-    .replaceAll(
-      '<',
-      '&lt;'
-    )
-    .replaceAll(
-      '>',
-      '&gt;'
-    )
-    .replaceAll(
-      '"',
-      '&quot;'
-    )
-    .replaceAll(
-      "'",
-      '&#039;'
+  const current =
+    new Set(
+      orders.map(
+        order =>
+          String(order.id)
+      )
     );
 
+  if (
+    knownOrders.size > 0
+  ) {
+
+    for (
+      const order
+      of orders
+    ) {
+
+      if (
+        !knownOrders.has(
+          String(order.id)
+        )
+      ) {
+
+        notifySale(
+          order
+        );
+
+        break;
+      }
+    }
+  }
+
+  knownOrders =
+    current;
 }
 
 
-/* =========================================================
-ADS
-========================================================= */
+// ============================================================
+// ADS
+// ============================================================
 
 async function loadAds() {
 
@@ -2111,49 +1231,198 @@ async function loadAds() {
     const data =
       await response.json();
 
+    const container =
+      document.getElementById(
+        'adDetails'
+      );
+
     if (!data.ok) {
+
+      container.innerHTML = `
+
+        <div class="error-box">
+
+          No se pudo consultar Product Ads.
+
+          <br><br>
+
+          ${data.error || 'Error desconocido'}
+
+        </div>
+      `;
+
       return;
     }
-
-    adsData =
-      data;
 
     const summary =
       data.summary || {};
 
     document.getElementById(
-      'adsPageCost'
+      'adCost'
     ).textContent =
-      money(summary.cost);
+      money(
+        summary.cost
+      );
 
     document.getElementById(
-      'adsPageRevenue'
+      'roas'
     ).textContent =
-      `${money(summary.total_amount)} ventas atribuidas`;
+      `${Number(
+        summary.roas || 0
+      ).toFixed(2)}x`;
 
     document.getElementById(
-      'adsPageRoas'
+      'acos'
     ).textContent =
-      `${Number(summary.roas || 0).toFixed(2)}x`;
+      `${Number(
+        summary.acos || 0
+      ).toFixed(1)}%`;
 
-    document.getElementById(
-      'adsPageAcos'
-    ).textContent =
-      `${Number(summary.acos || 0).toFixed(1)}%`;
+    const campaigns =
+      data.campaigns || [];
 
-    document.getElementById(
-      'adsClicks'
-    ).textContent =
-      number(summary.clicks);
+    if (!campaigns.length) {
 
-    document.getElementById(
-      'adsCpc'
-    ).textContent =
-      money(summary.cpc);
+      container.innerHTML = `
 
-    renderCampaigns(
-      data.campaigns || []
-    );
+        <div class="empty">
+          No hay campañas con métricas para hoy.
+        </div>
+      `;
+
+      return;
+    }
+
+    container.innerHTML =
+      campaigns
+        .map(
+          campaign => `
+
+            <div class="campaign">
+
+              <div class="campaign-head">
+
+                <div class="campaign-name">
+
+                  ${
+                    campaign.name ||
+                    'Campaña'
+                  }
+
+                </div>
+
+                <div class="campaign-status">
+
+                  ${
+                    campaign.status ||
+                    'unknown'
+                  }
+
+                </div>
+
+              </div>
+
+
+              <div class="campaign-grid">
+
+
+                <div class="metric">
+
+                  <div class="metric-label">
+                    Gasto
+                  </div>
+
+                  <div class="metric-value">
+                    ${money(
+                      campaign.cost
+                    )}
+                  </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                  <div class="metric-label">
+                    Ventas atribuidas
+                  </div>
+
+                  <div class="metric-value">
+                    ${money(
+                      campaign.total_amount
+                    )}
+                  </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                  <div class="metric-label">
+                    ROAS
+                  </div>
+
+                  <div class="metric-value">
+                    ${Number(
+                      campaign.roas || 0
+                    ).toFixed(2)}x
+                  </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                  <div class="metric-label">
+                    ACOS
+                  </div>
+
+                  <div class="metric-value">
+                    ${Number(
+                      campaign.acos || 0
+                    ).toFixed(1)}%
+                  </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                  <div class="metric-label">
+                    Unidades
+                  </div>
+
+                  <div class="metric-value">
+                    ${
+                      campaign.units_quantity ||
+                      0
+                    }
+                  </div>
+
+                </div>
+
+
+                <div class="metric">
+
+                  <div class="metric-label">
+                    Clics
+                  </div>
+
+                  <div class="metric-value">
+                    ${
+                      campaign.clicks ||
+                      0
+                    }
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          `
+        )
+        .join('');
 
   } catch (error) {
 
@@ -2162,702 +1431,42 @@ async function loadAds() {
       error
     );
 
-  }
-
-}
-
-
-function renderCampaigns(
-  campaigns
-) {
-
-  const container =
     document.getElementById(
-      'campaigns'
-    );
-
-  if (!campaigns.length) {
-
-    container.innerHTML = `
-
-      <div class="empty">
-        No se encontraron campañas para hoy.
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-  container.innerHTML =
-    campaigns
-      .map(
-        campaign => {
-
-          const metrics =
-            campaign.metrics ||
-            campaign;
-
-          const name =
-            campaign.name ||
-            campaign.campaign_name ||
-            campaign.id ||
-            'Campaña';
-
-          return `
-
-            <div class="campaign">
-
-              <div class="campaign-title">
-                ${escapeText(name)}
-              </div>
-
-              <div class="campaign-grid">
-
-                <div class="campaign-stat">
-
-                  <div class="campaign-stat-label">
-                    Gasto
-                  </div>
-
-                  <div class="campaign-stat-value">
-                    ${money(
-                      metrics.cost
-                    )}
-                  </div>
-
-                </div>
-
-                <div class="campaign-stat">
-
-                  <div class="campaign-stat-label">
-                    Ventas
-                  </div>
-
-                  <div class="campaign-stat-value">
-                    ${money(
-                      metrics.total_amount
-                    )}
-                  </div>
-
-                </div>
-
-                <div class="campaign-stat">
-
-                  <div class="campaign-stat-label">
-                    ROAS
-                  </div>
-
-                  <div class="campaign-stat-value">
-                    ${Number(
-                      metrics.roas ||
-                      0
-                    ).toFixed(2)}x
-                  </div>
-
-                </div>
-
-                <div class="campaign-stat">
-
-                  <div class="campaign-stat-label">
-                    Clics
-                  </div>
-
-                  <div class="campaign-stat-value">
-                    ${number(
-                      metrics.clicks
-                    )}
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          `;
-
-        }
-      )
-      .join('');
-
-}
-
-
-/* =========================================================
-PRODUCTS
-========================================================= */
-
-async function loadProducts() {
-
-  try {
-
-    const response =
-      await fetch(
-        '/api/products'
-      );
-
-    const data =
-      await response.json();
-
-    if (!data.ok) {
-      throw new Error(
-        data.error
-      );
-    }
-
-    products =
-      data.products || [];
-
-    document.getElementById(
-      'productsCount'
-    ).textContent =
-      number(
-        products.length
-      );
-
-    renderProducts();
-
-    renderAlerts();
-
-    if (
-      data.settings
-    ) {
-
-      document.getElementById(
-        'alertDays'
-      ).value =
-        data.settings.stockAlertDays ||
-        10;
-
-    }
-
-  } catch (error) {
-
-    console.error(
-      'PRODUCTS:',
-      error
-    );
-
-    document.getElementById(
-      'products'
+      'adDetails'
     ).innerHTML = `
 
-      <div class="empty">
-        No se pudieron cargar los productos.
+      <div class="error-box">
+
+        Error consultando publicidad:
+
         <br><br>
-        ${escapeText(
-          error.message
-        )}
-      </div>
 
-    `;
-
-  }
-
-}
-
-
-function renderProducts() {
-
-  const container =
-    document.getElementById(
-      'products'
-    );
-
-  if (!products.length) {
-
-    container.innerHTML = `
-
-      <div class="empty">
-        Todavía no hay productos detectados.
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-  container.innerHTML =
-    products
-      .map(
-        product => {
-
-          let badgeText =
-            'Stock saludable';
-
-          if (
-            product.status ===
-            'critical'
-          ) {
-
-            badgeText =
-              'REPOSICIÓN URGENTE';
-
-          } else if (
-            product.status ===
-            'warning'
-          ) {
-
-            badgeText =
-              'PREPARAR REPOSICIÓN';
-
-          }
-
-          return `
-
-            <div class="product">
-
-              <div class="product-head">
-
-                <div>
-
-                  <div class="product-title">
-                    ${escapeText(
-                      product.title
-                    )}
-                  </div>
-
-                  <div class="product-id">
-                    ${escapeText(
-                      product.id
-                    )}
-                  </div>
-
-                </div>
-
-                <div>
-
-                  <div class="stock-number">
-                    ${
-                      product.stock === null
-                        ? '—'
-                        : number(
-                            product.stock
-                          )
-                    }
-                  </div>
-
-                  <div class="stock-label">
-                    STOCK
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              <div class="product-grid">
-
-                <div class="product-stat">
-
-                  <div class="product-stat-label">
-                    Vendidos
-                  </div>
-
-                  <div class="product-stat-value">
-                    ${number(
-                      product.sold_units
-                    )}
-                  </div>
-
-                </div>
-
-
-                <div class="product-stat">
-
-                  <div class="product-stat-label">
-                    Facturación
-                  </div>
-
-                  <div class="product-stat-value">
-                    ${money(
-                      product.revenue
-                    )}
-                  </div>
-
-                </div>
-
-
-                <div class="product-stat">
-
-                  <div class="product-stat-label">
-                    Costo
-                  </div>
-
-                  <div class="product-stat-value">
-                    ${
-                      product.cost_configured
-                        ? money(
-                            product.cost
-                          )
-                        : 'NO CARGADO'
-                    }
-                  </div>
-
-                </div>
-
-
-                <div class="product-stat">
-
-                  <div class="product-stat-label">
-                    Días de stock
-                  </div>
-
-                  <div class="product-stat-value">
-                    ${
-                      product.days_stock === null
-                        ? 'Sin datos'
-                        : `${Number(
-                            product.days_stock
-                          ).toFixed(1)} días`
-                    }
-                  </div>
-
-                </div>
-
-              </div>
-
-
-              <div class="cost-row">
-
-                <input
-                  id="cost-${escapeText(
-                    product.id
-                  )}"
-                  type="number"
-                  min="0"
-                  step="1"
-                  placeholder="Costo unitario"
-                  value="${
-                    product.cost_configured
-                      ? product.cost
-                      : ''
-                  }"
-                >
-
-                <button
-                  onclick="saveCost(
-                    '${escapeJs(
-                      product.id
-                    )}'
-                  )"
-                >
-                  Guardar costo
-                </button>
-
-              </div>
-
-
-              <div
-                class="badge ${product.status}"
-              >
-                ${badgeText}
-              </div>
-
-            </div>
-
-          `;
-
-        }
-      )
-      .join('');
-
-}
-
-
-function escapeJs(value) {
-
-  return String(
-    value || ''
-  )
-    .replaceAll(
-      '\\',
-      '\\\\'
-    )
-    .replaceAll(
-      "'",
-      "\\'"
-    );
-
-}
-
-
-async function saveCost(
-  itemId
-) {
-
-  const input =
-    document.getElementById(
-      `cost-${itemId}`
-    );
-
-  if (!input) {
-    return;
-  }
-
-  const cost =
-    Number(
-      input.value
-    );
-
-  if (
-    !Number.isFinite(cost) ||
-    cost < 0
-  ) {
-
-    alert(
-      'Ingresá un costo válido.'
-    );
-
-    return;
-
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        '/api/costs',
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-
-          body:
-            JSON.stringify({
-              item_id:
-                itemId,
-
-              cost
-            })
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!data.ok) {
-
-      throw new Error(
-        data.error
-      );
-
-    }
-
-    await refreshAll();
-
-    showPage(
-      'productos'
-    );
-
-  } catch (error) {
-
-    alert(
-      `No se pudo guardar: ${error.message}`
-    );
-
-  }
-
-}
-
-
-/* =========================================================
-ALERTS
-========================================================= */
-
-function renderAlerts() {
-
-  const container =
-    document.getElementById(
-      'alerts'
-    );
-
-  const alerts = [];
-
-  products.forEach(
-    product => {
-
-      if (
-        product.status ===
-        'critical'
-      ) {
-
-        alerts.push({
-          type: 'critical',
-
-          title:
-            'Reposición urgente',
-
-          text:
-            `${product.title} tiene ${
-              product.stock
-            } unidades y aproximadamente ${
-              Number(
-                product.days_stock
-              ).toFixed(1)
-            } días de stock.`
-        });
-
-      } else if (
-        product.status ===
-        'warning'
-      ) {
-
-        alerts.push({
-          type: 'warning',
-
-          title:
-            'Stock bajo',
-
-          text:
-            `${product.title} tiene aproximadamente ${
-              Number(
-                product.days_stock
-              ).toFixed(1)
-            } días de stock.`
-        });
-
-      }
-
-    }
-  );
-
-  if (!alerts.length) {
-
-    container.innerHTML = `
-
-      <div class="alert">
-
-        <div class="alert-title">
-          Todo en orden
-        </div>
-
-        <div class="alert-text">
-          No hay productos actualmente
-          en situación de reposición.
-        </div>
+        ${error.message}
 
       </div>
-
     `;
-
-  } else {
-
-    container.innerHTML =
-      alerts
-        .map(
-          alert => `
-
-            <div class="alert ${alert.type}">
-
-              <div class="alert-title">
-                ${escapeText(
-                  alert.title
-                )}
-              </div>
-
-              <div class="alert-text">
-                ${escapeText(
-                  alert.text
-                )}
-              </div>
-
-            </div>
-
-          `
-        )
-        .join('');
-
   }
-
-  document.getElementById(
-    'alertsCount'
-  ).textContent =
-    number(
-      alerts.length
-    );
-
 }
 
 
-/* =========================================================
-SETTINGS
-========================================================= */
+// ============================================================
+// ACTUALIZAR TODO
+// ============================================================
 
-async function saveSettings() {
+async function refreshAll() {
 
-  const value =
-    Number(
-      document.getElementById(
-        'alertDays'
-      ).value
-    );
-
-  if (
-    !Number.isFinite(value) ||
-    value < 1
-  ) {
-
-    alert(
-      'Ingresá una cantidad válida de días.'
-    );
-
-    return;
-
-  }
-
-  try {
-
-    const response =
-      await fetch(
-        '/api/settings',
-        {
-          method: 'POST',
-
-          headers: {
-            'Content-Type':
-              'application/json'
-          },
-
-          body:
-            JSON.stringify({
-              stockAlertDays:
-                value
-            })
-        }
-      );
-
-    const data =
-      await response.json();
-
-    if (!data.ok) {
-      throw new Error(
-        data.error
-      );
-    }
-
-    await loadProducts();
-
-  } catch (error) {
-
-    alert(
-      error.message
-    );
-
-  }
-
+  await Promise.all([
+    loadStatus(),
+    loadDashboard(),
+    loadOrders(),
+    loadAds()
+  ]);
 }
 
 
-/* =========================================================
-REAL TIME
-========================================================= */
+// ============================================================
+// TIEMPO REAL
+// ============================================================
 
 function connectRealtime() {
 
@@ -2878,7 +1487,6 @@ function connectRealtime() {
       console.log(
         'Tiempo real conectado'
       );
-
     };
 
   source.onmessage =
@@ -2896,17 +1504,11 @@ function connectRealtime() {
           'new_order'
         ) {
 
-          console.log(
-            'NUEVA VENTA',
-            data.order
-          );
-
           notifySale(
             data.order
           );
 
           refreshAll();
-
         }
 
       } catch (error) {
@@ -2914,30 +1516,26 @@ function connectRealtime() {
         console.error(
           error
         );
-
       }
-
     };
 
   source.onerror =
     () => {
 
       console.log(
-        'Tiempo real reconectando...'
+        'Reconectando tiempo real...'
       );
-
     };
-
 }
 
 
-/* =========================================================
-SERVICE WORKER
-========================================================= */
+// ============================================================
+// SERVICE WORKER
+// ============================================================
 
 if (
-  'serviceWorker'
-  in navigator
+  'serviceWorker' in
+  navigator
 ) {
 
   navigator.serviceWorker
@@ -2951,30 +1549,12 @@ if (
           error
         )
     );
-
 }
 
 
-/* =========================================================
-REFRESH
-========================================================= */
-
-async function refreshAll() {
-
-  await Promise.all([
-    loadStatus(),
-    loadDashboard(),
-    loadOrders(),
-    loadAds(),
-    loadProducts()
-  ]);
-
-}
-
-
-/* =========================================================
-START
-========================================================= */
+// ============================================================
+// ARRANQUE
+// ============================================================
 
 refreshAll();
 
@@ -2988,4 +1568,5 @@ setInterval(
 </script>
 
 </body>
+
 </html>
