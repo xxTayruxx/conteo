@@ -305,9 +305,19 @@ function computeMetrics(orders, costsMap) {
 
 // ---------- Product Ads (Mercado Ads) ----------
 
-// Métricas disponibles en la API de Product Ads que queremos traer siempre
-const ADS_METRICS = [
+// Métricas válidas para campañas (la API sí acepta ctr/cvr/roas/sov acá)
+const CAMPAIGN_METRICS = [
   'clicks', 'prints', 'ctr', 'cost', 'cpc', 'acos', 'cvr', 'roas', 'sov',
+  'organic_units_quantity', 'organic_units_amount',
+  'direct_items_quantity', 'indirect_items_quantity', 'advertising_items_quantity',
+  'direct_units_quantity', 'indirect_units_quantity', 'units_quantity',
+  'direct_amount', 'indirect_amount', 'total_amount'
+].join(',');
+
+// Métricas válidas para anuncios/items (este endpoint NO acepta ctr/cvr/roas/sov,
+// pedirlas devuelve error en la API de Mercado Libre)
+const ITEM_METRICS = [
+  'clicks', 'prints', 'cost', 'cpc', 'acos',
   'organic_units_quantity', 'organic_units_amount',
   'direct_items_quantity', 'indirect_items_quantity', 'advertising_items_quantity',
   'direct_units_quantity', 'indirect_units_quantity', 'units_quantity',
@@ -361,7 +371,7 @@ function emptyAdsMetrics() {
 // Trae campañas + sus métricas del período
 async function fetchCampaignsWithMetrics(advertiserId, date_from, date_to) {
   const url = `/advertising/advertisers/${advertiserId}/product_ads/campaigns` +
-    `?date_from=${date_from}&date_to=${date_to}&metrics=${ADS_METRICS}&limit=50&offset=0`;
+    `?date_from=${date_from}&date_to=${date_to}&metrics=${CAMPAIGN_METRICS}&limit=50&offset=0`;
   const data = await mlFetch(url, { 'Api-Version': '2' });
   return data.results || [];
 }
@@ -369,7 +379,7 @@ async function fetchCampaignsWithMetrics(advertiserId, date_from, date_to) {
 // Trae anuncios (variantes/publicaciones) con el total de métricas del período, ordenados por inversión
 async function fetchItemsWithMetrics(advertiserId, date_from, date_to) {
   const url = `/advertising/advertisers/${advertiserId}/product_ads/items` +
-    `?date_from=${date_from}&date_to=${date_to}&metrics=${ADS_METRICS}` +
+    `?date_from=${date_from}&date_to=${date_to}&metrics=${ITEM_METRICS}` +
     `&metrics_summary=true&sort_by=cost&sort=desc&limit=50&offset=0`;
   const data = await mlFetch(url, { 'Api-Version': '2' });
   return data.results || [];
@@ -384,19 +394,29 @@ async function getProductAdsReport(period) {
   }
 
   const { date_from, date_to } = getAdsDateRange(period);
+  const warnings = [];
 
-  let campaigns, items;
-  try {
-    [campaigns, items] = await Promise.all([
-      fetchCampaignsWithMetrics(advertiser.advertiser_id, date_from, date_to),
-      fetchItemsWithMetrics(advertiser.advertiser_id, date_from, date_to)
-    ]);
-  } catch (e) {
-    throw new Error(`No se pudieron obtener las métricas de campañas/anuncios: ${e.message}`);
+  const [campaignsResult, itemsResult] = await Promise.allSettled([
+    fetchCampaignsWithMetrics(advertiser.advertiser_id, date_from, date_to),
+    fetchItemsWithMetrics(advertiser.advertiser_id, date_from, date_to)
+  ]);
+
+  let campaigns = [];
+  if (campaignsResult.status === 'fulfilled') {
+    campaigns = campaignsResult.value;
+  } else {
+    warnings.push(`No se pudieron obtener las campañas: ${campaignsResult.reason.message}`);
+  }
+
+  let items = [];
+  if (itemsResult.status === 'fulfilled') {
+    items = itemsResult.value;
+  } else {
+    warnings.push(`No se pudo obtener el detalle por anuncio: ${itemsResult.reason.message}`);
   }
 
   // Sumamos las métricas de todas las campañas para tener un total de la cuenta
-  const totals = campaigns.reduce((acc, c) => {
+  let totals = campaigns.reduce((acc, c) => {
     const m = c.metrics || {};
     acc.clicks += m.clicks || 0;
     acc.prints += m.prints || 0;
@@ -409,6 +429,24 @@ async function getProductAdsReport(period) {
     acc.indirect_units_quantity += m.indirect_units_quantity || 0;
     return acc;
   }, emptyAdsMetrics());
+
+  // Si las campañas no trajeron datos (ej: esa llamada falló) pero sí tenemos anuncios,
+  // usamos la suma de los anuncios para no perder el gasto total de publicidad.
+  if (totals.cost === 0 && items.length > 0) {
+    totals = items.reduce((acc, it) => {
+      const m = it.metrics_summary || it.metrics || {};
+      acc.clicks += m.clicks || 0;
+      acc.prints += m.prints || 0;
+      acc.cost += m.cost || 0;
+      acc.total_amount += m.total_amount || 0;
+      acc.direct_amount += m.direct_amount || 0;
+      acc.indirect_amount += m.indirect_amount || 0;
+      acc.units_quantity += m.units_quantity || 0;
+      acc.direct_units_quantity += m.direct_units_quantity || 0;
+      acc.indirect_units_quantity += m.indirect_units_quantity || 0;
+      return acc;
+    }, emptyAdsMetrics());
+  }
 
   const summary = {
     ...totals,
@@ -469,7 +507,8 @@ async function getProductAdsReport(period) {
     },
     summary,
     campaigns: campaignsOut,
-    items: itemsOut
+    items: itemsOut,
+    warnings
   };
 }
 
