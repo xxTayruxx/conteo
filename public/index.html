@@ -3,392 +3,469 @@
 
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
->
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
 
-<meta
-  name="theme-color"
-  content="#090909"
->
+  <meta
+    name="theme-color"
+    content="#0b0b0b"
+  >
 
-<meta
-  name="mobile-web-app-capable"
-  content="yes"
->
+  <meta
+    name="mobile-web-app-capable"
+    content="yes"
+  >
 
-<meta
-  name="apple-mobile-web-app-capable"
-  content="yes"
->
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  >
 
-<title>Conteonix</title>
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  >
 
-<style>
+  <title>Conteonix</title>
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
+  <link
+    rel="manifest"
+    href="/manifest.json"
+  >
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  min-height: 100%;
-  background: #090909;
-  color: #fff;
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-}
+  <style>
 
-body {
-  min-height: 100vh;
-}
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-button {
-  font: inherit;
-}
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100%;
+      background: #080808;
+      color: #fff;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
 
-.app {
-  width: 100%;
-  max-width: 1000px;
-  margin: auto;
-  padding:
-    env(safe-area-inset-top)
-    14px
-    calc(30px + env(safe-area-inset-bottom));
-}
+    body {
+      min-height: 100vh;
+    }
 
-.topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 2px;
-}
+    button,
+    input {
+      font: inherit;
+    }
 
-.brand {
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: -1px;
-}
+    button {
+      cursor: pointer;
+    }
 
-.status {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: #999;
-  font-size: 12px;
-}
+    .app {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+      padding:
+        env(safe-area-inset-top)
+        14px
+        calc(28px + env(safe-area-inset-bottom));
+    }
 
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: #666;
-}
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 2px 16px;
+    }
 
-.dot.online {
-  background: #35d17c;
-  box-shadow:
-    0 0 12px
-    rgba(53,209,124,.7);
-}
+    .brand {
+      font-size: 26px;
+      font-weight: 950;
+      letter-spacing: -1.2px;
+    }
 
-.hero {
-  background:
-    linear-gradient(
-      145deg,
-      #191919,
-      #101010
-    );
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: #999;
+      font-size: 12px;
+    }
 
-  border:
-    1px solid #292929;
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #666;
+    }
 
-  border-radius: 24px;
+    .dot.online {
+      background: #35d178;
+      box-shadow:
+        0 0 12px
+        rgba(53,209,120,.8);
+    }
 
-  padding:
-    25px
-    21px;
+    .hero {
+      border-radius: 25px;
+      padding: 24px 20px;
+      margin-bottom: 12px;
 
-  margin-bottom: 12px;
-}
+      background:
+        linear-gradient(
+          145deg,
+          #1b1b1b,
+          #101010
+        );
 
-.hero-label {
-  color: #999;
-  font-size: 13px;
-}
+      border:
+        1px solid #292929;
+    }
 
-.hero-value {
-  margin-top: 8px;
-  font-size: 43px;
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: -2px;
-}
+    .hero-label {
+      color: #999;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
 
-.hero-sub {
-  margin-top: 12px;
-  color: #aaa;
-  font-size: 13px;
-}
+    .hero-value {
+      font-size: 43px;
+      line-height: 1;
+      font-weight: 950;
+      letter-spacing: -2.4px;
+    }
 
-.grid {
-  display: grid;
-  grid-template-columns:
-    repeat(2,1fr);
-  gap: 10px;
-}
+    .hero-sub {
+      margin-top: 11px;
+      color: #aaa;
+      font-size: 13px;
+    }
 
-.card {
-  background: #151515;
-  border:
-    1px solid #252525;
-  border-radius: 18px;
-  padding: 17px;
-  min-height: 115px;
-}
+    .grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, 1fr);
+      gap: 9px;
+    }
 
-.card-label {
-  color: #8f8f8f;
-  font-size: 12px;
-  margin-bottom: 9px;
-}
+    .card {
+      background: #151515;
+      border:
+        1px solid #252525;
+      border-radius: 18px;
+      padding: 16px;
+      min-height: 112px;
+    }
 
-.card-value {
-  font-size: 23px;
-  font-weight: 900;
-}
+    .card-label {
+      color: #8e8e8e;
+      font-size: 12px;
+      margin-bottom: 9px;
+    }
 
-.card-small {
-  margin-top: 7px;
-  color: #666;
-  font-size: 11px;
-}
+    .card-value {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: -.6px;
+    }
 
-.profit {
-  margin-top: 10px;
-  background: #111b15;
-  border:
-    1px solid #245233;
-}
+    .card-small {
+      color: #666;
+      font-size: 11px;
+      margin-top: 7px;
+    }
 
-.profit .card-value {
-  color: #5be391;
-}
+    .profit-card {
+      background:
+        linear-gradient(
+          145deg,
+          #142019,
+          #111512
+        );
 
-.ad {
-  background: #17130e;
-  border:
-    1px solid #4b351d;
-}
+      border-color:
+        #234331;
+    }
 
-.section {
-  margin-top: 22px;
-}
+    .profit-positive {
+      color: #5de69a;
+    }
 
-.section-title {
-  font-size: 18px;
-  font-weight: 900;
-  margin-bottom: 11px;
-}
+    .profit-negative {
+      color: #ff7676;
+    }
 
-.section-sub {
-  color: #777;
-  font-size: 12px;
-  margin-top: -6px;
-  margin-bottom: 12px;
-}
+    .section {
+      margin-top: 21px;
+    }
 
-.toolbar {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
+    .section-title {
+      font-size: 17px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
 
-.btn {
-  flex: 1;
-  border:
-    1px solid #333;
-  background: #222;
-  color: #fff;
-  border-radius: 14px;
-  padding: 14px;
-  font-weight: 800;
-}
+    .section-subtitle {
+      color: #666;
+      font-size: 11px;
+      margin-top: -5px;
+      margin-bottom: 12px;
+    }
 
-.btn.primary {
-  background: #fff;
-  color: #000;
-}
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
 
-.btn:active {
-  transform: scale(.98);
-}
+    .btn {
+      flex: 1;
+      border-radius: 14px;
+      padding: 14px;
+      color: #fff;
+      background: #202020;
+      border:
+        1px solid #333;
+      font-weight: 850;
+    }
 
-.order {
-  background: #151515;
-  border:
-    1px solid #252525;
-  border-radius: 16px;
-  padding: 15px;
-  margin-bottom: 8px;
-}
+    .btn.primary {
+      background: #fff;
+      color: #000;
+      border-color: #fff;
+    }
 
-.order-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
+    .btn:active {
+      transform: scale(.98);
+    }
 
-.order-id {
-  font-size: 14px;
-  font-weight: 850;
-}
+    .connected-box {
+      margin-top: 11px;
+      padding: 14px;
+      border-radius: 15px;
 
-.order-price {
-  font-weight: 900;
-  white-space: nowrap;
-}
+      background: #101c14;
+      border:
+        1px solid #235535;
 
-.order-date {
-  margin-top: 5px;
-  color: #777;
-  font-size: 11px;
-}
+      color: #6de59c;
+      font-size: 13px;
+    }
 
-.order-items {
-  margin-top: 11px;
-  padding-top: 10px;
-  border-top:
-    1px solid #252525;
-  color: #aaa;
-  font-size: 12px;
-}
+    .warning {
+      margin-top: 11px;
+      padding: 14px;
+      border-radius: 15px;
 
-.campaign {
-  background: #151515;
-  border:
-    1px solid #252525;
-  border-radius: 17px;
-  padding: 15px;
-  margin-bottom: 9px;
-}
+      background: #1e1810;
+      border:
+        1px solid #4d3518;
 
-.campaign-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
+      color: #e8b96d;
+      font-size: 13px;
+    }
 
-.campaign-name {
-  font-weight: 850;
-}
+    .ad-box {
+      background: #151515;
+      border:
+        1px solid #292929;
+      border-radius: 19px;
+      padding: 17px;
+    }
 
-.campaign-status {
-  font-size: 10px;
-  padding: 5px 8px;
-  border-radius: 20px;
-  background: #1c3827;
-  color: #6ee59b;
-}
+    .ad-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
 
-.campaign-grid {
-  display: grid;
-  grid-template-columns:
-    repeat(3,1fr);
-  gap: 8px;
-  margin-top: 13px;
-}
+    .ad-title {
+      font-weight: 900;
+      font-size: 15px;
+    }
 
-.metric {
-  background: #101010;
-  border-radius: 10px;
-  padding: 9px;
-}
+    .ad-status {
+      font-size: 10px;
+      color: #777;
+    }
 
-.metric-label {
-  color: #666;
-  font-size: 10px;
-}
+    .ad-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, 1fr);
+      gap: 10px;
+    }
 
-.metric-value {
-  margin-top: 4px;
-  font-size: 13px;
-  font-weight: 850;
-}
+    .ad-metric {
+      background: #101010;
+      border-radius: 13px;
+      padding: 12px;
+    }
 
-.connection {
-  margin-top: 12px;
-  padding: 13px;
-  border-radius: 14px;
-  background: #101b14;
-  border:
-    1px solid #205131;
-  color: #6ee29a;
-  font-size: 13px;
-}
+    .ad-metric-label {
+      color: #777;
+      font-size: 10px;
+      margin-bottom: 5px;
+    }
 
-.warning {
-  margin-top: 12px;
-  padding: 13px;
-  border-radius: 14px;
-  background: #21180e;
-  border:
-    1px solid #4d351c;
-  color: #e9b66d;
-  font-size: 13px;
-}
+    .ad-metric-value {
+      font-size: 17px;
+      font-weight: 900;
+    }
 
-.error-box {
-  margin-top: 12px;
-  padding: 13px;
-  border-radius: 14px;
-  background: #241111;
-  border:
-    1px solid #5a2222;
-  color: #ff8b8b;
-  font-size: 12px;
-  word-break: break-word;
-}
+    .order {
+      background: #151515;
+      border:
+        1px solid #252525;
+      border-radius: 17px;
+      padding: 15px;
+      margin-bottom: 8px;
+    }
 
-.empty {
-  padding: 30px;
-  text-align: center;
-  color: #666;
-  font-size: 13px;
-}
+    .order-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
 
-.footer {
-  padding: 30px 0 10px;
-  text-align: center;
-  color: #444;
-  font-size: 11px;
-}
+    .order-id {
+      font-size: 13px;
+      font-weight: 900;
+    }
 
-@media (min-width: 700px) {
+    .order-price {
+      white-space: nowrap;
+      font-size: 15px;
+      font-weight: 950;
+    }
 
-  .grid {
-    grid-template-columns:
-      repeat(4,1fr);
-  }
+    .order-date {
+      color: #707070;
+      font-size: 11px;
+      margin-top: 5px;
+    }
 
-  .hero-value {
-    font-size: 55px;
-  }
+    .order-items {
+      border-top:
+        1px solid #252525;
+      margin-top: 12px;
+      padding-top: 11px;
+    }
 
-}
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: #bdbdbd;
+      font-size: 12px;
+      line-height: 1.45;
+    }
 
-</style>
+    .order-item-name {
+      min-width: 0;
+    }
+
+    .order-item-qty {
+      white-space: nowrap;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .stock-box {
+      display: grid;
+      gap: 8px;
+    }
+
+    .stock-row {
+      background: #151515;
+      border:
+        1px solid #252525;
+      border-radius: 16px;
+      padding: 14px;
+    }
+
+    .stock-row-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stock-name {
+      font-weight: 850;
+      font-size: 13px;
+    }
+
+    .stock-number {
+      font-weight: 950;
+      white-space: nowrap;
+    }
+
+    .stock-details {
+      color: #777;
+      font-size: 11px;
+      margin-top: 6px;
+    }
+
+    .stock-low {
+      border-color: #704020;
+      background: #1d1510;
+    }
+
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 30px 10px;
+      font-size: 13px;
+    }
+
+    .small-note {
+      color: #666;
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 8px;
+    }
+
+    .footer {
+      text-align: center;
+      color: #444;
+      font-size: 11px;
+      padding: 30px 0 10px;
+    }
+
+    @media (min-width: 700px) {
+
+      .grid {
+        grid-template-columns:
+          repeat(4, 1fr);
+      }
+
+      .hero-value {
+        font-size: 55px;
+      }
+
+      .ad-grid {
+        grid-template-columns:
+          repeat(4, 1fr);
+      }
+
+    }
+
+  </style>
 
 </head>
 
@@ -396,253 +473,477 @@ button {
 
 <div class="app">
 
-<header class="topbar">
+  <header class="topbar">
 
-  <div class="brand">
-    Conteonix
-  </div>
+    <div class="brand">
+      Conteonix
+    </div>
 
-  <div class="status">
+    <div class="status">
 
-    <span
-      id="statusDot"
-      class="dot"
-    ></span>
+      <span
+        id="statusDot"
+        class="dot"
+      ></span>
 
-    <span id="statusText">
-      Conectando...
-    </span>
+      <span id="statusText">
+        Conectando...
+      </span>
 
-  </div>
+    </div>
 
-</header>
-
-
-<section class="hero">
-
-  <div class="hero-label">
-    Facturación de hoy
-  </div>
-
-  <div
-    id="todaySales"
-    class="hero-value"
-  >
-    $0
-  </div>
-
-  <div
-    id="todayUnits"
-    class="hero-sub"
-  >
-    0 unidades · 0 ventas
-  </div>
-
-</section>
+  </header>
 
 
-<section class="grid">
+  <!-- =====================================================
+       FACTURACIÓN
+       ===================================================== -->
 
+  <section class="hero">
 
-  <div class="card">
-
-    <div class="card-label">
-      Ventas
+    <div class="hero-label">
+      Facturación de hoy
     </div>
 
     <div
-      id="salesCount"
-      class="card-value"
-    >
-      0
-    </div>
-
-    <div class="card-small">
-      operaciones hoy
-    </div>
-
-  </div>
-
-
-  <div class="card">
-
-    <div class="card-label">
-      Unidades
-    </div>
-
-    <div
-      id="units"
-      class="card-value"
-    >
-      0
-    </div>
-
-    <div class="card-small">
-      productos vendidos
-    </div>
-
-  </div>
-
-
-  <div class="card ad">
-
-    <div class="card-label">
-      Publicidad
-    </div>
-
-    <div
-      id="adCost"
-      class="card-value"
+      id="todaySales"
+      class="hero-value"
     >
       $0
     </div>
 
-    <div class="card-small">
-      gasto Product Ads hoy
+    <div
+      id="todayUnits"
+      class="hero-sub"
+    >
+      0 unidades · 0 ventas
     </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       MÉTRICAS
+       ===================================================== -->
+
+  <section class="grid">
+
+    <div class="card">
+
+      <div class="card-label">
+        Ventas
+      </div>
+
+      <div
+        id="salesCount"
+        class="card-value"
+      >
+        0
+      </div>
+
+      <div class="card-small">
+        operaciones hoy
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        Unidades
+      </div>
+
+      <div
+        id="unitsCount"
+        class="card-value"
+      >
+        0
+      </div>
+
+      <div class="card-small">
+        productos vendidos
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        Publicidad
+      </div>
+
+      <div
+        id="adCost"
+        class="card-value"
+      >
+        $0
+      </div>
+
+      <div class="card-small">
+        gasto Product Ads
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        ROAS
+      </div>
+
+      <div
+        id="roas"
+        class="card-value"
+      >
+        0x
+      </div>
+
+      <div class="card-small">
+        retorno de publicidad
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        ACOS
+      </div>
+
+      <div
+        id="acos"
+        class="card-value"
+      >
+        0%
+      </div>
+
+      <div class="card-small">
+        publicidad / ventas atribuidas
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        Ventas atribuidas
+      </div>
+
+      <div
+        id="attributedSales"
+        class="card-value"
+      >
+        $0
+      </div>
+
+      <div class="card-small">
+        ventas generadas por publicidad
+      </div>
+
+    </div>
+
+
+    <div class="card">
+
+      <div class="card-label">
+        Costo producto
+      </div>
+
+      <div
+        id="productCost"
+        class="card-value"
+      >
+        $0
+      </div>
+
+      <div class="card-small">
+        costo de mercadería configurado
+      </div>
+
+    </div>
+
+
+    <div
+      class="card profit-card"
+    >
+
+      <div class="card-label">
+        Ganancia estimada
+      </div>
+
+      <div
+        id="profit"
+        class="card-value profit-positive"
+      >
+        $0
+      </div>
+
+      <div class="card-small">
+        ventas − publicidad − producto
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <div id="connectionBox"></div>
+
+
+  <!-- =====================================================
+       BOTONES
+       ===================================================== -->
+
+  <div class="toolbar">
+
+    <button
+      class="btn primary"
+      onclick="refreshAll()"
+    >
+      Actualizar
+    </button>
+
+    <button
+      class="btn"
+      onclick="enableNotifications()"
+    >
+      Activar alertas
+    </button>
 
   </div>
 
 
-  <div class="card">
+  <!-- =====================================================
+       PUBLICIDAD
+       ===================================================== -->
 
-    <div class="card-label">
-      ROAS
+  <section class="section">
+
+    <div class="section-title">
+      Publicidad de hoy
+    </div>
+
+    <div class="section-subtitle">
+      Gasto real informado por Product Ads
+    </div>
+
+    <div class="ad-box">
+
+      <div class="ad-head">
+
+        <div>
+
+          <div
+            id="advertiserName"
+            class="ad-title"
+          >
+            Product Ads
+          </div>
+
+          <div
+            id="adStatus"
+            class="ad-status"
+          >
+            Consultando...
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div class="ad-grid">
+
+
+        <div class="ad-metric">
+
+          <div class="ad-metric-label">
+            Gasto
+          </div>
+
+          <div
+            id="adCostLarge"
+            class="ad-metric-value"
+          >
+            $0
+          </div>
+
+        </div>
+
+
+        <div class="ad-metric">
+
+          <div class="ad-metric-label">
+            Ventas atribuidas
+          </div>
+
+          <div
+            id="adSalesLarge"
+            class="ad-metric-value"
+          >
+            $0
+          </div>
+
+        </div>
+
+
+        <div class="ad-metric">
+
+          <div class="ad-metric-label">
+            ROAS
+          </div>
+
+          <div
+            id="adRoasLarge"
+            class="ad-metric-value"
+          >
+            0x
+          </div>
+
+        </div>
+
+
+        <div class="ad-metric">
+
+          <div class="ad-metric-label">
+            ACOS
+          </div>
+
+          <div
+            id="adAcosLarge"
+            class="ad-metric-value"
+          >
+            0%
+          </div>
+
+        </div>
+
+
+        <div class="ad-metric">
+
+          <div class="ad-metric-label">
+            Unidades
+          </div>
+
+          <div
+            id="adUnitsLarge"
+            class="ad-metric-value"
+          >
+            0
+          </div>
+
+        </div>
+
+
+        <div class="ad-metric">
+
+          <div class="ad-metric-label">
+            Clics
+          </div>
+
+          <div
+            id="adClicksLarge"
+            class="ad-metric-value"
+          >
+            0
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="adError"
+        class="small-note"
+      ></div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       VENTAS
+       ===================================================== -->
+
+  <section class="section">
+
+    <div class="section-title">
+      Últimas ventas
     </div>
 
     <div
-      id="roas"
-      class="card-value"
+      id="orders"
     >
-      0.00x
+      <div class="empty">
+        Cargando ventas...
+      </div>
     </div>
 
-    <div class="card-small">
-      retorno de publicidad
+  </section>
+
+
+  <!-- =====================================================
+       PRODUCTOS
+       ===================================================== -->
+
+  <section class="section">
+
+    <div class="section-title">
+      Productos y reposición
     </div>
 
-  </div>
-
-
-  <div class="card">
-
-    <div class="card-label">
-      ACOS
+    <div class="section-subtitle">
+      El costo y stock se pueden configurar desde Conteonix.
     </div>
 
     <div
-      id="acos"
-      class="card-value"
+      id="products"
+      class="stock-box"
     >
-      0%
+      <div class="empty">
+        Cargando productos...
+      </div>
     </div>
 
-    <div class="card-small">
-      publicidad / ventas atribuidas
-    </div>
+  </section>
 
+
+  <div class="footer">
+    Conteonix · Mercado Libre
   </div>
-
-
-  <div class="card profit">
-
-    <div class="card-label">
-      Facturación - publicidad
-    </div>
-
-    <div
-      id="afterAds"
-      class="card-value"
-    >
-      $0
-    </div>
-
-    <div class="card-small">
-      antes de costos de producto
-    </div>
-
-  </div>
-
-</section>
-
-
-<div id="connectionBox"></div>
-
-
-<div class="toolbar">
-
-  <button
-    class="btn primary"
-    onclick="refreshAll()"
-  >
-    Actualizar
-  </button>
-
-  <button
-    class="btn"
-    onclick="enableNotifications()"
-  >
-    Activar alertas
-  </button>
-
-</div>
-
-
-<section class="section">
-
-  <div class="section-title">
-    Publicidad de hoy
-  </div>
-
-  <div class="section-sub">
-    Gasto real informado por Product Ads
-  </div>
-
-  <div id="adDetails">
-    <div class="empty">
-      Cargando publicidad...
-    </div>
-  </div>
-
-</section>
-
-
-<section class="section">
-
-  <div class="section-title">
-    Últimas ventas
-  </div>
-
-  <div id="orders">
-
-    <div class="empty">
-      Cargando ventas...
-    </div>
-
-  </div>
-
-</section>
-
-
-<div class="footer">
-  Conteonix · Mercado Libre
-</div>
 
 </div>
 
 
 <script>
 
+// ============================================================
+// VARIABLES
+// ============================================================
+
 let orders = [];
+
+let todayData = null;
+
+let adsData = null;
 
 let audioContext = null;
 
-let knownOrders =
+let knownOrderIds =
   new Set();
+
+let firstLoad = true;
 
 
 // ============================================================
-// FORMATO
+// FORMATO DINERO
 // ============================================================
 
 function money(value) {
@@ -657,25 +958,49 @@ function money(value) {
   ).format(
     Number(value) || 0
   );
+
 }
 
-function dateText(value) {
+
+// ============================================================
+// FECHA ARGENTINA
+// ============================================================
+
+function dateArgentina(value) {
 
   if (!value) {
     return '';
   }
 
-  return new Date(
-    value
-  ).toLocaleString(
-    'es-AR',
-    {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    }
-  );
+  try {
+
+    return new Date(value)
+      .toLocaleString(
+        'es-AR',
+        {
+          timeZone:
+            'America/Argentina/Buenos_Aires',
+
+          day:
+            '2-digit',
+
+          month:
+            '2-digit',
+
+          hour:
+            '2-digit',
+
+          minute:
+            '2-digit'
+        }
+      );
+
+  } catch {
+
+    return '';
+
+  }
+
 }
 
 
@@ -694,6 +1019,7 @@ function unlockAudio() {
           window.AudioContext ||
           window.webkitAudioContext
         )();
+
     }
 
     if (
@@ -702,16 +1028,20 @@ function unlockAudio() {
     ) {
 
       audioContext.resume();
+
     }
 
   } catch (error) {
 
     console.log(
-      'Audio:',
+      'Audio no disponible',
       error
     );
+
   }
+
 }
+
 
 document.addEventListener(
   'click',
@@ -733,60 +1063,112 @@ function playSaleSound() {
   const now =
     audioContext.currentTime;
 
-  const oscillator =
+
+  // Primer "ding"
+
+  const osc1 =
     audioContext.createOscillator();
 
-  const gain =
+  const gain1 =
     audioContext.createGain();
 
-  oscillator.type =
-    'square';
+  osc1.type =
+    'sine';
 
-  oscillator.frequency.setValueAtTime(
+  osc1.frequency.setValueAtTime(
     880,
     now
   );
 
-  oscillator.frequency.setValueAtTime(
-    1174,
-    now + .09
+  osc1.frequency.exponentialRampToValueAtTime(
+    1320,
+    now + 0.12
   );
 
-  oscillator.frequency.setValueAtTime(
-    1568,
-    now + .18
-  );
-
-  gain.gain.setValueAtTime(
-    .0001,
+  gain1.gain.setValueAtTime(
+    0.0001,
     now
   );
 
-  gain.gain.exponentialRampToValueAtTime(
-    .30,
-    now + .02
+  gain1.gain.exponentialRampToValueAtTime(
+    0.35,
+    now + 0.02
   );
 
-  gain.gain.exponentialRampToValueAtTime(
-    .0001,
-    now + .5
+  gain1.gain.exponentialRampToValueAtTime(
+    0.0001,
+    now + 0.45
   );
 
-  oscillator.connect(
-    gain
+  osc1.connect(
+    gain1
   );
 
-  gain.connect(
+  gain1.connect(
     audioContext.destination
   );
 
-  oscillator.start(
+  osc1.start(
     now
   );
 
-  oscillator.stop(
-    now + .55
+  osc1.stop(
+    now + 0.5
   );
+
+
+  // Segundo "ding"
+
+  const osc2 =
+    audioContext.createOscillator();
+
+  const gain2 =
+    audioContext.createGain();
+
+  osc2.type =
+    'sine';
+
+  osc2.frequency.setValueAtTime(
+    1320,
+    now + 0.16
+  );
+
+  osc2.frequency.exponentialRampToValueAtTime(
+    1760,
+    now + 0.28
+  );
+
+  gain2.gain.setValueAtTime(
+    0.0001,
+    now
+  );
+
+  gain2.gain.exponentialRampToValueAtTime(
+    0.28,
+    now + 0.18
+  );
+
+  gain2.gain.exponentialRampToValueAtTime(
+    0.0001,
+    now + 0.65
+  );
+
+  osc2.connect(
+    gain2
+  );
+
+  gain2.connect(
+    audioContext.destination
+  );
+
+  osc2.start(
+    now + 0.16
+  );
+
+  osc2.stop(
+    now + 0.7
+  );
+
 }
 
 
@@ -799,7 +1181,11 @@ async function enableNotifications() {
   unlockAudio();
 
   if (
-    !('Notification' in window)
+    !(
+      'Notification'
+      in
+      window
+    )
   ) {
 
     alert(
@@ -807,12 +1193,14 @@ async function enableNotifications() {
     );
 
     return;
+
   }
 
   try {
 
     const permission =
-      await Notification.requestPermission();
+      await Notification
+        .requestPermission();
 
     if (
       permission ===
@@ -823,13 +1211,9 @@ async function enableNotifications() {
         'Conteonix',
         {
           body:
-            'Alertas de ventas activadas.',
-          icon:
-            '/icon-192.png'
+            'Alertas de ventas activadas.'
         }
       );
-
-      playSaleSound();
 
     }
 
@@ -838,7 +1222,9 @@ async function enableNotifications() {
     console.error(
       error
     );
+
   }
+
 }
 
 
@@ -847,7 +1233,9 @@ function notifySale(order) {
   playSaleSound();
 
   if (
-    'Notification' in window &&
+    'Notification'
+    in
+    window &&
     Notification.permission ===
       'granted'
   ) {
@@ -865,7 +1253,9 @@ function notifySale(order) {
           `order-${order.id}`
       }
     );
+
   }
+
 }
 
 
@@ -907,24 +1297,34 @@ async function loadStatus() {
         data.user?.nickname ||
         'Mercado Libre';
 
+
       document.getElementById(
         'connectionBox'
       ).innerHTML = `
 
-        <div class="connection">
+        <div class="connected-box">
 
           Conectado como
           <strong>
-            ${data.user?.nickname || ''}
+            ${escapeHtml(
+              data.user?.nickname ||
+              ''
+            )}
           </strong>
 
         </div>
+
       `;
 
     } else {
 
+      dot.classList.remove(
+        'online'
+      );
+
       text.textContent =
         'Sin conectar';
+
 
       document.getElementById(
         'connectionBox'
@@ -944,7 +1344,9 @@ async function loadStatus() {
           </button>
 
         </div>
+
       `;
+
     }
 
   } catch (error) {
@@ -953,91 +1355,177 @@ async function loadStatus() {
       'statusText'
     ).textContent =
       'Offline';
+
   }
+
 }
 
 
 // ============================================================
-// DASHBOARD
+// ESCAPE HTML
 // ============================================================
 
-async function loadDashboard() {
+function escapeHtml(value) {
+
+  return String(value)
+    .replace(
+      /[&<>'"]/g,
+      char => {
+
+        const map = {
+          '&':
+            '&amp;',
+
+          '<':
+            '&lt;',
+
+          '>':
+            '&gt;',
+
+          "'":
+            '&#39;',
+
+          '"':
+            '&quot;'
+        };
+
+        return map[char];
+
+      }
+    );
+
+}
+
+
+// ============================================================
+// TODAY
+// ============================================================
+
+async function loadToday() {
 
   try {
 
     const response =
       await fetch(
-        '/api/dashboard'
+        '/api/today'
       );
 
     const data =
       await response.json();
 
     if (!data.ok) {
-
       throw new Error(
-        data.error ||
-        'Error cargando dashboard'
+        data.error
       );
     }
+
+    todayData =
+      data;
 
     document.getElementById(
       'todaySales'
     ).textContent =
       money(
-        data.sales
+        data.billing
       );
 
     document.getElementById(
       'todayUnits'
     ).textContent =
-      `${data.units} unidades · ${data.orders} ventas`;
+      `${data.units} unidades · ${data.sales_count} ventas`;
 
     document.getElementById(
       'salesCount'
     ).textContent =
-      data.orders;
+      data.sales_count;
 
     document.getElementById(
-      'units'
+      'unitsCount'
     ).textContent =
       data.units;
 
     document.getElementById(
-      'adCost'
+      'productCost'
     ).textContent =
       money(
-        data.advertising?.cost
+        data.product_cost
       );
 
-    document.getElementById(
-      'roas'
-    ).textContent =
-      `${Number(
-        data.advertising?.roas || 0
-      ).toFixed(2)}x`;
+    renderOrders(
+      data.orders || []
+    );
 
-    document.getElementById(
-      'acos'
-    ).textContent =
-      `${Number(
-        data.advertising?.acos || 0
-      ).toFixed(1)}%`;
-
-    document.getElementById(
-      'afterAds'
-    ).textContent =
-      money(
-        data.after_ads
-      );
+    calculateProfit();
 
   } catch (error) {
 
     console.error(
-      'DASHBOARD:',
+      'TODAY:',
       error
     );
+
   }
+
+}
+
+
+// ============================================================
+// PROFIT
+// ============================================================
+
+function calculateProfit() {
+
+  const billing =
+    Number(
+      todayData?.billing
+    ) || 0;
+
+  const productCost =
+    Number(
+      todayData?.product_cost
+    ) || 0;
+
+  const adCost =
+    Number(
+      adsData?.summary?.cost
+    ) || 0;
+
+  const profit =
+    billing -
+    productCost -
+    adCost;
+
+  const element =
+    document.getElementById(
+      'profit'
+    );
+
+  element.textContent =
+    money(
+      profit
+    );
+
+  element.classList.remove(
+    'profit-positive',
+    'profit-negative'
+  );
+
+  if (
+    profit >= 0
+  ) {
+
+    element.classList.add(
+      'profit-positive'
+    );
+
+  } else {
+
+    element.classList.add(
+      'profit-negative'
+    );
+
+  }
+
 }
 
 
@@ -1045,52 +1533,12 @@ async function loadDashboard() {
 // ORDERS
 // ============================================================
 
-async function loadOrders() {
+function renderOrders(
+  orderList
+) {
 
-  try {
-
-    const response =
-      await fetch(
-        '/api/orders?limit=50'
-      );
-
-    const data =
-      await response.json();
-
-    if (!data.ok) {
-
-      throw new Error(
-        data.error
-      );
-    }
-
-    orders =
-      data.results || [];
-
-    renderOrders();
-
-    checkNewOrders();
-
-  } catch (error) {
-
-    console.error(
-      'ORDERS:',
-      error
-    );
-
-    document.getElementById(
-      'orders'
-    ).innerHTML = `
-
-      <div class="empty">
-        No se pudieron cargar las ventas.
-      </div>
-    `;
-  }
-}
-
-
-function renderOrders() {
+  orders =
+    orderList || [];
 
   const container =
     document.getElementById(
@@ -1102,33 +1550,67 @@ function renderOrders() {
     container.innerHTML = `
 
       <div class="empty">
-        Todavía no hay ventas.
+        No hay ventas hoy.
       </div>
+
     `;
 
     return;
+
   }
+
 
   container.innerHTML =
     orders
-      .slice(0,25)
+      .slice(0, 30)
       .map(
         order => {
 
           const items =
-            order.order_items || [];
+            order.order_items ||
+            [];
 
-          const itemText =
+          const itemHtml =
             items
               .map(
-                item =>
-                  `${item.quantity || 0} × ${
+                item => {
+
+                  const title =
                     item.item?.title ||
-                    item.item?.id ||
-                    'Producto'
-                  }`
+                    item.title ||
+                    'Producto';
+
+                  const quantity =
+                    Number(
+                      item.quantity
+                    ) || 0;
+
+                  return `
+
+                    <div class="order-item">
+
+                      <div class="order-item-name">
+
+                        ${escapeHtml(
+                          title
+                        )}
+
+                      </div>
+
+                      <div class="order-item-qty">
+
+                        ${quantity} ×
+
+                      </div>
+
+                    </div>
+
+                  `;
+
+                }
               )
-              .join('<br>');
+              .join('');
+
 
           return `
 
@@ -1139,79 +1621,56 @@ function renderOrders() {
                 <div>
 
                   <div class="order-id">
-                    Venta #${order.id}
+
+                    Venta #${escapeHtml(
+                      order.id
+                    )}
+
                   </div>
 
                   <div class="order-date">
-                    ${dateText(
+
+                    ${dateArgentina(
                       order.date_created
                     )}
+
                   </div>
 
                 </div>
 
                 <div class="order-price">
+
                   ${money(
                     order.total_amount
                   )}
+
                 </div>
 
               </div>
 
+
               ${
-                itemText
+                itemHtml
                   ? `
+
                     <div class="order-items">
-                      ${itemText}
+
+                      ${itemHtml}
+
                     </div>
+
                   `
                   : ''
               }
 
             </div>
+
           `;
+
         }
       )
       .join('');
-}
 
-
-function checkNewOrders() {
-
-  const current =
-    new Set(
-      orders.map(
-        order =>
-          String(order.id)
-      )
-    );
-
-  if (
-    knownOrders.size > 0
-  ) {
-
-    for (
-      const order
-      of orders
-    ) {
-
-      if (
-        !knownOrders.has(
-          String(order.id)
-        )
-      ) {
-
-        notifySale(
-          order
-        );
-
-        break;
-      }
-    }
-  }
-
-  knownOrders =
-    current;
 }
 
 
@@ -1225,204 +1684,137 @@ async function loadAds() {
 
     const response =
       await fetch(
-        '/api/ads'
+        '/api/ads?date=' +
+        encodeURIComponent(
+          getTodayArgentina()
+        )
       );
 
     const data =
       await response.json();
 
-    const container =
-      document.getElementById(
-        'adDetails'
-      );
-
     if (!data.ok) {
-
-      container.innerHTML = `
-
-        <div class="error-box">
-
-          No se pudo consultar Product Ads.
-
-          <br><br>
-
-          ${data.error || 'Error desconocido'}
-
-        </div>
-      `;
-
       return;
     }
 
+    adsData =
+      data;
+
+
     const summary =
-      data.summary || {};
+      data.summary ||
+      {};
+
+
+    const cost =
+      Number(
+        summary.cost
+      ) || 0;
+
+    const attributedSales =
+      Number(
+        summary.total_amount
+      ) || 0;
+
+    const roas =
+      Number(
+        summary.roas
+      ) || 0;
+
+    const acos =
+      Number(
+        summary.acos
+      ) || 0;
+
 
     document.getElementById(
       'adCost'
     ).textContent =
       money(
-        summary.cost
+        cost
+      );
+
+    document.getElementById(
+      'attributedSales'
+    ).textContent =
+      money(
+        attributedSales
       );
 
     document.getElementById(
       'roas'
     ).textContent =
-      `${Number(
-        summary.roas || 0
-      ).toFixed(2)}x`;
+      `${roas.toFixed(2)}x`;
 
     document.getElementById(
       'acos'
     ).textContent =
-      `${Number(
-        summary.acos || 0
-      ).toFixed(1)}%`;
-
-    const campaigns =
-      data.campaigns || [];
-
-    if (!campaigns.length) {
-
-      container.innerHTML = `
-
-        <div class="empty">
-          No hay campañas con métricas para hoy.
-        </div>
-      `;
-
-      return;
-    }
-
-    container.innerHTML =
-      campaigns
-        .map(
-          campaign => `
-
-            <div class="campaign">
-
-              <div class="campaign-head">
-
-                <div class="campaign-name">
-
-                  ${
-                    campaign.name ||
-                    'Campaña'
-                  }
-
-                </div>
-
-                <div class="campaign-status">
-
-                  ${
-                    campaign.status ||
-                    'unknown'
-                  }
-
-                </div>
-
-              </div>
+      `${acos.toFixed(1)}%`;
 
 
-              <div class="campaign-grid">
+    document.getElementById(
+      'adCostLarge'
+    ).textContent =
+      money(
+        cost
+      );
+
+    document.getElementById(
+      'adSalesLarge'
+    ).textContent =
+      money(
+        attributedSales
+      );
+
+    document.getElementById(
+      'adRoasLarge'
+    ).textContent =
+      `${roas.toFixed(2)}x`;
+
+    document.getElementById(
+      'adAcosLarge'
+    ).textContent =
+      `${acos.toFixed(1)}%`;
+
+    document.getElementById(
+      'adUnitsLarge'
+    ).textContent =
+      Number(
+        summary.units_quantity
+      ) || 0;
+
+    document.getElementById(
+      'adClicksLarge'
+    ).textContent =
+      Number(
+        summary.clicks
+      ) || 0;
 
 
-                <div class="metric">
-
-                  <div class="metric-label">
-                    Gasto
-                  </div>
-
-                  <div class="metric-value">
-                    ${money(
-                      campaign.cost
-                    )}
-                  </div>
-
-                </div>
+    document.getElementById(
+      'advertiserName'
+    ).textContent =
+      data.advertiser?.name ||
+      'Product Ads';
 
 
-                <div class="metric">
-
-                  <div class="metric-label">
-                    Ventas atribuidas
-                  </div>
-
-                  <div class="metric-value">
-                    ${money(
-                      campaign.total_amount
-                    )}
-                  </div>
-
-                </div>
+    document.getElementById(
+      'adStatus'
+    ).textContent =
+      data.fetch_error
+        ? 'Error consultando Product Ads'
+        : 'Datos actualizados';
 
 
-                <div class="metric">
-
-                  <div class="metric-label">
-                    ROAS
-                  </div>
-
-                  <div class="metric-value">
-                    ${Number(
-                      campaign.roas || 0
-                    ).toFixed(2)}x
-                  </div>
-
-                </div>
+    document.getElementById(
+      'adError'
+    ).textContent =
+      data.fetch_error
+        ? data.fetch_error
+        : '';
 
 
-                <div class="metric">
-
-                  <div class="metric-label">
-                    ACOS
-                  </div>
-
-                  <div class="metric-value">
-                    ${Number(
-                      campaign.acos || 0
-                    ).toFixed(1)}%
-                  </div>
-
-                </div>
-
-
-                <div class="metric">
-
-                  <div class="metric-label">
-                    Unidades
-                  </div>
-
-                  <div class="metric-value">
-                    ${
-                      campaign.units_quantity ||
-                      0
-                    }
-                  </div>
-
-                </div>
-
-
-                <div class="metric">
-
-                  <div class="metric-label">
-                    Clics
-                  </div>
-
-                  <div class="metric-value">
-                    ${
-                      campaign.clicks ||
-                      0
-                    }
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-          `
-        )
-        .join('');
+    calculateProfit();
 
   } catch (error) {
 
@@ -1432,35 +1824,218 @@ async function loadAds() {
     );
 
     document.getElementById(
-      'adDetails'
-    ).innerHTML = `
+      'adStatus'
+    ).textContent =
+      'No se pudo consultar publicidad';
 
-      <div class="error-box">
-
-        Error consultando publicidad:
-
-        <br><br>
-
-        ${error.message}
-
-      </div>
-    `;
   }
+
 }
 
 
 // ============================================================
-// ACTUALIZAR TODO
+// PRODUCTOS
+// ============================================================
+
+async function loadProducts() {
+
+  try {
+
+    const response =
+      await fetch(
+        '/api/products'
+      );
+
+    const data =
+      await response.json();
+
+    if (!data.ok) {
+      return;
+    }
+
+    renderProducts(
+      data.products || []
+    );
+
+  } catch (error) {
+
+    console.error(
+      'PRODUCTS:',
+      error
+    );
+
+  }
+
+}
+
+
+function renderProducts(
+  products
+) {
+
+  const container =
+    document.getElementById(
+      'products'
+    );
+
+  if (!products.length) {
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        Todavía no hay costos/stock configurados.
+
+        <br><br>
+
+        Los productos se podrán configurar
+        mediante su ID de publicación.
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  container.innerHTML =
+    products
+      .map(
+        product => {
+
+          const stock =
+            Number(
+              product.stock
+            ) || 0;
+
+          const minStock =
+            Number(
+              product.min_stock
+            ) || 0;
+
+          const low =
+            stock <= minStock;
+
+
+          return `
+
+            <div
+              class="stock-row ${
+                low
+                  ? 'stock-low'
+                  : ''
+              }"
+            >
+
+              <div class="stock-row-top">
+
+                <div class="stock-name">
+
+                  ${escapeHtml(
+                    product.title
+                  )}
+
+                </div>
+
+                <div class="stock-number">
+
+                  ${stock} unidades
+
+                </div>
+
+              </div>
+
+              <div class="stock-details">
+
+                Costo:
+                ${money(
+                  product.cost
+                )}
+
+                ·
+
+                Stock mínimo:
+                ${minStock}
+
+                ${
+                  low
+                    ? ' · REPOSICIÓN NECESARIA'
+                    : ''
+                }
+
+              </div>
+
+            </div>
+
+          `;
+
+        }
+      )
+      .join('');
+
+}
+
+
+// ============================================================
+// FECHA HOY DEL NAVEGADOR
+// ============================================================
+
+function getTodayArgentina() {
+
+  const parts =
+    new Intl.DateTimeFormat(
+      'en-CA',
+      {
+        timeZone:
+          'America/Argentina/Buenos_Aires',
+
+        year:
+          'numeric',
+
+        month:
+          '2-digit',
+
+        day:
+          '2-digit'
+      }
+    ).formatToParts(
+      new Date()
+    );
+
+  const result = {};
+
+  for (
+    const part
+    of parts
+  ) {
+
+    result[
+      part.type
+    ] =
+      part.value;
+
+  }
+
+  return `${result.year}-${result.month}-${result.day}`;
+
+}
+
+
+// ============================================================
+// REFRESH
 // ============================================================
 
 async function refreshAll() {
 
   await Promise.all([
     loadStatus(),
-    loadDashboard(),
-    loadOrders(),
-    loadAds()
+    loadToday(),
+    loadAds(),
+    loadProducts()
   ]);
+
 }
 
 
@@ -1473,13 +2048,21 @@ function connectRealtime() {
   if (
     !window.EventSource
   ) {
+
+    console.log(
+      'EventSource no disponible'
+    );
+
     return;
+
   }
+
 
   const source =
     new EventSource(
       '/api/events'
     );
+
 
   source.onopen =
     () => {
@@ -1487,7 +2070,9 @@ function connectRealtime() {
       console.log(
         'Tiempo real conectado'
       );
+
     };
+
 
   source.onmessage =
     event => {
@@ -1499,25 +2084,63 @@ function connectRealtime() {
             event.data
           );
 
+
         if (
           data.type ===
           'new_order'
         ) {
 
-          notifySale(
-            data.order
+          const order =
+            data.order;
+
+
+          if (
+            !order?.id
+          ) {
+            return;
+          }
+
+
+          const id =
+            String(
+              order.id
+            );
+
+
+          if (
+            !firstLoad &&
+            !knownOrderIds.has(
+              id
+            )
+          ) {
+
+            notifySale(
+              order
+            );
+
+          }
+
+
+          knownOrderIds.add(
+            id
           );
 
+
           refreshAll();
+
         }
 
       } catch (error) {
 
         console.error(
+          'SSE:',
           error
         );
+
       }
+
     };
+
 
   source.onerror =
     () => {
@@ -1525,7 +2148,9 @@ function connectRealtime() {
       console.log(
         'Reconectando tiempo real...'
       );
+
     };
+
 }
 
 
@@ -1534,7 +2159,8 @@ function connectRealtime() {
 // ============================================================
 
 if (
-  'serviceWorker' in
+  'serviceWorker'
+  in
   navigator
 ) {
 
@@ -1549,16 +2175,56 @@ if (
           error
         )
     );
+
 }
 
 
 // ============================================================
-// ARRANQUE
+// INICIO
 // ============================================================
 
-refreshAll();
+async function start() {
 
-connectRealtime();
+  await refreshAll();
+
+
+  if (
+    Array.isArray(
+      todayData?.orders
+    )
+  ) {
+
+    for (
+      const order
+      of todayData.orders
+    ) {
+
+      if (
+        order?.id
+      ) {
+
+        knownOrderIds.add(
+          String(
+            order.id
+          )
+        );
+
+      }
+
+    }
+
+  }
+
+
+  firstLoad = false;
+
+  connectRealtime();
+
+}
+
+
+start();
+
 
 setInterval(
   refreshAll,
