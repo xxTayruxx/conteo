@@ -154,6 +154,14 @@
     <div id="statusPill" class="status-pill">Consultando estado…</div>
   </header>
 
+  <section id="summarySection">
+    <div class="section-head">
+      <h2>Resumen en tiempo real</h2>
+    </div>
+    <div id="summaryKpis" class="loading">Cargando resumen…</div>
+    <div class="note" id="summaryNote"></div>
+  </section>
+
   <section id="pushSection">
     <div class="card" id="pushCard">
       <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
@@ -296,6 +304,45 @@ function kpiHtml(items, accentClass){
   return `<div class="kpi-row">` + items.map(k =>
     `<div class="kpi ${accentClass}"><div class="label">${k.label}</div><div class="value ${k.cls||''}">${k.value}</div></div>`
   ).join('') + `</div>`;
+}
+
+async function loadRealtimeSummary(){
+  const box = document.getElementById('summaryKpis');
+  const note = document.getElementById('summaryNote');
+  try{
+    const [salesResult, adsResult] = await Promise.allSettled([
+      fetch(`/api/live-metrics?period=${currentPeriod}`).then(r => r.json()),
+      fetch(`/api/product-ads?period=${currentPeriod}`).then(r => r.json())
+    ]);
+
+    const salesData = salesResult.status === 'fulfilled' ? salesResult.value : null;
+    if(!salesData?.ok){
+      throw new Error(salesData?.error || 'No se pudieron cargar las ventas.');
+    }
+    const s = salesData.summary;
+
+    const adsData = adsResult.status === 'fulfilled' && adsResult.value.ok ? adsResult.value : null;
+    const adSpend = adsData ? adsData.summary.cost : 0;
+
+    // netProfitTotal ya descuenta comisiones de ML + envío + costo de producto.
+    // Acá le restamos además la inversión en publicidad del mismo período.
+    const gananciaTotal = s.netProfitTotal - adSpend;
+    const gananciaPorVenta = s.totalOrders > 0 ? gananciaTotal / s.totalOrders : 0;
+
+    box.innerHTML = kpiHtml([
+      { label:'Ventas totales', value: fmtNum(s.totalOrders) },
+      { label:'Facturación', value: fmtMoney(s.totalRevenue) },
+      { label:'Ganancia por venta', value: fmtMoney(gananciaPorVenta), cls: gananciaPorVenta >= 0 ? 'pos' : 'neg' },
+      { label:'Ganancia total', value: fmtMoney(gananciaTotal), cls: gananciaTotal >= 0 ? 'pos' : 'neg' }
+    ], 'accent-sales');
+
+    note.textContent = adsData
+      ? `Ya descontados: comisiones de Mercado Libre, envío, costo de producto e inversión en publicidad (${fmtMoney(adSpend)}).`
+      : `Descontados: comisiones de Mercado Libre, envío y costo de producto. No se pudo descontar publicidad (${adsResult.value?.error || adsResult.reason?.message || 'sin datos'}).`;
+  }catch(e){
+    box.innerHTML = `<div class="empty">No se pudo cargar: ${e.message}</div>`;
+    note.textContent = '';
+  }
 }
 
 async function loadSales(){
@@ -682,6 +729,7 @@ function connectSSE(){
         prependNotification(data);
         playCashRegister(`order-${data.orderId}`);
         loadSales();
+        loadRealtimeSummary();
       }
     }catch(_){}
   };
@@ -694,17 +742,22 @@ document.getElementById('periodTabs').addEventListener('click', (e) => {
   document.querySelectorAll('#periodTabs button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   currentPeriod = btn.dataset.period;
+  loadRealtimeSummary();
   loadSales();
   loadAds();
 });
 
 loadStatus();
+loadRealtimeSummary();
 loadSales();
 loadAds();
 loadStock();
 loadNotifications();
 connectSSE();
 initPush();
+
+// La publicidad no avisa por SSE cuando cambia el gasto, así que refrescamos el resumen solos
+setInterval(loadRealtimeSummary, 60000);
 </script>
 </body>
 </html>
