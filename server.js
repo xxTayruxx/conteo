@@ -36,6 +36,9 @@ const TOKEN_FILE =
   process.env.TOKEN_FILE ||
   path.join(__dirname, 'data', 'tokens.json');
 
+const PRODUCTS_FILE =
+  path.join(__dirname, 'data', 'products.json');
+
 // ============================================================
 // EXPRESS
 // ============================================================
@@ -48,53 +51,52 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
 
 // ============================================================
-// TOKENS
+// ARCHIVOS / DATOS
 // ============================================================
 
-const tokenDirectory = path.dirname(TOKEN_FILE);
+const dataDirectory = path.dirname(TOKEN_FILE);
 
-if (!fs.existsSync(tokenDirectory)) {
-  fs.mkdirSync(tokenDirectory, {
+if (!fs.existsSync(dataDirectory)) {
+  fs.mkdirSync(dataDirectory, {
     recursive: true
   });
 }
 
-let tokenCache = loadTokens();
-
-function loadTokens() {
+function readJsonFile(file, fallback) {
   try {
-    if (!fs.existsSync(TOKEN_FILE)) {
-      return null;
+    if (!fs.existsSync(file)) {
+      return fallback;
     }
 
     const content = fs.readFileSync(
-      TOKEN_FILE,
+      file,
       'utf8'
     );
 
     if (!content.trim()) {
-      return null;
+      return fallback;
     }
 
     return JSON.parse(content);
 
   } catch (error) {
     console.error(
-      'Error cargando tokens:',
+      `Error leyendo ${file}:`,
       error.message
     );
 
-    return null;
+    return fallback;
   }
 }
 
-function saveTokens(tokens) {
-  const tmp = `${TOKEN_FILE}.tmp`;
+function writeJsonFile(file, data) {
+  const temp =
+    `${file}.tmp`;
 
   fs.writeFileSync(
-    tmp,
+    temp,
     JSON.stringify(
-      tokens,
+      data,
       null,
       2
     ),
@@ -104,11 +106,99 @@ function saveTokens(tokens) {
   );
 
   fs.renameSync(
-    tmp,
-    TOKEN_FILE
+    temp,
+    file
+  );
+}
+
+// ============================================================
+// TOKENS
+// ============================================================
+
+let tokenCache =
+  readJsonFile(
+    TOKEN_FILE,
+    null
+  );
+
+function saveTokens(tokens) {
+  writeJsonFile(
+    TOKEN_FILE,
+    tokens
   );
 
   tokenCache = tokens;
+}
+
+// ============================================================
+// PRODUCTOS / COSTOS / STOCK
+// ============================================================
+
+let products =
+  readJsonFile(
+    PRODUCTS_FILE,
+    []
+  );
+
+if (!Array.isArray(products)) {
+  products = [];
+}
+
+function saveProducts() {
+  writeJsonFile(
+    PRODUCTS_FILE,
+    products
+  );
+}
+
+function findProductByItemId(itemId) {
+  if (!itemId) {
+    return null;
+  }
+
+  return products.find(
+    product =>
+      String(product.item_id) ===
+      String(itemId)
+  ) || null;
+}
+
+function getProductCost(item) {
+  const itemId =
+    item?.item?.id ||
+    item?.item_id ||
+    item?.listing_id ||
+    null;
+
+  const product =
+    findProductByItemId(itemId);
+
+  if (!product) {
+    return 0;
+  }
+
+  return Number(
+    product.cost || 0
+  );
+}
+
+function getProductStock(item) {
+  const itemId =
+    item?.item?.id ||
+    item?.item_id ||
+    item?.listing_id ||
+    null;
+
+  const product =
+    findProductByItemId(itemId);
+
+  if (!product) {
+    return null;
+  }
+
+  return Number(
+    product.stock || 0
+  );
 }
 
 // ============================================================
@@ -127,16 +217,18 @@ function base64url(buffer) {
 }
 
 function createPKCE() {
-  const verifier = base64url(
-    crypto.randomBytes(32)
-  );
+  const verifier =
+    base64url(
+      crypto.randomBytes(32)
+    );
 
-  const challenge = base64url(
-    crypto
-      .createHash('sha256')
-      .update(verifier)
-      .digest()
-  );
+  const challenge =
+    base64url(
+      crypto
+        .createHash('sha256')
+        .update(verifier)
+        .digest()
+    );
 
   return {
     verifier,
@@ -149,57 +241,106 @@ function createPKCE() {
 // ============================================================
 
 function escapeHtml(value) {
-  return String(value).replace(
-    /[&<>'"]/g,
-    char => {
-      const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        "'": '&#39;',
-        '"': '&quot;'
-      };
+  return String(value)
+    .replace(
+      /[&<>'"]/g,
+      char => {
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        };
 
-      return map[char];
-    }
-  );
+        return map[char];
+      }
+    );
 }
 
-function todayArgentina() {
+function argentinaDateParts(date = new Date()) {
   const parts =
     new Intl.DateTimeFormat(
-      'en-CA',
+      'en-US',
       {
         timeZone:
           'America/Argentina/Buenos_Aires',
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit'
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
       }
-    ).formatToParts(new Date());
+    ).formatToParts(date);
 
   const result = {};
 
   for (const part of parts) {
-    result[part.type] = part.value;
+    result[part.type] =
+      part.value;
   }
 
-  return `${result.year}-${result.month}-${result.day}`;
+  return result;
+}
+
+function todayArgentina() {
+  const p =
+    argentinaDateParts();
+
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+function dateArgentinaString(value) {
+  if (!value) {
+    return '';
+  }
+
+  try {
+    const p =
+      argentinaDateParts(
+        new Date(value)
+      );
+
+    return `${p.year}-${p.month}-${p.day}`;
+  } catch {
+    return '';
+  }
+}
+
+function money(value) {
+  return new Intl.NumberFormat(
+    'es-AR',
+    {
+      style: 'currency',
+      currency: 'ARS',
+      maximumFractionDigits: 0
+    }
+  ).format(
+    Number(value) || 0
+  );
 }
 
 function requireConfig() {
   const missing = [];
 
   if (!CLIENT_ID) {
-    missing.push('ML_CLIENT_ID');
+    missing.push(
+      'ML_CLIENT_ID'
+    );
   }
 
   if (!CLIENT_SECRET) {
-    missing.push('ML_CLIENT_SECRET');
+    missing.push(
+      'ML_CLIENT_SECRET'
+    );
   }
 
   if (!REDIRECT_URI) {
-    missing.push('ML_REDIRECT_URI');
+    missing.push(
+      'ML_REDIRECT_URI'
+    );
   }
 
   if (missing.length) {
@@ -214,27 +355,35 @@ function requireConfig() {
 // ============================================================
 
 async function tokenRequest(body) {
-  const response = await fetch(
-    `${API_BASE}/oauth/token`,
-    {
-      method: 'POST',
+  const response =
+    await fetch(
+      `${API_BASE}/oauth/token`,
+      {
+        method: 'POST',
 
-      headers: {
-        accept: 'application/json',
-        'content-type':
-          'application/x-www-form-urlencoded'
-      },
+        headers: {
+          accept:
+            'application/json',
 
-      body: new URLSearchParams(body)
-    }
-  );
+          'content-type':
+            'application/x-www-form-urlencoded'
+        },
 
-  const text = await response.text();
+        body:
+          new URLSearchParams(
+            body
+          )
+      }
+    );
+
+  const text =
+    await response.text();
 
   let data;
 
   try {
-    data = JSON.parse(text);
+    data =
+      JSON.parse(text);
   } catch {
     data = {
       raw: text
@@ -242,14 +391,18 @@ async function tokenRequest(body) {
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data.error_description ||
-      data.error ||
-      `HTTP ${response.status}`
-    );
+    const error =
+      new Error(
+        data.error_description ||
+        data.error ||
+        `HTTP ${response.status}`
+      );
 
-    error.status = response.status;
-    error.details = data;
+    error.status =
+      response.status;
+
+    error.details =
+      data;
 
     throw error;
   }
@@ -257,41 +410,47 @@ async function tokenRequest(body) {
   return data;
 }
 
-// ============================================================
-// OBTENER TOKEN
-// ============================================================
-
 async function exchangeCode(code) {
   const body = {
-    grant_type: 'authorization_code',
+    grant_type:
+      'authorization_code',
 
-    client_id: CLIENT_ID,
+    client_id:
+      CLIENT_ID,
 
-    client_secret: CLIENT_SECRET,
+    client_secret:
+      CLIENT_SECRET,
 
     code,
 
-    redirect_uri: REDIRECT_URI
+    redirect_uri:
+      REDIRECT_URI
   };
 
   if (pkceVerifier) {
-    body.code_verifier = pkceVerifier;
+    body.code_verifier =
+      pkceVerifier;
   }
 
   const data =
-    await tokenRequest(body);
+    await tokenRequest(
+      body
+    );
 
-  const now = Date.now();
+  const now =
+    Date.now();
 
   saveTokens({
     ...data,
 
-    obtained_at: now,
+    obtained_at:
+      now,
 
     expires_at:
       now +
       (
-        (data.expires_in || 21600) *
+        (data.expires_in ||
+          21600) *
         1000
       )
   });
@@ -300,7 +459,9 @@ async function exchangeCode(code) {
 }
 
 async function refreshAccessToken() {
-  if (!tokenCache?.refresh_token) {
+  if (
+    !tokenCache?.refresh_token
+  ) {
     throw new Error(
       'No existe refresh_token. Hay que conectar Mercado Libre nuevamente.'
     );
@@ -308,27 +469,33 @@ async function refreshAccessToken() {
 
   const data =
     await tokenRequest({
-      grant_type: 'refresh_token',
+      grant_type:
+        'refresh_token',
 
-      client_id: CLIENT_ID,
+      client_id:
+        CLIENT_ID,
 
-      client_secret: CLIENT_SECRET,
+      client_secret:
+        CLIENT_SECRET,
 
       refresh_token:
         tokenCache.refresh_token
     });
 
-  const now = Date.now();
+  const now =
+    Date.now();
 
   saveTokens({
     ...data,
 
-    obtained_at: now,
+    obtained_at:
+      now,
 
     expires_at:
       now +
       (
-        (data.expires_in || 21600) *
+        (data.expires_in ||
+          21600) *
         1000
       )
   });
@@ -337,18 +504,22 @@ async function refreshAccessToken() {
 }
 
 async function getAccessToken() {
-  if (!tokenCache?.access_token) {
+  if (
+    !tokenCache?.access_token
+  ) {
     throw new Error(
       'Mercado Libre no está conectado.'
     );
   }
 
-  const safety = 60 * 1000;
+  const safety =
+    60 * 1000;
 
   if (
     tokenCache.expires_at &&
     Date.now() <
-      tokenCache.expires_at - safety
+      tokenCache.expires_at -
+      safety
   ) {
     return tokenCache.access_token;
   }
@@ -357,7 +528,7 @@ async function getAccessToken() {
 }
 
 // ============================================================
-// REQUEST GENERAL MERCADO LIBRE
+// MERCADO LIBRE API
 // ============================================================
 
 async function mlFetch(
@@ -378,13 +549,14 @@ async function mlFetch(
       'application/json'
   };
 
-  const response = await fetch(
-    `${API_BASE}${endpoint}`,
-    {
-      ...options,
-      headers
-    }
-  );
+  const response =
+    await fetch(
+      `${API_BASE}${endpoint}`,
+      {
+        ...options,
+        headers
+      }
+    );
 
   if (
     response.status === 401 &&
@@ -406,7 +578,8 @@ async function mlFetch(
   let data;
 
   try {
-    data = JSON.parse(text);
+    data =
+      JSON.parse(text);
   } catch {
     data = {
       raw: text
@@ -414,11 +587,12 @@ async function mlFetch(
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data.message ||
-      data.error ||
-      `Mercado Libre HTTP ${response.status}`
-    );
+    const error =
+      new Error(
+        data.message ||
+        data.error ||
+        `Mercado Libre HTTP ${response.status}`
+      );
 
     error.status =
       response.status;
@@ -433,7 +607,7 @@ async function mlFetch(
 }
 
 // ============================================================
-// REQUEST PRODUCT ADS
+// PRODUCT ADS
 // ============================================================
 
 async function mlAdsFetch(
@@ -453,7 +627,8 @@ async function mlAdsFetch(
     Accept:
       'application/json',
 
-    'api-version': '2'
+    'api-version':
+      '2'
   };
 
   const response =
@@ -485,7 +660,8 @@ async function mlAdsFetch(
   let data;
 
   try {
-    data = JSON.parse(text);
+    data =
+      JSON.parse(text);
   } catch {
     data = {
       raw: text
@@ -493,11 +669,12 @@ async function mlAdsFetch(
   }
 
   if (!response.ok) {
-    const error = new Error(
-      data.message ||
-      data.error ||
-      `Product Ads HTTP ${response.status}`
-    );
+    const error =
+      new Error(
+        data.message ||
+        data.error ||
+        `Product Ads HTTP ${response.status}`
+      );
 
     error.status =
       response.status;
@@ -512,6 +689,85 @@ async function mlAdsFetch(
 }
 
 // ============================================================
+// SSE TIEMPO REAL
+// ============================================================
+
+const clients =
+  new Set();
+
+function broadcast(event) {
+  const payload =
+    JSON.stringify(event);
+
+  for (const client of clients) {
+    try {
+      client.write(
+        `data: ${payload}\n\n`
+      );
+    } catch {
+      clients.delete(client);
+    }
+  }
+}
+
+app.get(
+  '/api/events',
+  (req, res) => {
+    res.setHeader(
+      'Content-Type',
+      'text/event-stream'
+    );
+
+    res.setHeader(
+      'Cache-Control',
+      'no-cache'
+    );
+
+    res.setHeader(
+      'Connection',
+      'keep-alive'
+    );
+
+    res.flushHeaders();
+
+    res.write(
+      `data: ${JSON.stringify({
+        type: 'connected',
+        time:
+          new Date().toISOString()
+      })}\n\n`
+    );
+
+    clients.add(res);
+
+    const heartbeat =
+      setInterval(
+        () => {
+          try {
+            res.write(
+              ': heartbeat\n\n'
+            );
+          } catch {}
+        },
+        25000
+      );
+
+    req.on(
+      'close',
+      () => {
+        clearInterval(
+          heartbeat
+        );
+
+        clients.delete(
+          res
+        );
+      }
+    );
+  }
+);
+
+// ============================================================
 // HOME
 // ============================================================
 
@@ -524,7 +780,9 @@ app.get(
         'index.html'
       );
 
-    if (!fs.existsSync(index)) {
+    if (
+      !fs.existsSync(index)
+    ) {
       return res
         .status(500)
         .send(
@@ -546,12 +804,17 @@ app.get(
     res.json({
       ok: true,
 
-      service: 'conteonix',
+      service:
+        'conteonix',
 
-      status: 'online',
+      status:
+        'online',
 
       connected:
         !!tokenCache?.access_token,
+
+      argentina_date:
+        todayArgentina(),
 
       time:
         new Date().toISOString()
@@ -676,8 +939,11 @@ app.get(
         req.query.code
       );
 
-      oauthState = null;
-      pkceVerifier = null;
+      oauthState =
+        null;
+
+      pkceVerifier =
+        null;
 
       res.redirect(
         '/?connected=1'
@@ -686,12 +952,14 @@ app.get(
     } catch (error) {
       console.error(
         'OAuth error:',
-        error.details || error
+        error.details ||
+        error
       );
 
       res
         .status(
-          error.status || 500
+          error.status ||
+          500
         )
         .send(
           `<h1>Error conectando Mercado Libre</h1>
@@ -724,7 +992,9 @@ app.get(
         REDIRECT_URI
     };
 
-    if (result.connected) {
+    if (
+      result.connected
+    ) {
       try {
         const me =
           await mlFetch(
@@ -732,22 +1002,21 @@ app.get(
           );
 
         result.user = {
-          id: me.id,
+          id:
+            me.id,
 
-          nickname: me.nickname,
+          nickname:
+            me.nickname,
 
           country_id:
-            me.country_id,
-
-          email:
-            me.email ||
-            null
+            me.country_id
         };
 
         saveTokens({
           ...tokenCache,
 
-          user_id: me.id
+          user_id:
+            me.id
         });
 
         result.user_id =
@@ -776,7 +1045,8 @@ app.get(
           '/users/me'
         );
 
-      const seller = me.id;
+      const seller =
+        me.id;
 
       const limit =
         Math.min(
@@ -820,7 +1090,9 @@ app.get(
         'date_desc'
       );
 
-      if (req.query.status) {
+      if (
+        req.query.status
+      ) {
         params.set(
           'order.status',
           req.query.status
@@ -835,19 +1107,17 @@ app.get(
       res.json({
         ok: true,
 
-        ...data
+        ...data,
+
+        argentina_date:
+          todayArgentina()
       });
 
     } catch (error) {
-      console.error(
-        'ORDERS ERROR:',
-        error.details ||
-        error.message
-      );
-
       res
         .status(
-          error.status || 500
+          error.status ||
+          500
         )
         .json({
           ok: false,
@@ -864,11 +1134,11 @@ app.get(
 );
 
 // ============================================================
-// SINCRONIZACIÓN
+// RESUMEN DEL DÍA
 // ============================================================
 
-app.post(
-  '/api/sync',
+app.get(
+  '/api/today',
   async (req, res) => {
     try {
       const me =
@@ -876,17 +1146,219 @@ app.post(
           '/users/me'
         );
 
-      const seller = me.id;
+      const seller =
+        me.id;
+
+      const today =
+        todayArgentina();
+
+      const params =
+        new URLSearchParams();
+
+      params.set(
+        'seller',
+        String(seller)
+      );
+
+      params.set(
+        'limit',
+        '50'
+      );
+
+      params.set(
+        'offset',
+        '0'
+      );
+
+      params.set(
+        'sort',
+        'date_desc'
+      );
+
+      const data =
+        await mlFetch(
+          `/orders/search?${params.toString()}`
+        );
+
+      const allOrders =
+        Array.isArray(
+          data.results
+        )
+          ? data.results
+          : [];
+
+      const todayOrders =
+        allOrders.filter(
+          order =>
+            dateArgentinaString(
+              order.date_created
+            ) === today
+        );
+
+      let billing = 0;
+      let units = 0;
+      let productCost = 0;
+
+      const productSummary =
+        {};
+
+      for (
+        const order
+        of todayOrders
+      ) {
+        billing +=
+          Number(
+            order.total_amount
+          ) || 0;
+
+        for (
+          const orderItem
+          of (
+            order.order_items ||
+            []
+          )
+        ) {
+          const quantity =
+            Number(
+              orderItem.quantity
+            ) || 0;
+
+          units +=
+            quantity;
+
+          const itemId =
+            orderItem.item?.id ||
+            orderItem.item_id ||
+            orderItem.listing_id ||
+            null;
+
+          const title =
+            orderItem.item?.title ||
+            orderItem.title ||
+            'Producto';
+
+          const unitPrice =
+            Number(
+              orderItem.unit_price
+            ) || 0;
+
+          const cost =
+            getProductCost(
+              orderItem
+            );
+
+          productCost +=
+            cost *
+            quantity;
+
+          const key =
+            String(
+              itemId ||
+              title
+            );
+
+          if (
+            !productSummary[key]
+          ) {
+            productSummary[key] = {
+              item_id:
+                itemId,
+
+              title,
+
+              units: 0,
+
+              sales:
+                0,
+
+              cost:
+                cost
+            };
+          }
+
+          productSummary[key].units +=
+            quantity;
+
+          productSummary[key].sales +=
+            unitPrice *
+            quantity;
+        }
+      }
+
+      res.json({
+        ok: true,
+
+        date:
+          today,
+
+        billing,
+
+        units,
+
+        sales_count:
+          todayOrders.length,
+
+        product_cost:
+          productCost,
+
+        orders:
+          todayOrders,
+
+        products:
+          Object.values(
+            productSummary
+          )
+      });
+
+    } catch (error) {
+      res
+        .status(
+          error.status ||
+          500
+        )
+        .json({
+          ok: false,
+
+          error:
+            error.message,
+
+          details:
+            error.details ||
+            null
+        });
+    }
+  }
+);
+
+// ============================================================
+// SYNC
+// ============================================================
+
+app.post(
+  '/api/sync',
+  async (req, res) => {
+    try {
+      const data =
+        await mlFetch(
+          '/users/me'
+        );
+
+      const seller =
+        data.id;
 
       const params =
         new URLSearchParams({
-          seller: String(seller),
+          seller:
+            String(seller),
 
-          limit: '50',
+          limit:
+            '50',
 
-          offset: '0',
+          offset:
+            '0',
 
-          sort: 'date_desc'
+          sort:
+            'date_desc'
         });
 
       const orders =
@@ -897,7 +1369,8 @@ app.post(
       saveTokens({
         ...tokenCache,
 
-        user_id: seller
+        user_id:
+          seller
       });
 
       res.json({
@@ -919,7 +1392,8 @@ app.post(
     } catch (error) {
       res
         .status(
-          error.status || 500
+          error.status ||
+          500
         )
         .json({
           ok: false,
@@ -936,7 +1410,7 @@ app.post(
 );
 
 // ============================================================
-// ADVERTISERS PRODUCT ADS
+// ADVERTISER
 // ============================================================
 
 async function fetchAdvertisers() {
@@ -1019,14 +1493,15 @@ async function getAdvertiser() {
       advertiser =>
         String(
           advertiser.site_id
-        ).toUpperCase() === 'MLA'
+        ).toUpperCase() ===
+        'MLA'
     ) ||
     advertisers[0]
   );
 }
 
 // ============================================================
-// MÉTRICAS PRODUCT ADS
+// ADS
 // ============================================================
 
 const AD_METRICS = [
@@ -1056,36 +1531,49 @@ const AD_METRICS = [
 function emptyAdsSummary() {
   return {
     clicks: 0,
-
     prints: 0,
-
     cost: 0,
-
     total_amount: 0,
-
     direct_amount: 0,
-
     indirect_amount: 0,
-
     units_quantity: 0,
-
     direct_units_quantity: 0,
-
     indirect_units_quantity: 0,
-
     ctr: 0,
-
     cpc: 0,
-
     roas: 0,
-
     acos: 0
   };
 }
 
-// ============================================================
-// TEST PRODUCT ADS
-// ============================================================
+function numberFromObject(
+  object,
+  keys
+) {
+  for (
+    const key
+    of keys
+  ) {
+    if (
+      object &&
+      object[key] !== undefined &&
+      object[key] !== null
+    ) {
+      const value =
+        Number(
+          object[key]
+        );
+
+      if (
+        Number.isFinite(value)
+      ) {
+        return value;
+      }
+    }
+  }
+
+  return 0;
+}
 
 app.get(
   '/api/ads/test',
@@ -1115,23 +1603,9 @@ app.get(
   }
 );
 
-// ============================================================
-// PRODUCT ADS
-// ============================================================
-
 app.get(
   '/api/ads',
   async (req, res) => {
-    const dateFrom =
-      req.query.date_from ||
-      req.query.date ||
-      todayArgentina();
-
-    const dateTo =
-      req.query.date_to ||
-      req.query.date ||
-      dateFrom;
-
     try {
       const advertiser =
         await getAdvertiser();
@@ -1148,6 +1622,16 @@ app.get(
           'Mercado Libre no devolvió advertiser_id.'
         );
       }
+
+      const dateFrom =
+        req.query.date_from ||
+        req.query.date ||
+        todayArgentina();
+
+      const dateTo =
+        req.query.date_to ||
+        req.query.date ||
+        dateFrom;
 
       const params =
         new URLSearchParams();
@@ -1194,11 +1678,6 @@ app.get(
       const endpoint =
         `/advertising/${site}/advertisers/${advertiserId}/product_ads/campaigns/search?${params.toString()}`;
 
-      console.log(
-        'PRODUCT ADS REQUEST:',
-        endpoint
-      );
-
       const data =
         await mlAdsFetch(
           endpoint
@@ -1214,6 +1693,11 @@ app.get(
       const metrics =
         emptyAdsSummary();
 
+      const summary =
+        data.metrics_summary ||
+        data.summary ||
+        {};
+
       const numericFields = [
         'clicks',
         'prints',
@@ -1226,35 +1710,21 @@ app.get(
         'units_quantity'
       ];
 
-      // --------------------------------------------------------
-      // Primero intentamos metrics_summary
-      // --------------------------------------------------------
-
-      const summary =
-        data.metrics_summary ||
-        data.summary ||
-        {};
-
       for (
         const field
         of numericFields
       ) {
-        if (
-          summary[field] !==
-          undefined &&
-          summary[field] !== null
-        ) {
-          metrics[field] =
-            Number(
-              summary[field]
-            ) || 0;
-        }
+        metrics[field] =
+          numberFromObject(
+            summary,
+            [
+              field
+            ]
+          );
       }
 
-      // --------------------------------------------------------
-      // Si no vino summary, sumamos campañas
-      // --------------------------------------------------------
-
+      // Algunas respuestas entregan las métricas
+      // dentro de metrics.
       if (
         Object.keys(summary).length === 0
       ) {
@@ -1271,71 +1741,51 @@ app.get(
             of numericFields
           ) {
             metrics[field] +=
-              Number(
-                source[field]
-              ) || 0;
+              numberFromObject(
+                source,
+                [
+                  field
+                ]
+              );
           }
         }
       }
 
-      // --------------------------------------------------------
-      // Algunas respuestas pueden devolver métricas
-      // dentro de arrays de resultados
-      // --------------------------------------------------------
-
+      // Si Product Ads devuelve una única métrica
+      // de costo dentro de resultados.
       if (
         metrics.cost === 0 &&
-        campaigns.length > 0
+        campaigns.length
       ) {
         for (
           const campaign
           of campaigns
         ) {
-          const possibleMetrics = [
-            campaign.metrics,
-            campaign.metric,
-            campaign.metrics_summary
-          ];
+          const source =
+            campaign.metrics ||
+            campaign;
 
-          for (
-            const source
-            of possibleMetrics
-          ) {
-            if (!source) {
-              continue;
-            }
+          metrics.cost +=
+            numberFromObject(
+              source,
+              [
+                'cost',
+                'spend',
+                'advertising_cost'
+              ]
+            );
 
-            metrics.cost +=
-              Number(
-                source.cost
-              ) || 0;
-
-            metrics.total_amount +=
-              Number(
-                source.total_amount
-              ) || 0;
-
-            metrics.direct_amount +=
-              Number(
-                source.direct_amount
-              ) || 0;
-
-            metrics.indirect_amount +=
-              Number(
-                source.indirect_amount
-              ) || 0;
-
-            metrics.units_quantity +=
-              Number(
-                source.units_quantity
-              ) || 0;
-          }
+          metrics.total_amount +=
+            numberFromObject(
+              source,
+              [
+                'total_amount',
+                'sales_amount',
+                'attributed_sales'
+              ]
+            );
         }
       }
-
-      // --------------------------------------------------------
-      // CÁLCULOS
-      // --------------------------------------------------------
 
       metrics.ctr =
         metrics.prints > 0
@@ -1369,21 +1819,14 @@ app.get(
             )
           : 0;
 
-      console.log(
-        'PRODUCT ADS SUMMARY:',
-        JSON.stringify(
-          metrics,
-          null,
-          2
-        )
-      );
-
       res.json({
         ok: true,
 
-        date_from: dateFrom,
+        date_from:
+          dateFrom,
 
-        date_to: dateTo,
+        date_to:
+          dateTo,
 
         advertiser: {
           id:
@@ -1401,11 +1844,7 @@ app.get(
         summary:
           metrics,
 
-        campaigns,
-
-        raw_metrics_summary:
-          data.metrics_summary ||
-          null
+        campaigns
       });
 
     } catch (error) {
@@ -1415,16 +1854,19 @@ app.get(
         error.message
       );
 
-      // No rompemos el dashboard si Product Ads
-      // falla temporalmente.
       res.status(200).json({
         ok: true,
 
-        date_from: dateFrom,
+        date_from:
+          req.query.date_from ||
+          todayArgentina(),
 
-        date_to: dateTo,
+        date_to:
+          req.query.date_to ||
+          todayArgentina(),
 
-        advertiser: null,
+        advertiser:
+          null,
 
         summary:
           emptyAdsSummary(),
@@ -1439,80 +1881,106 @@ app.get(
 );
 
 // ============================================================
-// SSE TIEMPO REAL
+// PRODUCTOS
 // ============================================================
 
-const clients = new Set();
-
-function broadcast(event) {
-  const payload =
-    JSON.stringify(event);
-
-  for (const client of clients) {
-    try {
-      client.write(
-        `data: ${payload}\n\n`
-      );
-    } catch {
-      clients.delete(client);
-    }
-  }
-}
-
 app.get(
-  '/api/events',
+  '/api/products',
   (req, res) => {
-    res.setHeader(
-      'Content-Type',
-      'text/event-stream'
-    );
+    res.json({
+      ok: true,
 
-    res.setHeader(
-      'Cache-Control',
-      'no-cache'
-    );
+      products
+    });
+  }
+);
 
-    res.setHeader(
-      'Connection',
-      'keep-alive'
-    );
+app.post(
+  '/api/products',
+  (req, res) => {
+    try {
+      const {
+        item_id,
+        title,
+        cost,
+        stock,
+        min_stock
+      } = req.body;
 
-    res.flushHeaders();
-
-    res.write(
-      `data: ${JSON.stringify({
-        type: 'connected',
-        time:
-          new Date().toISOString()
-      })}\n\n`
-    );
-
-    clients.add(res);
-
-    const heartbeat =
-      setInterval(
-        () => {
-          try {
-            res.write(
-              ': heartbeat\n\n'
-            );
-          } catch {}
-        },
-        25000
-      );
-
-    req.on(
-      'close',
-      () => {
-        clearInterval(
-          heartbeat
-        );
-
-        clients.delete(
-          res
-        );
+      if (!item_id) {
+        return res
+          .status(400)
+          .json({
+            ok: false,
+            error:
+              'Falta item_id.'
+          });
       }
-    );
+
+      const normalizedId =
+        String(item_id);
+
+      const existing =
+        products.find(
+          product =>
+            String(
+              product.item_id
+            ) ===
+            normalizedId
+        );
+
+      if (existing) {
+        existing.title =
+          title ||
+          existing.title;
+
+        existing.cost =
+          Number(cost) || 0;
+
+        existing.stock =
+          Number(stock) || 0;
+
+        existing.min_stock =
+          Number(min_stock) || 0;
+
+      } else {
+        products.push({
+          item_id:
+            normalizedId,
+
+          title:
+            title ||
+            'Producto',
+
+          cost:
+            Number(cost) || 0,
+
+          stock:
+            Number(stock) || 0,
+
+          min_stock:
+            Number(min_stock) || 0
+        });
+      }
+
+      saveProducts();
+
+      res.json({
+        ok: true,
+
+        products
+      });
+
+    } catch (error) {
+      res
+        .status(500)
+        .json({
+          ok: false,
+
+          error:
+            error.message
+        });
+    }
   }
 );
 
@@ -1558,7 +2026,8 @@ async function processNotification(
     );
 
     broadcast({
-      type: 'new_order',
+      type:
+        'new_order',
 
       order,
 
@@ -1584,8 +2053,7 @@ async function processNotification(
 
 app.post(
   '/notifications',
-  async (req, res) => {
-    // Mercado Libre necesita respuesta rápida.
+  (req, res) => {
     res.status(200).json({
       ok: true
     });
@@ -1599,10 +2067,9 @@ app.post(
   }
 );
 
-// Algunos configuradores usan /webhooks
 app.post(
   '/webhooks/mercadolibre',
-  async (req, res) => {
+  (req, res) => {
     res.status(200).json({
       ok: true
     });
@@ -1623,7 +2090,8 @@ app.post(
 app.post(
   '/api/logout',
   (req, res) => {
-    tokenCache = null;
+    tokenCache =
+      null;
 
     try {
       if (
@@ -1637,7 +2105,6 @@ app.post(
       }
     } catch (error) {
       console.error(
-        'Error eliminando token:',
         error.message
       );
     }
@@ -1655,12 +2122,14 @@ app.post(
 app.use(
   '/api',
   (req, res) => {
-    res.status(404).json({
-      ok: false,
+    res
+      .status(404)
+      .json({
+        ok: false,
 
-      error:
-        `Ruta no encontrada: ${req.method} ${req.originalUrl}`
-    });
+        error:
+          `Ruta no encontrada: ${req.method} ${req.originalUrl}`
+      });
   }
 );
 
@@ -1670,9 +2139,11 @@ app.use(
 
 app.use(
   (req, res) => {
-    res.status(404).send(
-      `Ruta no encontrada: ${req.method} ${req.originalUrl}`
-    );
+    res
+      .status(404)
+      .send(
+        `Ruta no encontrada: ${req.method} ${req.originalUrl}`
+      );
   }
 );
 
@@ -1702,11 +2173,19 @@ const server =
       );
 
       console.log(
+        `ARGENTINA DATE: ${todayArgentina()}`
+      );
+
+      console.log(
         `HEALTH: ${BASE_URL}/api/health`
       );
 
       console.log(
         `ADS: ${BASE_URL}/api/ads`
+      );
+
+      console.log(
+        `TODAY: ${BASE_URL}/api/today`
       );
 
       console.log(
