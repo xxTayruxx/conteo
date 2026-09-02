@@ -209,6 +209,19 @@
     <div id="adsKpis" class="loading">Cargando publicidad…</div>
     <div class="note" id="adsWarnings" style="color:var(--alert)"></div>
 
+    <div class="card" id="manualAdsCard" style="margin-top:14px;display:none">
+      <h3 class="sub-title" style="margin-bottom:4px">Cargar gasto de publicidad a mano</h3>
+      <div class="note" style="margin-top:0;margin-bottom:10px">
+        Mientras Mercado Libre no habilite el API de Advertising para esta cuenta, cargá acá el número que ves en tu panel de Publicidad (Inversión de hoy) y el Resumen en tiempo real lo va a usar para descontar la ganancia.
+      </div>
+      <div class="cost-form">
+        <input type="date" id="manualAdsDate">
+        <input type="number" id="manualAdsAmount" placeholder="Gasto de ese día ($)" step="0.01">
+        <button class="primary" onclick="saveManualAdSpend()">Guardar</button>
+      </div>
+      <div class="msg" id="manualAdsMsg"></div>
+    </div>
+
     <div class="section-head" style="margin-top:22px">
       <h3 class="sub-title">Gasto por anuncio</h3>
     </div>
@@ -311,9 +324,10 @@ async function loadRealtimeSummary(){
   const box = document.getElementById('summaryKpis');
   const note = document.getElementById('summaryNote');
   try{
-    const [salesResult, adsResult] = await Promise.allSettled([
+    const [salesResult, adsResult, manualResult] = await Promise.allSettled([
       fetch(`/api/live-metrics?period=${currentPeriod}`).then(r => r.json()),
-      fetch(`/api/product-ads?period=${currentPeriod}`).then(r => r.json())
+      fetch(`/api/product-ads?period=${currentPeriod}`).then(r => r.json()),
+      fetch(`/api/ads-manual?period=${currentPeriod}`).then(r => r.json())
     ]);
 
     const salesData = salesResult.status === 'fulfilled' ? salesResult.value : null;
@@ -323,7 +337,13 @@ async function loadRealtimeSummary(){
     const s = salesData.summary;
 
     const adsData = adsResult.status === 'fulfilled' && adsResult.value.ok ? adsResult.value : null;
-    const adSpend = adsData ? adsData.summary.cost : 0;
+    const manualData = manualResult.status === 'fulfilled' && manualResult.value.ok ? manualResult.value : null;
+
+    // Si la API de Ads trajo un gasto real (sin warnings), la preferimos.
+    // Si no, usamos lo que se haya cargado a mano para ese período.
+    const apiUsable = adsData && !adsData.warnings?.length && adsData.summary.cost > 0;
+    const adSpend = apiUsable ? adsData.summary.cost : (manualData?.total || 0);
+    const adSource = apiUsable ? 'api' : (adSpend > 0 ? 'manual' : 'none');
 
     // netProfitTotal ya descuenta comisiones de ML + envío + costo de producto.
     // Acá le restamos además la inversión en publicidad del mismo período.
@@ -337,9 +357,13 @@ async function loadRealtimeSummary(){
       { label:'Ganancia total', value: fmtMoney(gananciaTotal), cls: gananciaTotal >= 0 ? 'pos' : 'neg' }
     ], 'accent-sales');
 
-    note.textContent = adsData
-      ? `Ya descontados: comisiones de Mercado Libre, envío, costo de producto e inversión en publicidad (${fmtMoney(adSpend)}).`
-      : `Descontados: comisiones de Mercado Libre, envío y costo de producto. No se pudo descontar publicidad (${adsResult.value?.error || adsResult.reason?.message || 'sin datos'}).`;
+    if(adSource === 'api'){
+      note.textContent = `Ya descontados: comisiones de Mercado Libre, envío, costo de producto e inversión en publicidad (${fmtMoney(adSpend)}, desde la API).`;
+    } else if(adSource === 'manual'){
+      note.textContent = `Ya descontados: comisiones de Mercado Libre, envío, costo de producto e inversión en publicidad (${fmtMoney(adSpend)}, cargada a mano — la API de Ads no está disponible).`;
+    } else {
+      note.textContent = `Descontados: comisiones de Mercado Libre, envío y costo de producto. Todavía no cargaste ni se pudo obtener el gasto en publicidad de este período.`;
+    }
   }catch(e){
     box.innerHTML = `<div class="empty">No se pudo cargar: ${e.message}</div>`;
     note.textContent = '';
@@ -384,6 +408,42 @@ async function loadSales(){
   }
 }
 
+async function saveManualAdSpend(){
+  const dateInput = document.getElementById('manualAdsDate');
+  const amountInput = document.getElementById('manualAdsAmount');
+  const msg = document.getElementById('manualAdsMsg');
+  const date = dateInput.value;
+  const amount = parseFloat(amountInput.value);
+  if(!date || isNaN(amount) || amount < 0){
+    msg.textContent = 'Completá una fecha y un monto válido.';
+    msg.style.color = 'var(--alert)';
+    return;
+  }
+  try{
+    const r = await fetch('/api/ads-manual', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ date, amount })
+    });
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error);
+    msg.textContent = `Guardado: ${fmtMoney(amount)} para el ${date}.`;
+    msg.style.color = 'var(--sales)';
+    loadRealtimeSummary();
+  }catch(e){
+    msg.textContent = `Error: ${e.message}`;
+    msg.style.color = 'var(--alert)';
+  }
+}
+
+function preloadManualAdsDate(){
+  const dateInput = document.getElementById('manualAdsDate');
+  if(!dateInput.value){
+    // Fecha de hoy en formato YYYY-MM-DD (según el reloj del dispositivo)
+    const d = new Date();
+    dateInput.value = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  }
+}
+
 async function loadAds(){
   const box = document.getElementById('adsKpis');
   const warnBox = document.getElementById('adsWarnings');
@@ -401,6 +461,17 @@ async function loadAds(){
 
     if(d.warnings?.length){
       warnBox.textContent = d.warnings.join(' · ');
+      document.getElementById('manualAdsCard').style.display = 'block';
+      preloadManualAdsDate();
+      try{
+        const manualR = await fetch('/api/ads-manual?period=today');
+        const manualD = await manualR.json();
+        if(manualD.ok && manualD.today > 0 && !document.getElementById('manualAdsAmount').value){
+          document.getElementById('manualAdsAmount').value = manualD.today;
+        }
+      }catch(_){}
+    } else {
+      document.getElementById('manualAdsCard').style.display = 'none';
     }
 
     box.innerHTML = kpiHtml([
