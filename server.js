@@ -369,16 +369,19 @@ function emptyAdsMetrics() {
 }
 
 // Trae campañas + sus métricas del período
-async function fetchCampaignsWithMetrics(advertiserId, date_from, date_to) {
-  const url = `/advertising/advertisers/${advertiserId}/product_ads/campaigns` +
+// IMPORTANTE: Mercado Libre migró este API en 2025. La ruta vieja (/advertising/advertisers/...)
+// quedó deprecada y devuelve 404 vacío. Ahora va bajo /marketplace/advertising/{site_id}/...
+async function fetchCampaignsWithMetrics(advertiserId, siteId, date_from, date_to) {
+  const url = `/marketplace/advertising/${siteId}/advertisers/${advertiserId}/product_ads/campaigns` +
     `?date_from=${date_from}&date_to=${date_to}&metrics=${CAMPAIGN_METRICS}&limit=50&offset=0`;
   const data = await mlFetch(url, { 'Api-Version': '2' });
   return data.results || [];
 }
 
 // Trae anuncios (variantes/publicaciones) con el total de métricas del período, ordenados por inversión
-async function fetchItemsWithMetrics(advertiserId, date_from, date_to) {
-  const url = `/advertising/advertisers/${advertiserId}/product_ads/items` +
+// (en el API nuevo el recurso se llama "ads", ya no "items")
+async function fetchItemsWithMetrics(advertiserId, siteId, date_from, date_to) {
+  const url = `/marketplace/advertising/${siteId}/advertisers/${advertiserId}/product_ads/ads` +
     `?date_from=${date_from}&date_to=${date_to}&metrics=${ITEM_METRICS}` +
     `&metrics_summary=true&sort_by=cost&sort=desc&limit=50&offset=0`;
   const data = await mlFetch(url, { 'Api-Version': '2' });
@@ -397,8 +400,8 @@ async function getProductAdsReport(period) {
   const warnings = [];
 
   const [campaignsResult, itemsResult] = await Promise.allSettled([
-    fetchCampaignsWithMetrics(advertiser.advertiser_id, date_from, date_to),
-    fetchItemsWithMetrics(advertiser.advertiser_id, date_from, date_to)
+    fetchCampaignsWithMetrics(advertiser.advertiser_id, advertiser.site_id, date_from, date_to),
+    fetchItemsWithMetrics(advertiser.advertiser_id, advertiser.site_id, date_from, date_to)
   ]);
 
   let campaigns = [];
@@ -709,12 +712,15 @@ app.get('/api/product-ads', async (req, res) => {
   }
 });
 
-// TEMPORAL — diagnóstico: pega directo al endpoint de un anuncio puntual (sin pasar por advertiser_id)
-// para aislar si el 404 es del advertiser_id o de un permiso de Advertising a nivel de toda la cuenta.
-// Podés borrar esta ruta una vez que resolvamos el problema de Product Ads.
+// TEMPORAL — diagnóstico: pega directo al endpoint de un anuncio puntual.
+// Podés borrar esta ruta una vez que confirmemos que Product Ads anda bien.
 app.get('/api/debug/ads-item/:itemId', async (req, res) => {
   try {
-    const data = await mlFetch(`/advertising/product_ads/items/${req.params.itemId}`, { 'Api-Version': '2' });
+    const advertiser = await getAdvertiser();
+    const data = await mlFetch(
+      `/marketplace/advertising/${advertiser.site_id}/product_ads/ads/${req.params.itemId}`,
+      { 'Api-Version': '2' }
+    );
     res.json({ ok: true, data });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
