@@ -72,6 +72,11 @@ async function initDB() {
         subscription JSONB NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+      CREATE TABLE IF NOT EXISTS manual_ad_spend (
+        spend_date DATE PRIMARY KEY,
+        amount NUMERIC(12,2) NOT NULL DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
     tokenCache = await loadTokens();
   } catch (err) {
@@ -369,19 +374,16 @@ function emptyAdsMetrics() {
 }
 
 // Trae campañas + sus métricas del período
-// IMPORTANTE: Mercado Libre migró este API en 2025. La ruta vieja (/advertising/advertisers/...)
-// quedó deprecada y devuelve 404 vacío. Ahora va bajo /marketplace/advertising/{site_id}/...
 async function fetchCampaignsWithMetrics(advertiserId, siteId, date_from, date_to) {
-  const url = `/marketplace/advertising/${siteId}/advertisers/${advertiserId}/product_ads/campaigns` +
+  const url = `/advertising/advertisers/${advertiserId}/product_ads/campaigns` +
     `?date_from=${date_from}&date_to=${date_to}&metrics=${CAMPAIGN_METRICS}&limit=50&offset=0`;
   const data = await mlFetch(url, { 'Api-Version': '2' });
   return data.results || [];
 }
 
 // Trae anuncios (variantes/publicaciones) con el total de métricas del período, ordenados por inversión
-// (en el API nuevo el recurso se llama "ads", ya no "items")
 async function fetchItemsWithMetrics(advertiserId, siteId, date_from, date_to) {
-  const url = `/marketplace/advertising/${siteId}/advertisers/${advertiserId}/product_ads/ads` +
+  const url = `/advertising/advertisers/${advertiserId}/product_ads/items` +
     `?date_from=${date_from}&date_to=${date_to}&metrics=${ITEM_METRICS}` +
     `&metrics_summary=true&sort_by=cost&sort=desc&limit=50&offset=0`;
   const data = await mlFetch(url, { 'Api-Version': '2' });
@@ -696,6 +698,51 @@ app.get('/api/live-metrics', async (req, res) => {
   }
 });
 
+// Guarda el gasto de publicidad de un día puntual, cargado a mano
+// (fallback mientras el API de Advertising de ML no responda para esta cuenta)
+app.post('/api/ads-manual', async (req, res) => {
+  try {
+    const { date, amount } = req.body;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('Fecha inválida (formato YYYY-MM-DD).');
+    const value = parseFloat(amount);
+    if (isNaN(value) || value < 0) throw new Error('Monto inválido.');
+    await pool.query(`
+      INSERT INTO manual_ad_spend (spend_date, amount, updated_at)
+      VALUES ($1, $2, NOW())
+      ON CONFLICT (spend_date) DO UPDATE SET amount = EXCLUDED.amount, updated_at = NOW();
+    `, [date, value]);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Suma el gasto cargado a mano dentro del rango del período pedido
+app.get('/api/ads-manual', async (req, res) => {
+  try {
+    const period = ['today', 'yesterday', 'week', 'month'].includes(req.query.period)
+      ? req.query.period
+      : 'today';
+    const { date_from, date_to } = getAdsDateRange(period);
+    const r = await pool.query(
+      'SELECT COALESCE(SUM(amount), 0) AS total FROM manual_ad_spend WHERE spend_date BETWEEN $1 AND $2',
+      [date_from, date_to]
+    );
+    // También devolvemos el valor cargado para "hoy" puntual, para precargar el formulario
+    const todayRow = await pool.query('SELECT amount FROM manual_ad_spend WHERE spend_date = $1', [ymdAR(0)]);
+    res.json({
+      ok: true,
+      period,
+      date_from,
+      date_to,
+      total: parseFloat(r.rows[0].total),
+      today: todayRow.rows[0] ? parseFloat(todayRow.rows[0].amount) : 0
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // Reporte de Product Ads: cuánto se gastó, cuánto generó cada peso invertido y ventas por anuncio
 app.get('/api/product-ads', async (req, res) => {
   try {
@@ -716,11 +763,7 @@ app.get('/api/product-ads', async (req, res) => {
 // Podés borrar esta ruta una vez que confirmemos que Product Ads anda bien.
 app.get('/api/debug/ads-item/:itemId', async (req, res) => {
   try {
-    const advertiser = await getAdvertiser();
-    const data = await mlFetch(
-      `/marketplace/advertising/${advertiser.site_id}/product_ads/ads/${req.params.itemId}`,
-      { 'Api-Version': '2' }
-    );
+    const data = await mlFetch(`/advertising/product_ads/items/${req.params.itemId}`, { 'Api-Version': '2' });
     res.json({ ok: true, data });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
