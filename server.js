@@ -709,6 +709,18 @@ app.get('/api/product-ads', async (req, res) => {
   }
 });
 
+// TEMPORAL — diagnóstico: pega directo al endpoint de un anuncio puntual (sin pasar por advertiser_id)
+// para aislar si el 404 es del advertiser_id o de un permiso de Advertising a nivel de toda la cuenta.
+// Podés borrar esta ruta una vez que resolvamos el problema de Product Ads.
+app.get('/api/debug/ads-item/:itemId', async (req, res) => {
+  try {
+    const data = await mlFetch(`/advertising/product_ads/items/${req.params.itemId}`, { 'Api-Version': '2' });
+    res.json({ ok: true, data });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // Alertas de stock: días restantes según velocidad de venta real
 app.get('/api/stock-alerts', async (req, res) => {
   try {
