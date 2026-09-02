@@ -92,6 +92,26 @@
 
   .empty,.loading{color:var(--ink-soft);font-size:13.5px;padding:14px 2px}
   .note{font-size:12px;color:var(--ink-soft);margin-top:10px}
+  .profit-hero{
+    margin-bottom:12px;
+    background:linear-gradient(135deg,var(--surface-2),var(--surface));
+    border:1px solid var(--gold);
+    border-radius:12px;
+    padding:20px 22px;
+    box-shadow:0 0 0 1px rgba(201,162,75,.08),0 12px 30px rgba(0,0,0,.16);
+  }
+  .profit-hero .hero-label{font-size:12px;color:var(--gold);text-transform:uppercase;letter-spacing:.12em}
+  .profit-hero .hero-value{font-family:'Fraunces',serif;font-size:42px;line-height:1.05;margin-top:6px;font-variant-numeric:tabular-nums}
+  .profit-hero .hero-value.pos{color:var(--sales)}
+  .profit-hero .hero-value.neg{color:var(--alert)}
+  .profit-hero .hero-meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;color:var(--ink-soft);font-size:12.5px}
+  .expense-card{margin-top:14px}
+  .expense-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .expense-cell{background:var(--surface);padding:13px 14px}
+  .expense-cell .label{font-size:12px;color:var(--ink-soft)}
+  .expense-cell .value{font-family:'Fraunces',serif;font-size:19px;margin-top:4px}
+  @media(max-width:680px){.expense-grid{grid-template-columns:1fr 1fr}.profit-hero .hero-value{font-size:34px}}
+  @media(max-width:460px){.expense-grid{grid-template-columns:1fr}.profit-hero{padding:17px}.profit-hero .hero-value{font-size:31px}}
 
   .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px}
   .cost-form{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -158,7 +178,30 @@
     <div class="section-head">
       <h2>Resumen en tiempo real</h2>
     </div>
+    <div class="profit-hero">
+      <div class="hero-label">Ganancia total de hoy</div>
+      <div id="dailyProfit" class="hero-value pos">$0</div>
+      <div class="hero-meta">
+        <span id="dailyProfitStatus">Calculando resultado real…</span>
+        <span id="lastUpdate">Última actualización: —</span>
+      </div>
+    </div>
     <div id="summaryKpis" class="loading">Cargando resumen…</div>
+    <div class="card expense-card">
+      <div class="section-head" style="margin-bottom:10px">
+        <h3 class="sub-title">Dónde se fue la plata hoy</h3>
+      </div>
+      <div id="expenseGrid" class="expense-grid">
+        <div class="expense-cell"><div class="label">Comisiones ML</div><div id="dailyFees" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Envíos</div><div id="dailyShipping" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Impuestos</div><div id="dailyTaxes" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Publicidad</div><div id="dailyAds" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Costo mercadería</div><div id="dailyProducts" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Otros cargos ML</div><div id="dailyOther" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Total gastos</div><div id="dailyTotalCosts" class="value">$0</div></div>
+        <div class="expense-cell"><div class="label">Margen real</div><div id="dailyMargin" class="value">0%</div></div>
+      </div>
+    </div>
     <div class="note" id="summaryNote"></div>
   </section>
 
@@ -254,6 +297,22 @@
 
   <section>
     <div class="section-head">
+      <h2>Facturación y cargos de Mercado Libre</h2>
+    </div>
+    <div class="card">
+      <div id="billingStatus" class="note" style="margin-top:0">Consultando la factura del período…</div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead><tr><th>Concepto</th><th>Tipo</th><th class="num">Importe</th></tr></thead>
+          <tbody id="billingBody"><tr><td class="empty">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="note">Este bloque usa el reporte de facturación de Mercado Libre para conciliar cargos como Product Ads, Mercado Envíos, cobros por venta, bonificaciones e impuestos. Mercado Libre recomienda cachearlo y no consultarlo como fuente de ventas en tiempo real.</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
       <h2>Stock</h2>
     </div>
     <div class="table-wrap">
@@ -334,21 +393,38 @@ async function loadRealtimeSummary(){
     if(!salesData?.ok){
       throw new Error(salesData?.error || 'No se pudieron cargar las ventas.');
     }
-    const s = salesData.summary;
 
+    const s = salesData.summary;
     const adsData = adsResult.status === 'fulfilled' && adsResult.value.ok ? adsResult.value : null;
     const manualData = manualResult.status === 'fulfilled' && manualResult.value.ok ? manualResult.value : null;
 
-    // Si la API de Ads trajo un gasto real (sin warnings), la preferimos.
-    // Si no, usamos lo que se haya cargado a mano para ese período.
-    const apiUsable = adsData && !adsData.warnings?.length && adsData.summary.cost > 0;
-    const adSpend = apiUsable ? adsData.summary.cost : (manualData?.total || 0);
-    const adSource = apiUsable ? 'api' : (adSpend > 0 ? 'manual' : 'none');
+    const apiUsable = adsData && !adsData.warnings?.length;
+    const adSpend = apiUsable ? Number(adsData.summary.cost || 0) : Number(manualData?.total || 0);
 
-    // netProfitTotal ya descuenta comisiones de ML + envío + costo de producto.
-    // Acá le restamos además la inversión en publicidad del mismo período.
-    const gananciaTotal = s.netProfitTotal - adSpend;
+    // Los costos provenientes de Orders ya incluyen comisión, envío, impuestos
+    // y costo de mercadería. Publicidad se agrega aparte para obtener la ganancia real.
+    const baseProfit = Number(s.netProfitTotal || 0);
+    const gananciaTotal = baseProfit - adSpend;
+    const totalCosts = Number(s.totalFees||0) + Number(s.totalShipping||0) +
+      Number(s.totalTaxes||0) + Number(s.totalProductCost||0) + adSpend;
+    const margin = Number(s.totalRevenue||0) > 0 ? gananciaTotal / Number(s.totalRevenue) * 100 : 0;
     const gananciaPorVenta = s.totalOrders > 0 ? gananciaTotal / s.totalOrders : 0;
+
+    document.getElementById('dailyProfit').textContent = fmtMoney(gananciaTotal);
+    document.getElementById('dailyProfit').className = `hero-value ${gananciaTotal >= 0 ? 'pos' : 'neg'}`;
+    document.getElementById('dailyProfitStatus').textContent =
+      currentPeriod === 'today' ? 'Facturación − costos − publicidad' : `Resultado del período seleccionado`;
+    document.getElementById('lastUpdate').textContent =
+      `Última actualización: ${new Date().toLocaleTimeString('es-AR')}`;
+
+    document.getElementById('dailyFees').textContent = fmtMoney(s.totalFees);
+    document.getElementById('dailyShipping').textContent = fmtMoney(s.totalShipping);
+    document.getElementById('dailyTaxes').textContent = fmtMoney(s.totalTaxes);
+    document.getElementById('dailyAds').textContent = fmtMoney(adSpend);
+    document.getElementById('dailyProducts').textContent = fmtMoney(s.totalProductCost);
+    document.getElementById('dailyOther').textContent = '$0';
+    document.getElementById('dailyTotalCosts').textContent = fmtMoney(totalCosts);
+    document.getElementById('dailyMargin').textContent = fmtPct(margin);
 
     box.innerHTML = kpiHtml([
       { label:'Ventas totales', value: fmtNum(s.totalOrders) },
@@ -357,12 +433,12 @@ async function loadRealtimeSummary(){
       { label:'Ganancia total', value: fmtMoney(gananciaTotal), cls: gananciaTotal >= 0 ? 'pos' : 'neg' }
     ], 'accent-sales');
 
-    if(adSource === 'api'){
-      note.textContent = `Ya descontados: comisiones de Mercado Libre, envío, costo de producto e inversión en publicidad (${fmtMoney(adSpend)}, desde la API).`;
-    } else if(adSource === 'manual'){
-      note.textContent = `Ya descontados: comisiones de Mercado Libre, envío, costo de producto e inversión en publicidad (${fmtMoney(adSpend)}, cargada a mano — la API de Ads no está disponible).`;
+    if(apiUsable){
+      note.textContent = `Publicidad: ${fmtMoney(adSpend)} obtenida desde Product Ads. El resultado descuenta comisión, envío, impuestos, costo de mercadería y publicidad.`;
+    } else if(adSpend > 0){
+      note.textContent = `Publicidad: ${fmtMoney(adSpend)} cargada manualmente. El resto de los costos proviene de las órdenes de Mercado Libre.`;
     } else {
-      note.textContent = `Descontados: comisiones de Mercado Libre, envío y costo de producto. Todavía no cargaste ni se pudo obtener el gasto en publicidad de este período.`;
+      note.textContent = `Todavía no hay gasto de publicidad disponible para este período; la ganancia mostrada no descuenta publicidad.`;
     }
   }catch(e){
     box.innerHTML = `<div class="empty">No se pudo cargar: ${e.message}</div>`;
@@ -386,7 +462,7 @@ async function loadSales(){
       { label:'Margen', value: fmtPct(s.overallMargin) },
       { label:'Ventas', value: fmtNum(s.totalOrders) },
       { label:'Canceladas', value: fmtNum(s.cancelledOrders) },
-      { label:'Envíos + comisiones', value: fmtMoney(s.totalFees + s.totalShipping) }
+      { label:'Envíos + comisiones + impuestos', value: fmtMoney(s.totalFees + s.totalShipping + (s.totalTaxes || 0)) }
     ], 'accent-sales');
 
     if(!d.orders.length){
@@ -526,6 +602,38 @@ async function loadAds(){
     box.innerHTML = `<div class="empty">No se pudo cargar: ${e.message}</div>`;
     itemsBody.innerHTML = `<tr><td class="empty">—</td></tr>`;
     campBody.innerHTML = `<tr><td class="empty">—</td></tr>`;
+  }
+}
+
+async function loadBilling(){
+  const status = document.getElementById('billingStatus');
+  const body = document.getElementById('billingBody');
+  try{
+    const r = await fetch('/api/billing-summary');
+    const d = await r.json();
+    if(!d.ok) throw new Error(d.error);
+
+    const charges = (d.charges || []).map(x => ({...x, sign: 1}));
+    const bonuses = (d.bonuses || []).map(x => ({...x, sign: -1}));
+    const rows = [...charges, ...bonuses];
+
+    status.textContent = `Período de facturación: ${d.period?.date_from || d.key} → ${d.period?.date_to || 'actualidad'} · Total informado: ${fmtMoney(d.totalAmount)}`;
+
+    if(!rows.length){
+      body.innerHTML = `<tr><td class="empty">Mercado Libre no devolvió cargos para este período.</td></tr>`;
+      return;
+    }
+
+    body.innerHTML = rows.map(x => `
+      <tr class="${x.sign < 0 ? 'gain' : ''}">
+        <td data-label="Concepto">${x.label || 'Cargo'}</td>
+        <td data-label="Tipo">${x.type || '—'}</td>
+        <td class="num" data-label="Importe">${x.sign < 0 ? '-' : ''}${fmtMoney(Math.abs(x.amount || 0))}</td>
+      </tr>
+    `).join('');
+  }catch(e){
+    status.textContent = `No se pudo consultar la facturación: ${e.message}`;
+    body.innerHTML = `<tr><td class="empty">El resumen de facturación requiere permisos de Billing en la aplicación de Mercado Libre.</td></tr>`;
   }
 }
 
@@ -829,13 +937,16 @@ loadStatus();
 loadRealtimeSummary();
 loadSales();
 loadAds();
+loadBilling();
 loadStock();
 loadNotifications();
 connectSSE();
 initPush();
 
-// La publicidad no avisa por SSE cuando cambia el gasto, así que refrescamos el resumen solos
-setInterval(loadRealtimeSummary, 60000);
+// Las ventas entran por webhook/SSE. Además refrescamos el resumen cada 20 s
+// para detectar cambios de ventas/costos; Product Ads se actualiza dentro de ese ciclo
+// pero Mercado Libre puede tener unos minutos de demora en sus métricas.
+setInterval(loadRealtimeSummary, 20000);
 </script>
 </body>
 </html>
